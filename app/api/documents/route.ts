@@ -2,15 +2,22 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { uploadFichier } from "@/lib/storage";
-import { TypeDoc } from "@prisma/client";
 
 const TAILLE_MAX = 10 * 1024 * 1024; // 10 Mo
-const TYPES_AUTORISES = [
-  "application/pdf",
-  "image/jpeg",
-  "image/png",
-  "image/webp",
+const TYPES_AUTORISES = ["application/pdf", "image/jpeg", "image/png", "image/webp"];
+const TYPES_DOC_VALIDES = [
+  "DIPLOME", "RELEVE_NOTES", "ACTE_NAISSANCE", "PIECE_IDENTITE",
+  "JUSTIFICATIF_LANGUE", "LETTRE_RECO", "AUTRE",
 ];
+
+function parseDocument(doc: Record<string, unknown>) {
+  return {
+    ...doc,
+    infosExtraites: doc.infosExtraites
+      ? JSON.parse(doc.infosExtraites as string)
+      : null,
+  };
+}
 
 export async function GET() {
   const session = await auth();
@@ -29,11 +36,12 @@ export async function GET() {
       infosExtraites: true,
       extraitParIa: true,
       createdAt: true,
-      // refStockage JAMAIS exposé dans l'API
     },
   });
 
-  return NextResponse.json(documents);
+  return NextResponse.json(
+    documents.map((d) => parseDocument(d as unknown as Record<string, unknown>))
+  );
 }
 
 export async function POST(req: NextRequest) {
@@ -47,10 +55,8 @@ export async function POST(req: NextRequest) {
     const fichier = formData.get("fichier") as File | null;
     const typeStr = formData.get("type") as string | null;
 
-    if (!fichier) {
-      return NextResponse.json({ erreur: "Aucun fichier reçu" }, { status: 400 });
-    }
-    if (!typeStr || !Object.values(TypeDoc).includes(typeStr as TypeDoc)) {
+    if (!fichier) return NextResponse.json({ erreur: "Aucun fichier reçu" }, { status: 400 });
+    if (!typeStr || !TYPES_DOC_VALIDES.includes(typeStr)) {
       return NextResponse.json({ erreur: "Type de document invalide" }, { status: 400 });
     }
     if (!TYPES_AUTORISES.includes(fichier.type)) {
@@ -60,10 +66,7 @@ export async function POST(req: NextRequest) {
       );
     }
     if (fichier.size > TAILLE_MAX) {
-      return NextResponse.json(
-        { erreur: "Fichier trop volumineux (max 10 Mo)." },
-        { status: 400 }
-      );
+      return NextResponse.json({ erreur: "Fichier trop volumineux (max 10 Mo)." }, { status: 400 });
     }
 
     const buffer = Buffer.from(await fichier.arrayBuffer());
@@ -72,23 +75,18 @@ export async function POST(req: NextRequest) {
     const doc = await prisma.document.create({
       data: {
         userId: session.user.id,
-        type: typeStr as TypeDoc,
+        type: typeStr,
         nomFichier: fichier.name,
         refStockage,
         taille: fichier.size,
       },
       select: {
-        id: true,
-        type: true,
-        nomFichier: true,
-        taille: true,
-        infosExtraites: true,
-        extraitParIa: true,
-        createdAt: true,
+        id: true, type: true, nomFichier: true,
+        taille: true, infosExtraites: true, extraitParIa: true, createdAt: true,
       },
     });
 
-    // Déclenchement asynchrone de l'extraction IA (ne bloque pas la réponse)
+    // Extraction IA asynchrone (ne bloque pas la réponse)
     void fetch(new URL("/api/ia/extraire-document", req.url).toString(), {
       method: "POST",
       headers: {
@@ -99,13 +97,12 @@ export async function POST(req: NextRequest) {
         documentId: doc.id,
         type: typeStr,
         nomFichier: fichier.name,
-        // On envoie le buffer en base64 pour l'extraction IA
         contenuBase64: buffer.toString("base64"),
         mimeType: fichier.type,
       }),
     }).catch((err) => console.error("Extraction IA (async):", err));
 
-    return NextResponse.json(doc, { status: 201 });
+    return NextResponse.json(parseDocument(doc as unknown as Record<string, unknown>), { status: 201 });
   } catch (err) {
     console.error("Erreur upload document:", err);
     return NextResponse.json({ erreur: "Erreur serveur lors de l'upload" }, { status: 500 });

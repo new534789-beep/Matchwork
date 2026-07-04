@@ -10,7 +10,9 @@ import path from "path";
 import { chiffrer, dechiffrer } from "./chiffrement";
 import crypto from "crypto";
 
-const STORAGE_DIR = process.env.STORAGE_LOCAL_DIR ?? path.join(process.cwd(), ".storage");
+const STORAGE_DIR =
+  process.env.STORAGE_LOCAL_DIR ??
+  path.join(/* turbopackIgnore: true */ process.cwd(), ".storage");
 
 async function ensureDir(dir: string) {
   await fs.mkdir(dir, { recursive: true });

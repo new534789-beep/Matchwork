@@ -1,7 +1,13 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import { InputHTMLAttributes, forwardRef, SelectHTMLAttributes, TextareaHTMLAttributes } from "react";
+import { InputHTMLAttributes, SelectHTMLAttributes, TextareaHTMLAttributes, forwardRef } from "react";
+
+const inputStyle: React.CSSProperties = {
+  background: "var(--input-bg)",
+  border: "1px solid var(--input-border)",
+  color: "var(--text)",
+};
 
 interface ChampTexteProps extends InputHTMLAttributes<HTMLInputElement> {
   label?: string;
@@ -13,26 +19,20 @@ export const ChampTexte = forwardRef<HTMLInputElement, ChampTexteProps>(
   ({ className, label, erreur, aide, id, ...props }, ref) => {
     const inputId = id ?? label?.toLowerCase().replace(/\s+/g, "-");
     return (
-      <div className="flex flex-col gap-1">
+      <div className="flex flex-col gap-1.5">
         {label && (
-          <label htmlFor={inputId} className="text-sm font-medium text-gray-700">
-            {label}
-          </label>
+          <label htmlFor={inputId} className="text-sm font-medium" style={{ color: "var(--text-2)" }}>{label}</label>
         )}
         <input
-          ref={ref}
-          id={inputId}
-          className={cn(
-            "w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm placeholder:text-gray-400",
-            "focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent",
-            "disabled:bg-gray-50 disabled:text-gray-500",
-            erreur && "border-red-400 focus:ring-red-400",
-            className
-          )}
+          ref={ref} id={inputId}
+          className={cn("w-full rounded-xl px-4 py-2.5 text-sm outline-none transition-all placeholder:opacity-30", erreur && "ring-1 ring-red-500", className)}
+          style={inputStyle}
+          onFocus={(e) => { e.target.style.border = "1px solid rgba(124,58,237,0.6)"; e.target.style.boxShadow = "0 0 0 3px rgba(124,58,237,0.12)"; }}
+          onBlur={(e) => { e.target.style.border = "1px solid var(--input-border)"; e.target.style.boxShadow = "none"; }}
           {...props}
         />
-        {aide && !erreur && <p className="text-xs text-gray-500">{aide}</p>}
-        {erreur && <p className="text-xs text-red-600">{erreur}</p>}
+        {aide && !erreur && <p className="text-xs" style={{ color: "var(--text-3)" }}>{aide}</p>}
+        {erreur && <p className="text-xs" style={{ color: "#fca5a5" }}>{erreur}</p>}
       </div>
     );
   }
@@ -49,26 +49,20 @@ export const ChampTextarea = forwardRef<HTMLTextAreaElement, ChampTextareaProps>
   ({ className, label, erreur, aide, id, ...props }, ref) => {
     const inputId = id ?? label?.toLowerCase().replace(/\s+/g, "-");
     return (
-      <div className="flex flex-col gap-1">
+      <div className="flex flex-col gap-1.5">
         {label && (
-          <label htmlFor={inputId} className="text-sm font-medium text-gray-700">
-            {label}
-          </label>
+          <label htmlFor={inputId} className="text-sm font-medium" style={{ color: "var(--text-2)" }}>{label}</label>
         )}
         <textarea
-          ref={ref}
-          id={inputId}
-          rows={3}
-          className={cn(
-            "w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm placeholder:text-gray-400 resize-none",
-            "focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent",
-            erreur && "border-red-400",
-            className
-          )}
+          ref={ref} id={inputId} rows={3}
+          className={cn("w-full rounded-xl px-4 py-2.5 text-sm outline-none resize-none transition-all placeholder:opacity-30", className)}
+          style={inputStyle}
+          onFocus={(e) => { e.target.style.border = "1px solid rgba(124,58,237,0.6)"; e.target.style.boxShadow = "0 0 0 3px rgba(124,58,237,0.12)"; }}
+          onBlur={(e) => { e.target.style.border = "1px solid var(--input-border)"; e.target.style.boxShadow = "none"; }}
           {...props}
         />
-        {aide && !erreur && <p className="text-xs text-gray-500">{aide}</p>}
-        {erreur && <p className="text-xs text-red-600">{erreur}</p>}
+        {aide && !erreur && <p className="text-xs" style={{ color: "var(--text-3)" }}>{aide}</p>}
+        {erreur && <p className="text-xs" style={{ color: "#fca5a5" }}>{erreur}</p>}
       </div>
     );
   }
@@ -85,30 +79,19 @@ export const ChampSelect = forwardRef<HTMLSelectElement, ChampSelectProps>(
   ({ className, label, erreur, options, id, ...props }, ref) => {
     const inputId = id ?? label?.toLowerCase().replace(/\s+/g, "-");
     return (
-      <div className="flex flex-col gap-1">
+      <div className="flex flex-col gap-1.5">
         {label && (
-          <label htmlFor={inputId} className="text-sm font-medium text-gray-700">
-            {label}
-          </label>
+          <label htmlFor={inputId} className="text-sm font-medium" style={{ color: "var(--text-2)" }}>{label}</label>
         )}
         <select
-          ref={ref}
-          id={inputId}
-          className={cn(
-            "w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm",
-            "focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent",
-            erreur && "border-red-400",
-            className
-          )}
+          ref={ref} id={inputId}
+          className={cn("w-full rounded-xl px-4 py-2.5 text-sm outline-none", className)}
+          style={inputStyle}
           {...props}
         >
-          {options.map((o) => (
-            <option key={o.valeur} value={o.valeur}>
-              {o.libelle}
-            </option>
-          ))}
+          {options.map((o) => <option key={o.valeur} value={o.valeur}>{o.libelle}</option>)}
         </select>
-        {erreur && <p className="text-xs text-red-600">{erreur}</p>}
+        {erreur && <p className="text-xs" style={{ color: "#fca5a5" }}>{erreur}</p>}
       </div>
     );
   }

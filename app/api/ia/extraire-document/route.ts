@@ -1,10 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import Anthropic from "@anthropic-ai/sdk";
+import { hasMistralKey, getMistralClient, MODELS } from "@/lib/ia/mistral";
 import { SYSTEM_PROMPT_EXTRACTION } from "@/lib/ia/prompts/extraction";
-
-const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
 export async function POST(req: NextRequest) {
   const session = await auth();
@@ -12,57 +10,70 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ erreur: "Non authentifié" }, { status: 401 });
   }
 
+  if (!hasMistralKey()) {
+    console.warn("MISTRAL_API_KEY non définie — extraction IA ignorée");
+    return NextResponse.json({ succes: false, raison: "clé_api_manquante" });
+  }
+
   try {
-    const { documentId, type, nomFichier, contenuBase64, mimeType } = await req.json();
+    const { documentId, type, nomFichier, contenuBase64, mimeType } = await req.json() as {
+      documentId: string;
+      type: string;
+      nomFichier: string;
+      contenuBase64: string;
+      mimeType: string;
+    };
 
     const doc = await prisma.document.findUnique({ where: { id: documentId } });
     if (!doc || doc.userId !== session.user.id) {
       return NextResponse.json({ erreur: "Document introuvable" }, { status: 404 });
     }
 
-    // Construire le message selon le type de fichier
-    const messageContent: Anthropic.MessageParam["content"] = [];
-
+    const client = getMistralClient();
     const estImage = (mimeType as string).startsWith("image/");
-    const estPdf = mimeType === "application/pdf";
-
-    if (estImage) {
-      messageContent.push({
-        type: "image",
-        source: {
-          type: "base64",
-          media_type: mimeType as "image/jpeg" | "image/png" | "image/webp" | "image/gif",
-          data: contenuBase64,
-        },
-      });
-    } else if (estPdf) {
-      messageContent.push({
-        type: "document",
-        source: {
-          type: "base64",
-          media_type: "application/pdf",
-          data: contenuBase64,
-        },
-      } as unknown as Anthropic.TextBlockParam);
-    }
-
-    messageContent.push({
-      type: "text",
-      text: `Type déclaré par l'utilisateur : ${type}\nNom du fichier : ${nomFichier}\n\nExtrait les informations pertinentes de ce document.`,
-    });
-
-    const response = await anthropic.messages.create({
-      model: "claude-sonnet-4-6",
-      max_tokens: 1024,
-      system: SYSTEM_PROMPT_EXTRACTION,
-      messages: [{ role: "user", content: messageContent }],
-    });
-
-    const texte = response.content[0].type === "text" ? response.content[0].text : "";
 
     let infos: Record<string, unknown> = {};
+    let texte = "";
+
+    if (estImage) {
+      // Vision (Pixtral) pour les images
+      const result = await client.chat.complete({
+        model: MODELS.vision,
+        messages: [
+          { role: "system", content: SYSTEM_PROMPT_EXTRACTION },
+          {
+            role: "user",
+            content: [
+              {
+                type: "image_url" as const,
+                imageUrl: `data:${mimeType};base64,${contenuBase64}`,
+              },
+              {
+                type: "text" as const,
+                text: `Type déclaré : ${type}\nNom du fichier : ${nomFichier}\n\nExtrait les informations pertinentes selon le system prompt. Réponds en JSON.`,
+              },
+            ],
+          },
+        ],
+      });
+      texte = (result.choices?.[0]?.message?.content as string) ?? "";
+    } else {
+      // PDF ou autre : extraction à partir des métadonnées du fichier
+      const result = await client.chat.complete({
+        model: MODELS.large,
+        messages: [
+          { role: "system", content: SYSTEM_PROMPT_EXTRACTION },
+          {
+            role: "user",
+            content: `Type de document : ${type}\nNom du fichier : ${nomFichier}\nFormat : PDF\n\nExtrait les informations pertinentes que l'on peut déduire du type et du nom du document. Réponds en JSON.`,
+          },
+        ],
+        responseFormat: { type: "json_object" },
+      });
+      texte = (result.choices?.[0]?.message?.content as string) ?? "";
+    }
+
     try {
-      // Extraire le JSON de la réponse (Claude peut ajouter du texte autour)
       const match = texte.match(/\{[\s\S]*\}/);
       if (match) infos = JSON.parse(match[0]);
     } catch {
@@ -71,7 +82,7 @@ export async function POST(req: NextRequest) {
 
     await prisma.document.update({
       where: { id: documentId },
-      data: { infosExtraites: infos, extraitParIa: true },
+      data: { infosExtraites: JSON.stringify(infos), extraitParIa: true },
     });
 
     return NextResponse.json({ succes: true, infos });

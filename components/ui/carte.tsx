@@ -8,11 +8,8 @@ interface CarteProps extends HTMLAttributes<HTMLDivElement> {
 export function Carte({ className, children, padding = true, ...props }: CarteProps) {
   return (
     <div
-      className={cn(
-        "bg-white rounded-2xl border border-gray-100 shadow-sm",
-        padding && "p-5",
-        className
-      )}
+      className={cn("rounded-2xl", padding && "p-5", className)}
+      style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}
       {...props}
     >
       {children}
@@ -21,16 +18,12 @@ export function Carte({ className, children, padding = true, ...props }: CartePr
 }
 
 export function CarteEntete({ className, children, ...props }: HTMLAttributes<HTMLDivElement>) {
-  return (
-    <div className={cn("mb-4", className)} {...props}>
-      {children}
-    </div>
-  );
+  return <div className={cn("mb-4", className)} {...props}>{children}</div>;
 }
 
 export function CarteTitre({ className, children, ...props }: HTMLAttributes<HTMLHeadingElement>) {
   return (
-    <h2 className={cn("text-base font-semibold text-gray-900", className)} {...props}>
+    <h2 className={cn("text-base font-semibold", className)} style={{ color: "var(--text)" }} {...props}>
       {children}
     </h2>
   );

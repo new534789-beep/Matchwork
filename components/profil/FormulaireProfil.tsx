@@ -50,6 +50,26 @@ interface Props {
   profilInitial: Profil | null;
 }
 
+const btnAjouter: React.CSSProperties = {
+  color: "#a78bfa",
+  fontSize: "0.875rem",
+  fontWeight: 500,
+  background: "none",
+  border: "none",
+  cursor: "pointer",
+  padding: 0,
+  transition: "color 0.18s ease",
+};
+
+const btnSupprimer: React.CSSProperties = {
+  color: "var(--text-3)",
+  background: "none",
+  border: "none",
+  cursor: "pointer",
+  fontSize: "0.75rem",
+  transition: "color 0.18s ease",
+};
+
 export function FormulaireProfil({ profilInitial }: Props) {
   const [sauvegarde, setSauvegarde] = useState(false);
   const [chargement, setChargement] = useState(false);
@@ -60,16 +80,16 @@ export function FormulaireProfil({ profilInitial }: Props) {
   const [tonSouhaite, setTonSouhaite] = useState(profilInitial?.tonSouhaite ?? "");
 
   const [formations, setFormations] = useState<Formation[]>(
-    (profilInitial?.formations as Formation[]) ?? []
+    (profilInitial?.formations as unknown as Formation[]) ?? []
   );
   const [experiences, setExperiences] = useState<Experience[]>(
-    (profilInitial?.experiences as Experience[]) ?? []
+    (profilInitial?.experiences as unknown as Experience[]) ?? []
   );
   const [competences, setCompetences] = useState<string[]>(
-    (profilInitial?.competences as string[]) ?? []
+    (profilInitial?.competences as unknown as string[]) ?? []
   );
   const [langues, setLangues] = useState<Langue[]>(
-    (profilInitial?.langues as Langue[]) ?? []
+    (profilInitial?.langues as unknown as Langue[]) ?? []
   );
   const [competenceInput, setCompetenceInput] = useState("");
 
@@ -95,25 +115,17 @@ export function FormulaireProfil({ profilInitial }: Props) {
     }
   }
 
-  function ajouterFormation() {
-    setFormations([...formations, { etablissement: "", diplome: "", annee: "" }]);
-  }
+  function ajouterFormation() { setFormations([...formations, { etablissement: "", diplome: "", annee: "" }]); }
   function majFormation(i: number, champ: keyof Formation, val: string) {
     setFormations(formations.map((f, idx) => (idx === i ? { ...f, [champ]: val } : f)));
   }
-  function supprimerFormation(i: number) {
-    setFormations(formations.filter((_, idx) => idx !== i));
-  }
+  function supprimerFormation(i: number) { setFormations(formations.filter((_, idx) => idx !== i)); }
 
-  function ajouterExperience() {
-    setExperiences([...experiences, { poste: "", organisation: "", dateDebut: "" }]);
-  }
+  function ajouterExperience() { setExperiences([...experiences, { poste: "", organisation: "", dateDebut: "" }]); }
   function majExperience(i: number, champ: keyof Experience, val: string) {
     setExperiences(experiences.map((e, idx) => (idx === i ? { ...e, [champ]: val } : e)));
   }
-  function supprimerExperience(i: number) {
-    setExperiences(experiences.filter((_, idx) => idx !== i));
-  }
+  function supprimerExperience(i: number) { setExperiences(experiences.filter((_, idx) => idx !== i)); }
 
   function ajouterCompetence() {
     if (!competenceInput.trim()) return;
@@ -121,23 +133,33 @@ export function FormulaireProfil({ profilInitial }: Props) {
     setCompetenceInput("");
   }
 
-  function ajouterLangue() {
-    setLangues([...langues, { langue: "", niveau: "" }]);
-  }
+  function ajouterLangue() { setLangues([...langues, { langue: "", niveau: "" }]); }
   function majLangue(i: number, champ: keyof Langue, val: string) {
     setLangues(langues.map((l, idx) => (idx === i ? { ...l, [champ]: val } : l)));
   }
-  function supprimerLangue(i: number) {
-    setLangues(langues.filter((_, idx) => idx !== i));
-  }
+  function supprimerLangue(i: number) { setLangues(langues.filter((_, idx) => idx !== i)); }
+
+  const itemBorder: React.CSSProperties = {
+    border: "1px solid var(--border)",
+    borderRadius: "12px",
+    padding: "12px",
+    position: "relative",
+  };
+
+  const emptyText: React.CSSProperties = {
+    fontSize: "0.875rem",
+    color: "var(--text-3)",
+    textAlign: "center",
+    padding: "8px 0",
+  };
 
   return (
-    <form onSubmit={sauvegarder} className="space-y-5 pb-8">
+    <form onSubmit={sauvegarder} className="pb-8">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 items-start">
+
       {/* Bio */}
       <Carte>
-        <CarteEntete>
-          <CarteTitre>Présentation générale</CarteTitre>
-        </CarteEntete>
+        <CarteEntete><CarteTitre>Présentation générale</CarteTitre></CarteEntete>
         <ChampTextarea
           label="Bio / Situation actuelle"
           placeholder="Ex : Étudiant en Master Informatique à l'UAC, passionné par l'IA et le développement logiciel…"
@@ -152,49 +174,32 @@ export function FormulaireProfil({ profilInitial }: Props) {
         <CarteEntete>
           <div className="flex items-center justify-between">
             <CarteTitre>Formations</CarteTitre>
-            <button type="button" onClick={ajouterFormation} className="text-indigo-600 text-sm font-medium">
+            <button type="button" onClick={ajouterFormation} style={btnAjouter}
+              onMouseEnter={(e) => ((e.currentTarget as HTMLButtonElement).style.color = "#fff")}
+              onMouseLeave={(e) => ((e.currentTarget as HTMLButtonElement).style.color = "#a78bfa")}
+            >
               + Ajouter
             </button>
           </div>
         </CarteEntete>
         <div className="space-y-4">
-          {formations.length === 0 && (
-            <p className="text-sm text-gray-400 text-center py-2">Aucune formation ajoutée</p>
-          )}
+          {formations.length === 0 && <p style={emptyText}>Aucune formation ajoutée</p>}
           {formations.map((f, i) => (
-            <div key={i} className="border border-gray-100 rounded-xl p-3 space-y-3 relative">
+            <div key={i} style={itemBorder} className="space-y-3">
               <button
                 type="button"
                 onClick={() => supprimerFormation(i)}
-                className="absolute top-2 right-2 text-gray-400 hover:text-red-500 text-xs"
+                style={{ ...btnSupprimer, position: "absolute", top: "8px", right: "8px" }}
+                onMouseEnter={(e) => ((e.currentTarget as HTMLButtonElement).style.color = "#fca5a5")}
+                onMouseLeave={(e) => ((e.currentTarget as HTMLButtonElement).style.color = "var(--text-3)")}
               >
-                ✕
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
               </button>
-              <ChampTexte
-                label="Établissement"
-                placeholder="Ex : Université d'Abomey-Calavi"
-                value={f.etablissement}
-                onChange={(e) => majFormation(i, "etablissement", e.target.value)}
-              />
-              <ChampTexte
-                label="Diplôme"
-                placeholder="Ex : Licence en Informatique"
-                value={f.diplome}
-                onChange={(e) => majFormation(i, "diplome", e.target.value)}
-              />
+              <ChampTexte label="Établissement" placeholder="Ex : Université d'Abomey-Calavi" value={f.etablissement} onChange={(e) => majFormation(i, "etablissement", e.target.value)} />
+              <ChampTexte label="Diplôme" placeholder="Ex : Licence en Informatique" value={f.diplome} onChange={(e) => majFormation(i, "diplome", e.target.value)} />
               <div className="grid grid-cols-2 gap-2">
-                <ChampTexte
-                  label="Année"
-                  placeholder="2023"
-                  value={f.annee}
-                  onChange={(e) => majFormation(i, "annee", e.target.value)}
-                />
-                <ChampTexte
-                  label="Mention / Note"
-                  placeholder="Ex : Bien, 14/20"
-                  value={f.note ?? ""}
-                  onChange={(e) => majFormation(i, "note", e.target.value)}
-                />
+                <ChampTexte label="Année" placeholder="2023" value={f.annee} onChange={(e) => majFormation(i, "annee", e.target.value)} />
+                <ChampTexte label="Mention / Note" placeholder="Ex : Bien, 14/20" value={f.note ?? ""} onChange={(e) => majFormation(i, "note", e.target.value)} />
               </div>
             </div>
           ))}
@@ -206,57 +211,34 @@ export function FormulaireProfil({ profilInitial }: Props) {
         <CarteEntete>
           <div className="flex items-center justify-between">
             <CarteTitre>Expériences</CarteTitre>
-            <button type="button" onClick={ajouterExperience} className="text-indigo-600 text-sm font-medium">
+            <button type="button" onClick={ajouterExperience} style={btnAjouter}
+              onMouseEnter={(e) => ((e.currentTarget as HTMLButtonElement).style.color = "#fff")}
+              onMouseLeave={(e) => ((e.currentTarget as HTMLButtonElement).style.color = "#a78bfa")}
+            >
               + Ajouter
             </button>
           </div>
         </CarteEntete>
         <div className="space-y-4">
-          {experiences.length === 0 && (
-            <p className="text-sm text-gray-400 text-center py-2">Aucune expérience ajoutée</p>
-          )}
+          {experiences.length === 0 && <p style={emptyText}>Aucune expérience ajoutée</p>}
           {experiences.map((exp, i) => (
-            <div key={i} className="border border-gray-100 rounded-xl p-3 space-y-3 relative">
+            <div key={i} style={itemBorder} className="space-y-3">
               <button
                 type="button"
                 onClick={() => supprimerExperience(i)}
-                className="absolute top-2 right-2 text-gray-400 hover:text-red-500 text-xs"
+                style={{ ...btnSupprimer, position: "absolute", top: "8px", right: "8px" }}
+                onMouseEnter={(e) => ((e.currentTarget as HTMLButtonElement).style.color = "#fca5a5")}
+                onMouseLeave={(e) => ((e.currentTarget as HTMLButtonElement).style.color = "var(--text-3)")}
               >
-                ✕
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
               </button>
-              <ChampTexte
-                label="Poste / Rôle"
-                placeholder="Ex : Stagiaire développeur"
-                value={exp.poste}
-                onChange={(e) => majExperience(i, "poste", e.target.value)}
-              />
-              <ChampTexte
-                label="Organisation"
-                placeholder="Ex : ONG TechAfrica"
-                value={exp.organisation}
-                onChange={(e) => majExperience(i, "organisation", e.target.value)}
-              />
+              <ChampTexte label="Poste / Rôle" placeholder="Ex : Stagiaire développeur" value={exp.poste} onChange={(e) => majExperience(i, "poste", e.target.value)} />
+              <ChampTexte label="Organisation" placeholder="Ex : ONG TechAfrica" value={exp.organisation} onChange={(e) => majExperience(i, "organisation", e.target.value)} />
               <div className="grid grid-cols-2 gap-2">
-                <ChampTexte
-                  label="Début"
-                  placeholder="2022-06"
-                  value={exp.dateDebut}
-                  onChange={(e) => majExperience(i, "dateDebut", e.target.value)}
-                />
-                <ChampTexte
-                  label="Fin (ou vide)"
-                  placeholder="2022-09"
-                  value={exp.dateFin ?? ""}
-                  onChange={(e) => majExperience(i, "dateFin", e.target.value)}
-                />
+                <ChampTexte label="Début" placeholder="2022-06" value={exp.dateDebut} onChange={(e) => majExperience(i, "dateDebut", e.target.value)} />
+                <ChampTexte label="Fin (ou vide)" placeholder="2022-09" value={exp.dateFin ?? ""} onChange={(e) => majExperience(i, "dateFin", e.target.value)} />
               </div>
-              <ChampTextarea
-                label="Description"
-                placeholder="Missions et réalisations principales…"
-                value={exp.description ?? ""}
-                onChange={(e) => majExperience(i, "description", e.target.value)}
-                rows={2}
-              />
+              <ChampTextarea label="Description" placeholder="Missions et réalisations principales…" value={exp.description ?? ""} onChange={(e) => majExperience(i, "description", e.target.value)} rows={2} />
             </div>
           ))}
         </div>
@@ -264,9 +246,7 @@ export function FormulaireProfil({ profilInitial }: Props) {
 
       {/* Compétences */}
       <Carte>
-        <CarteEntete>
-          <CarteTitre>Compétences</CarteTitre>
-        </CarteEntete>
+        <CarteEntete><CarteTitre>Compétences</CarteTitre></CarteEntete>
         <div className="flex gap-2 mb-3">
           <input
             type="text"
@@ -274,20 +254,29 @@ export function FormulaireProfil({ profilInitial }: Props) {
             onChange={(e) => setCompetenceInput(e.target.value)}
             onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); ajouterCompetence(); } }}
             placeholder="Ex : Python, Gestion de projet…"
-            className="flex-1 rounded-xl border border-gray-200 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            className="flex-1 rounded-xl px-4 py-2.5 text-sm outline-none placeholder:opacity-30"
+            style={{ background: "var(--input-bg)", border: "1px solid var(--input-border)", color: "var(--text)" }}
+            onFocus={(e) => { e.target.style.border = "1px solid rgba(124,58,237,0.5)"; }}
+            onBlur={(e) => { e.target.style.border = "1px solid var(--input-border)"; }}
           />
-          <Bouton type="button" variante="secondaire" taille="sm" onClick={ajouterCompetence}>
-            +
-          </Bouton>
+          <Bouton type="button" variante="secondaire" taille="sm" onClick={ajouterCompetence}>+</Bouton>
         </div>
         <div className="flex flex-wrap gap-2">
           {competences.map((c, i) => (
-            <Badge key={i} couleur="indigo" className="cursor-pointer" onClick={() => setCompetences(competences.filter((_, idx) => idx !== i))}>
-              {c} ✕
+            <Badge
+              key={i}
+              couleur="indigo"
+              className="cursor-pointer hover-scale"
+              onClick={() => setCompetences(competences.filter((_, idx) => idx !== i))}
+            >
+              {c}
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" style={{ marginLeft: 5, display: "inline", verticalAlign: "middle" }}><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
             </Badge>
           ))}
           {competences.length === 0 && (
-            <p className="text-sm text-gray-400">Appuyez sur Entrée ou + pour ajouter</p>
+            <p style={{ fontSize: "0.875rem", color: "var(--text-3)" }}>
+              Appuyez sur Entrée ou + pour ajouter
+            </p>
           )}
         </div>
       </Carte>
@@ -297,37 +286,28 @@ export function FormulaireProfil({ profilInitial }: Props) {
         <CarteEntete>
           <div className="flex items-center justify-between">
             <CarteTitre>Langues</CarteTitre>
-            <button type="button" onClick={ajouterLangue} className="text-indigo-600 text-sm font-medium">
+            <button type="button" onClick={ajouterLangue} style={btnAjouter}
+              onMouseEnter={(e) => ((e.currentTarget as HTMLButtonElement).style.color = "#fff")}
+              onMouseLeave={(e) => ((e.currentTarget as HTMLButtonElement).style.color = "#a78bfa")}
+            >
               + Ajouter
             </button>
           </div>
         </CarteEntete>
         <div className="space-y-3">
-          {langues.length === 0 && (
-            <p className="text-sm text-gray-400 text-center py-2">Aucune langue ajoutée</p>
-          )}
+          {langues.length === 0 && <p style={emptyText}>Aucune langue ajoutée</p>}
           {langues.map((l, i) => (
             <div key={i} className="flex gap-2 items-end">
-              <ChampTexte
-                label={i === 0 ? "Langue" : undefined}
-                placeholder="Ex : Anglais"
-                value={l.langue}
-                onChange={(e) => majLangue(i, "langue", e.target.value)}
-                className="flex-1"
-              />
-              <ChampSelect
-                label={i === 0 ? "Niveau réel" : undefined}
-                options={NIVEAUX_LANGUE}
-                value={l.niveau}
-                onChange={(e) => majLangue(i, "niveau", e.target.value)}
-                className="flex-1"
-              />
+              <ChampTexte label={i === 0 ? "Langue" : undefined} placeholder="Ex : Anglais" value={l.langue} onChange={(e) => majLangue(i, "langue", e.target.value)} className="flex-1" />
+              <ChampSelect label={i === 0 ? "Niveau réel" : undefined} options={NIVEAUX_LANGUE} value={l.niveau} onChange={(e) => majLangue(i, "niveau", e.target.value)} className="flex-1" />
               <button
                 type="button"
                 onClick={() => supprimerLangue(i)}
-                className="text-gray-400 hover:text-red-500 pb-2.5 flex-shrink-0"
+                style={{ ...btnSupprimer, paddingBottom: "10px", flexShrink: 0 }}
+                onMouseEnter={(e) => ((e.currentTarget as HTMLButtonElement).style.color = "#fca5a5")}
+                onMouseLeave={(e) => ((e.currentTarget as HTMLButtonElement).style.color = "var(--text-3)")}
               >
-                ✕
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
               </button>
             </div>
           ))}
@@ -336,9 +316,7 @@ export function FormulaireProfil({ profilInitial }: Props) {
 
       {/* Objectifs */}
       <Carte>
-        <CarteEntete>
-          <CarteTitre>Objectifs</CarteTitre>
-        </CarteEntete>
+        <CarteEntete><CarteTitre>Objectifs</CarteTitre></CarteEntete>
         <ChampTextarea
           label="Domaine et pays visés, motivations"
           placeholder="Ex : Je souhaite poursuivre un Master en Intelligence Artificielle en Europe (France, Belgique, Allemagne)…"
@@ -350,9 +328,7 @@ export function FormulaireProfil({ profilInitial }: Props) {
 
       {/* Ton */}
       <Carte>
-        <CarteEntete>
-          <CarteTitre>Ton des lettres</CarteTitre>
-        </CarteEntete>
+        <CarteEntete><CarteTitre>Ton des lettres</CarteTitre></CarteEntete>
         <ChampSelect
           label="Ton préféré pour vos lettres de motivation"
           options={TONS}
@@ -360,22 +336,24 @@ export function FormulaireProfil({ profilInitial }: Props) {
           onChange={(e) => setTonSouhaite(e.target.value)}
         />
       </Carte>
+      </div>
 
-      {/* Erreur / Succès */}
+      <div className="mt-6 max-w-3xl mx-auto space-y-4">
       {erreur && (
-        <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-xl px-4 py-3">
+        <div className="rounded-xl px-4 py-3 text-sm" style={{ background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.3)", color: "#fca5a5" }}>
           {erreur}
         </div>
       )}
       {sauvegarde && (
-        <div className="bg-green-50 border border-green-200 text-green-700 text-sm rounded-xl px-4 py-3">
-          ✓ Profil sauvegardé avec succès
+        <div className="rounded-xl px-4 py-3 text-sm" style={{ background: "rgba(124,58,237,0.1)", border: "1px solid rgba(124,58,237,0.3)", color: "#a78bfa" }}>
+          Profil sauvegardé avec succès
         </div>
       )}
 
-      <Bouton type="submit" chargement={chargement} className="w-full">
+      <Bouton type="submit" chargement={chargement} className="w-full hover-glow">
         Sauvegarder le profil
       </Bouton>
+      </div>
     </form>
   );
 }

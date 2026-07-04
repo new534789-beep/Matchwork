@@ -1,0 +1,29 @@
+<svg viewBox="0 0 200 220" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Outer M silhouette: two pointed peaks + enclosed bottom -->
+  <path d="
+    M 10 95
+    L 10 195
+    Q 10 215 30 215
+    L 170 215
+    Q 190 215 190 195
+    L 190 95
+    L 152 8
+    L 100 68
+    L 48 8
+    Z
+  " fill="#7c3aed"/>
+  <!-- White inner cutout: creates the M interior hollow -->
+  <path d="
+    M 38 188
+    L 38 108
+    L 100 158
+    L 162 108
+    L 162 188
+    L 138 188
+    L 138 128
+    L 100 168
+    L 62 128
+    L 62 188
+    Z
+  " fill="white"/>
+</svg>

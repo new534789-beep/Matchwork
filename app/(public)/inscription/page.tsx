@@ -3,8 +3,8 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ChampTexte } from "@/components/ui/champ";
-import { Bouton } from "@/components/ui/bouton";
+import { AuthShell } from "@/components/auth/AuthShell";
+import { BoutonGoogle } from "@/components/auth/BoutonGoogle";
 
 export default function Inscription() {
   const router = useRouter();
@@ -33,18 +33,11 @@ export default function Inscription() {
         body: JSON.stringify({ email: form.email, motDePasse: form.motDePasse }),
       });
       const data = await res.json();
-      if (!res.ok) {
-        setErreur(data.erreur ?? "Une erreur est survenue.");
-        return;
-      }
-      // Connexion automatique après inscription
+      if (!res.ok) { setErreur(data.erreur ?? "Une erreur est survenue."); return; }
+
       const { signIn } = await import("next-auth/react");
-      await signIn("credentials", {
-        email: form.email,
-        password: form.motDePasse,
-        redirect: false,
-      });
-      router.push("/onboarding");
+      await signIn("credentials", { email: form.email, password: form.motDePasse, redirect: false });
+      router.push("/tableau-de-bord");
     } catch {
       setErreur("Impossible de créer le compte. Veuillez réessayer.");
     } finally {
@@ -53,67 +46,73 @@ export default function Inscription() {
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 flex flex-col justify-center px-5 py-12">
-      <div className="max-w-sm mx-auto w-full">
-        {/* Logo */}
-        <Link href="/" className="block text-center text-indigo-600 font-bold text-2xl mb-8">
-          Matchwork
-        </Link>
+    <AuthShell
+      titre="Créer mon compte"
+      sousTitre="3 dossiers complets offerts, sans carte bancaire."
+      bas={<>Déjà inscrit ?{" "}<Link href="/connexion" style={{ color: "#a78bfa", fontWeight: 600 }}>Se connecter</Link></>}
+    >
+      <BoutonGoogle callbackUrl="/tableau-de-bord" label="S'inscrire avec Google" />
 
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-          <h1 className="text-xl font-bold text-gray-900 mb-1">Créer mon compte</h1>
-          <p className="text-sm text-gray-500 mb-6">
-            Commencez gratuitement — 3 dossiers offerts
-          </p>
+      <Separateur />
 
-          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-            <ChampTexte
-              label="Adresse e-mail"
-              type="email"
-              placeholder="vous@exemple.com"
-              value={form.email}
-              onChange={(e) => setForm({ ...form, email: e.target.value })}
-              required
-              autoComplete="email"
-            />
-            <ChampTexte
-              label="Mot de passe"
-              type="password"
-              placeholder="Minimum 8 caractères"
-              value={form.motDePasse}
-              onChange={(e) => setForm({ ...form, motDePasse: e.target.value })}
-              required
-              autoComplete="new-password"
-            />
-            <ChampTexte
-              label="Confirmer le mot de passe"
-              type="password"
-              placeholder="Répétez votre mot de passe"
-              value={form.confirmation}
-              onChange={(e) => setForm({ ...form, confirmation: e.target.value })}
-              required
-              autoComplete="new-password"
-            />
+      <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+        <ChampAuth label="Adresse e-mail" type="email" placeholder="vous@exemple.com"
+          value={form.email} onChange={(v) => setForm({ ...form, email: v })} />
+        <ChampAuth label="Mot de passe" type="password" placeholder="Minimum 8 caractères"
+          value={form.motDePasse} onChange={(v) => setForm({ ...form, motDePasse: v })} />
+        <ChampAuth label="Confirmer le mot de passe" type="password" placeholder="Répétez votre mot de passe"
+          value={form.confirmation} onChange={(v) => setForm({ ...form, confirmation: v })} />
 
-            {erreur && (
-              <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-xl px-4 py-3">
-                {erreur}
-              </div>
-            )}
+        {erreur && (
+          <div className="rounded-xl px-4 py-3 text-sm" style={{ background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.3)", color: "#fca5a5" }}>
+            {erreur}
+          </div>
+        )}
 
-            <Bouton type="submit" chargement={chargement} className="w-full mt-1">
-              Créer mon compte
-            </Bouton>
-          </form>
-        </div>
+        <button
+          type="submit"
+          disabled={chargement}
+          className="w-full py-3.5 rounded-xl font-semibold text-sm mt-1"
+          style={{ background: "linear-gradient(135deg,#7c3aed,#5b21b6)", color: "#fff", boxShadow: "0 6px 22px rgba(124,58,237,0.35)", opacity: chargement ? 0.7 : 1 }}
+        >
+          {chargement ? "Création en cours…" : "Créer mon compte"}
+        </button>
 
-        <p className="text-center text-sm text-gray-500 mt-4">
-          Déjà inscrit ?{" "}
-          <Link href="/connexion" className="text-indigo-600 font-medium hover:underline">
-            Se connecter
-          </Link>
+        <p style={{ fontSize: "0.72rem", color: "rgba(255,255,255,0.3)", textAlign: "center", lineHeight: 1.5 }}>
+          En créant un compte, vous acceptez nos conditions d&apos;utilisation et notre politique de confidentialité.
         </p>
-      </div>
-    </main>
+      </form>
+    </AuthShell>
+  );
+}
+
+function Separateur() {
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: 14, margin: "20px 0" }}>
+      <span style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.1)" }} />
+      <span style={{ fontSize: "0.75rem", color: "rgba(255,255,255,0.35)" }}>ou par e-mail</span>
+      <span style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.1)" }} />
+    </div>
+  );
+}
+
+function ChampAuth({ label, type, placeholder, value, onChange }: {
+  label: string; type: string; placeholder: string; value: string; onChange: (v: string) => void;
+}) {
+  return (
+    <div className="flex flex-col gap-1.5">
+      <label className="text-sm font-medium" style={{ color: "rgba(255,255,255,0.6)" }}>{label}</label>
+      <input
+        type={type}
+        placeholder={placeholder}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        required
+        className="w-full rounded-xl px-4 py-3 text-sm outline-none"
+        style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", color: "#fff" }}
+        onFocus={(e) => { e.target.style.border = "1px solid rgba(124,58,237,0.6)"; e.target.style.boxShadow = "0 0 0 3px rgba(124,58,237,0.15)"; }}
+        onBlur={(e) => { e.target.style.border = "1px solid rgba(255,255,255,0.1)"; e.target.style.boxShadow = "none"; }}
+      />
+    </div>
   );
 }

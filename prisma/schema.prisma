@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
   url      = env("DATABASE_URL")
 }
 
@@ -13,7 +13,9 @@ model User {
   id           String    @id @default(cuid())
   email        String    @unique
   motDePasse   String
-  plan         Plan      @default(GRATUIT)
+  plan         String    @default("gratuit")
+  role         String    @default("user")
+  suspendu     Boolean   @default(false)
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
 
@@ -22,13 +24,10 @@ model User {
   interactions Interaction[]
   dossiers     Dossier[]
   quotas       QuotaUsage[]
+  paiements    Paiement[]
+  messages     Message[]
 
   @@map("users")
-}
-
-enum Plan {
-  GRATUIT
-  PAYANT
 }
 
 // ─── Profil candidat ─────────────────────────────────────────────────────────
@@ -38,23 +37,16 @@ model Profil {
   userId      String   @unique
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  nomComplet  String?
   bio         String?
-  // Chaque tableau stocké en JSON : [{etablissement, diplome, annee, note?, domaine?}]
-  formations  Json     @default("[]")
-  // [{poste, organisation, dateDebut, dateFin, description}]
-  experiences Json     @default("[]")
-  // ["Python", "Gestion de projet", ...]
-  competences Json     @default("[]")
-  // [{langue, niveau: "A1"|"A2"|"B1"|"B2"|"C1"|"C2"|"natif"}]
-  langues     Json     @default("[]")
-  // Domaine et pays d'études visés, motivations
+  formations  String   @default("[]")
+  experiences String   @default("[]")
+  competences String   @default("[]")
+  langues     String   @default("[]")
   objectifs   String?
-  // "formel" | "dynamique" | "academique"
   tonSouhaite String?
-
   complete    Boolean  @default(false)
-  // Historique de conversation onboarding pour reprendre si interrompue
-  sessionOnboarding Json @default("[]")
+  sessionOnboarding String @default("[]")
 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -69,15 +61,11 @@ model Document {
   userId         String
   user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  type           TypeDoc
+  type           String
   nomFichier     String
-  // Référence chiffrée vers le fichier dans le bucket privé
   refStockage    String
-  // Taille en octets (pour affichage)
   taille         Int?
-  // Informations utiles extraites par l'IA (ex: diplôme → établissement, mention, année)
-  infosExtraites Json?
-  // Vrai une fois l'extraction IA terminée
+  infosExtraites String?
   extraitParIa   Boolean   @default(false)
 
   createdAt      DateTime  @default(now())
@@ -85,33 +73,46 @@ model Document {
   @@map("documents")
 }
 
-enum TypeDoc {
-  DIPLOME
-  RELEVE_NOTES
-  ACTE_NAISSANCE
-  PIECE_IDENTITE
-  JUSTIFICATIF_LANGUE
-  LETTRE_RECO
-  AUTRE
-}
-
-// ─── Opportunités (modèle extensible — pages/API construites à l'étape 2) ────
+// ─── Opportunités (extensible — pages/API construites à l'étape 2) ───────────
 
 model Opportunite {
   id             String      @id @default(cuid())
-  type           TypeOpport  @default(BOURSE)
-  source         Source
+  type           String      @default("BOURSE")
+  source         String
   organisme      String
   intitule       String
-  description    String      @db.Text
+  description    String
   langueDetectee String?
-  conditions     String?     @db.Text
-  // [{nom, obligatoire: bool}]
-  piecesExigees  Json        @default("[]")
+  conditions     String?
+  piecesExigees  String      @default("[]")
   exigenceLangue String?
+  // dateLimite = la date LIMITE de candidature (validité de l'offre). Reste l'unique
+  // source de vérité pour « jusqu'à quand candidater » (rempli par l'IA ou l'admin).
   dateLimite     DateTime?
   lien           String?
+  // Canal de candidature (étape 3) : comment postuler, et la cible associée.
+  //   email | formulaire | lien_info | aucun  (null = non analysé)
+  canalCandidature String?
+  cibleCandidature String?   // adresse e-mail OU URL selon le canal
   actif          Boolean     @default(true)
+  // Cycle de vie de l'offre :
+  //   a_valider      → en file admin (date limite future, fiable)
+  //   revue_manuelle → en file admin, SIGNALÉ : date absente/incertaine, l'admin la fixe
+  //   publiee        → visible dans le fil (seul l'admin y fait passer)
+  //   expiree        → date limite dépassée après publication
+  //   rejetee        → écartée (déjà close à l'ingestion, ou rejetée par l'admin)
+  statut         String      @default("publiee")
+  sourceUrl      String?     // URL d'origine (item du flux)
+  hash           String?     @unique // ancienne dédup (sha1) — conservée pour compat
+  // ─── Ingestion : récence (quand on l'a vue) vs validité (date limite) ───────
+  dedupKey            String?   @unique // clé de dédup canonique : guid:/url:/hash:
+  premiereVue         DateTime  @default(now()) // first_seen_at — fixé une seule fois, jamais déplacé
+  datePublication     DateTime? // published_at — date du flux, AFFICHAGE seulement
+  confianceDateLimite Float?    // deadline_confidence — 0 à 1 (fiabilité de la date extraite)
+  sourceDateLimite    String?   // deadline_source — d'où vient la date (flux, IA, page liée…)
+  derniereVerif       DateTime? // last_checked_at — dernier passage d'ingestion sur cet item
+  fluxSourceId   String?
+  fluxSource     FluxSource? @relation(fields: [fluxSourceId], references: [id], onDelete: SetNull)
 
   createdAt      DateTime    @default(now())
   updatedAt      DateTime    @updatedAt
@@ -119,23 +120,42 @@ model Opportunite {
   interactions   Interaction[]
   dossiers       Dossier[]
 
+  @@index([statut])
   @@map("opportunites")
 }
 
-// v1 = BOURSE uniquement ; EMPLOI_PRIVE et CONCOURS_PUBLIC anticipés
-enum TypeOpport {
-  BOURSE
-  EMPLOI_PRIVE
-  CONCOURS_PUBLIC
+// ─── Sources de flux (RSS/XML) — back-office admin ───────────────────────────
+
+model FluxSource {
+  id           String        @id @default(cuid())
+  nom          String
+  url          String
+  type         String        @default("rss") // format : rss | xml
+  categorie    String        @default("BOURSE") // catégorie d'opportunités produite : BOURSE | EMPLOI | FORMATION | CONCOURS | STAGE | RESIDENCE
+  actif        Boolean       @default(true)
+  etat         String        @default("inconnu") // ok | panne | inconnu
+  dernierFetch DateTime?
+  message      String?
+
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  opportunites Opportunite[]
+
+  @@map("flux_sources")
 }
 
-enum Source {
-  AGREEE      // Agrégée/curée par la plateforme
-  COLLEE      // Collée par l'utilisateur (lien ou texte)
-  POSTEE      // Postée par un employeur/institution (phase 2-3)
+// ─── Réglages globaux du SaaS (clé/valeur) — back-office admin ───────────────
+
+model Parametre {
+  cle       String   @id
+  valeur    String
+  updatedAt DateTime @updatedAt
+
+  @@map("parametres")
 }
 
-// ─── Interactions (swipe) — construites à l'étape 2 ─────────────────────────
+// ─── Interactions (swipe) — étape 2 ─────────────────────────────────────────
 
 model Interaction {
   id            String      @id @default(cuid())
@@ -144,19 +164,14 @@ model Interaction {
   user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
   opportunite   Opportunite @relation(fields: [opportuniteId], references: [id], onDelete: Cascade)
 
-  decision      Decision
+  decision      String
   createdAt     DateTime    @default(now())
 
   @@unique([userId, opportuniteId])
   @@map("interactions")
 }
 
-enum Decision {
-  INTERESSE
-  IGNORE
-}
-
-// ─── Dossiers de candidature — construits à l'étape 3 ───────────────────────
+// ─── Dossiers de candidature — étape 3 ──────────────────────────────────────
 
 model Dossier {
   id            String        @id @default(cuid())
@@ -165,9 +180,8 @@ model Dossier {
   user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   opportunite   Opportunite   @relation(fields: [opportuniteId], references: [id], onDelete: Cascade)
 
-  statut        StatutDossier @default(A_PREPARER)
-  // {presentes: string[], manquantes: string[], alerteDelai: bool}
-  checklist     Json?
+  statut        String        @default("A_PREPARER")
+  checklist     String?
   docsGeneres   DocumentGenere[]
 
   createdAt     DateTime      @default(now())
@@ -176,45 +190,67 @@ model Dossier {
   @@map("dossiers")
 }
 
-enum StatutDossier {
-  A_PREPARER
-  GENERE
-  SOUMIS
-}
-
 model DocumentGenere {
-  id        String        @id @default(cuid())
+  id        String   @id @default(cuid())
   dossierId String
-  dossier   Dossier       @relation(fields: [dossierId], references: [id], onDelete: Cascade)
+  dossier   Dossier  @relation(fields: [dossierId], references: [id], onDelete: Cascade)
 
-  type      TypeDocGenere
-  contenu   String        @db.Text
+  type      String
+  contenu   String
   langue    String
-  // Accroches et tournures clés conservées pour l'anti-répétition (étape 3)
-  accroches Json          @default("[]")
+  accroches String   @default("[]")
 
-  createdAt DateTime      @default(now())
+  createdAt DateTime @default(now())
 
   @@map("documents_generes")
 }
 
-enum TypeDocGenere {
-  CV
-  LETTRE
-  DEMANDE_MANUSCRITE
-  AUTRE
-}
-
-// ─── Quota mensuel de génération — utilisé à l'étape 4 ──────────────────────
+// ─── Quota mensuel — étape 4 ─────────────────────────────────────────────────
 
 model QuotaUsage {
-  id           String @id @default(cuid())
-  userId       String
-  user         User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  // Format "YYYY-MM"
-  mois         String
-  utilisations Int    @default(0)
+  id                   String @id @default(cuid())
+  userId               String
+  user                 User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  mois                 String
+  generationsUtilisees Int    @default(0)
 
   @@unique([userId, mois])
   @@map("quota_usage")
+}
+
+// ─── Paiements — étape 4 ─────────────────────────────────────────────────────
+
+model Paiement {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  montant     Float
+  fournisseur String   @default("fedapay")
+  plan        String   @default("pro")
+  statut      String   @default("en_attente")
+  reference   String?
+  fedapayId   Int?
+
+  createdAt   DateTime @default(now())
+
+  @@map("paiements")
+}
+
+// ─── Messagerie (organisme ↔ candidat) ───────────────────────────────────────
+
+model Message {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  auteur    String   // "candidat" | "organisme" | "systeme"
+  nomAuteur String   // nom affiché de l'interlocuteur (organisme / Matchwork)
+  contenu   String
+  lu        Boolean  @default(false)
+
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@map("messages")
 }
