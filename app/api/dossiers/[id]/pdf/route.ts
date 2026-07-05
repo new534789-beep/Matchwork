@@ -214,7 +214,7 @@ export async function GET(_req: Request, { params }: Params) {
   const pdfBytes = await pdf.save();
   const filename = `Matchwork-${dossier.opportunite.organisme.replace(/[^a-zA-Z0-9]/g, "_")}.pdf`;
 
-  return new NextResponse(pdfBytes, {
+  return new NextResponse(pdfBytes as unknown as BodyInit, {
     headers: {
       "Content-Type": "application/pdf",
       "Content-Disposition": `attachment; filename="${filename}"`,
