@@ -12,13 +12,13 @@ export default function Landing() {
         <div
           className="max-w-5xl mx-auto flex items-center justify-between"
           style={{
-            background: "rgba(12,12,14,0.72)",
-            backdropFilter: "saturate(160%) blur(20px)",
-            WebkitBackdropFilter: "saturate(160%) blur(20px)",
-            border: "1px solid rgba(255,255,255,0.09)",
+            background: "rgba(20,20,28,0.85)",
+            backdropFilter: "saturate(180%) blur(24px)",
+            WebkitBackdropFilter: "saturate(180%) blur(24px)",
+            border: "1px solid rgba(124,58,237,0.25)",
             borderRadius: "14px",
-            padding: "8px 8px 8px 12px",
-            boxShadow: "0 10px 34px rgba(0,0,0,0.45)",
+            padding: "10px 12px 10px 14px",
+            boxShadow: "0 4px 30px rgba(124,58,237,0.12), 0 10px 34px rgba(0,0,0,0.5)",
           }}
         >
           <Link href="/" style={{ display: "flex", alignItems: "center", gap: 8, textDecoration: "none", flexShrink: 0, minWidth: 0 }}>

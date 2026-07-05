@@ -13,9 +13,9 @@ export function NavMobile() {
         onClick={() => setOpen(!open)}
         aria-label={open ? "Fermer le menu" : "Ouvrir le menu"}
       >
-        <span style={{ display:"block", width:"22px", height:"2px", background:"#fff", borderRadius:"1px", transition:"transform 0.22s ease, opacity 0.22s ease", transform: open ? "rotate(45deg) translate(2px,3px)" : "none" }} />
-        <span style={{ display:"block", width:"22px", height:"2px", background:"#fff", borderRadius:"1px", transition:"opacity 0.22s ease", opacity: open ? 0 : 1 }} />
-        <span style={{ display:"block", width:"22px", height:"2px", background:"#fff", borderRadius:"1px", transition:"transform 0.22s ease", transform: open ? "rotate(-45deg) translate(2px,-3px)" : "none" }} />
+        <span style={{ display:"block", width:"24px", height:"2.5px", background:"#c4b5fd", borderRadius:"2px", transition:"transform 0.22s ease, opacity 0.22s ease", transform: open ? "rotate(45deg) translate(2px,3px)" : "none" }} />
+        <span style={{ display:"block", width:"24px", height:"2.5px", background:"#c4b5fd", borderRadius:"2px", transition:"opacity 0.22s ease", opacity: open ? 0 : 1 }} />
+        <span style={{ display:"block", width:"24px", height:"2.5px", background:"#c4b5fd", borderRadius:"2px", transition:"transform 0.22s ease", transform: open ? "rotate(-45deg) translate(2px,-3px)" : "none" }} />
       </button>
 
       {open && (
