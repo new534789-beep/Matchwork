@@ -63,17 +63,14 @@ export default function Landing() {
           background: "#000",
           overflow: "hidden",
           position: "relative",
-          display: "grid",
-          gridTemplateColumns: "1fr 1fr",
-          alignItems: "flex-end",
-          paddingBottom: "12vh",
-          paddingLeft: "clamp(24px, 6vw, 80px)",
-          paddingRight: "0",
-          paddingTop: "80px",
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "center",
+          padding: "80px 20px 40px",
         }}
       >
         {/* ── Left: Text (lower-left like NexLayer) ── */}
-        <div style={{ maxWidth: "520px" }}>
+        <div style={{ maxWidth: "520px", margin: "0 auto", width: "100%" }}>
           <h1
             style={{
               fontSize: "clamp(1.9rem, 3vw, 3.4rem)",
@@ -165,11 +162,10 @@ export default function Landing() {
 
         {/* ── Right: NexLayer isometric chip grid ── */}
         <div
-          className="hero-visual-col"
+          className="hero-visual-col hidden md:flex"
           style={{
             position: "relative",
             height: "100%",
-            display: "flex",
             alignItems: "center",
             justifyContent: "center",
             overflow: "visible",
