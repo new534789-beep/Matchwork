@@ -70,14 +70,13 @@ export async function POST(req: NextRequest) {
     }
 
     const buffer = Buffer.from(await fichier.arrayBuffer());
-    const refStockage = await uploadFichier(session.user.id, buffer, fichier.name);
 
     const doc = await prisma.document.create({
       data: {
         userId: session.user.id,
         type: typeStr,
         nomFichier: fichier.name,
-        refStockage,
+        refStockage: "",
         taille: fichier.size,
       },
       select: {
@@ -86,7 +85,8 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    // Extraction IA asynchrone (ne bloque pas la réponse)
+    await uploadFichier(session.user.id, buffer, fichier.name, doc.id);
+
     void fetch(new URL("/api/ia/extraire-document", req.url).toString(), {
       method: "POST",
       headers: {

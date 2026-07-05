@@ -72,7 +72,8 @@ model Document {
 
   type           String
   nomFichier     String
-  refStockage    String
+  refStockage    String    @default("")
+  contenuChiffre Bytes?
   taille         Int?
   infosExtraites String?
   extraitParIa   Boolean   @default(false)

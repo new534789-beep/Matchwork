@@ -1,60 +1,51 @@
 /**
- * Abstraction du stockage de fichiers chiffré.
- * En v1 : stockage local chiffré dans /tmp/matchwork-storage (dev)
- * En production : remplacer par Supabase Storage ou S3.
- * Les fichiers sont chiffrés AES-256-GCM avant écriture.
+ * Stockage de fichiers chiffré directement en PostgreSQL (colonne Bytes).
+ * Les fichiers sont chiffrés AES-256-GCM avant insertion.
  */
 
-import fs from "fs/promises";
-import path from "path";
+import { prisma } from "./prisma";
 import { chiffrer, dechiffrer } from "./chiffrement";
-import crypto from "crypto";
-
-const STORAGE_DIR =
-  process.env.STORAGE_LOCAL_DIR ??
-  path.join(/* turbopackIgnore: true */ process.cwd(), ".storage");
-
-async function ensureDir(dir: string) {
-  await fs.mkdir(dir, { recursive: true });
-}
 
 export async function uploadFichier(
   userId: string,
   buffer: Buffer,
-  nomOriginal: string
+  nomOriginal: string,
+  documentId: string
 ): Promise<string> {
-  const userDir = path.join(STORAGE_DIR, userId);
-  await ensureDir(userDir);
-
-  const ext = path.extname(nomOriginal);
-  const ref = `${crypto.randomUUID()}${ext}`;
-  const filePath = path.join(userDir, ref);
-
   const chiffre = chiffrer(buffer);
-  await fs.writeFile(filePath, chiffre);
 
-  // La ref stockée encode userId + nom de fichier pour l'isolation
-  return `${userId}/${ref}`;
+  await prisma.document.update({
+    where: { id: documentId },
+    data: { contenuChiffre: new Uint8Array(chiffre) },
+  });
+
+  return documentId;
 }
 
-export async function recupererFichier(refStockage: string, userId: string): Promise<Buffer> {
-  // Vérification : le fichier appartient bien à cet utilisateur
-  const [ownerPart] = refStockage.split("/");
-  if (ownerPart !== userId) {
-    throw new Error("Accès refusé : ce document ne vous appartient pas");
-  }
+export async function recupererFichier(documentId: string, userId: string): Promise<Buffer> {
+  const doc = await prisma.document.findUnique({
+    where: { id: documentId },
+    select: { userId: true, contenuChiffre: true },
+  });
 
-  const filePath = path.join(STORAGE_DIR, refStockage);
-  const chiffre = await fs.readFile(filePath);
-  return dechiffrer(chiffre);
+  if (!doc) throw new Error("Document introuvable");
+  if (doc.userId !== userId) throw new Error("Accès refusé : ce document ne vous appartient pas");
+  if (!doc.contenuChiffre) throw new Error("Contenu du fichier introuvable");
+
+  return dechiffrer(Buffer.from(doc.contenuChiffre));
 }
 
-export async function supprimerFichier(refStockage: string, userId: string): Promise<void> {
-  const [ownerPart] = refStockage.split("/");
-  if (ownerPart !== userId) {
-    throw new Error("Accès refusé : ce document ne vous appartient pas");
-  }
+export async function supprimerFichier(documentId: string, userId: string): Promise<void> {
+  const doc = await prisma.document.findUnique({
+    where: { id: documentId },
+    select: { userId: true },
+  });
 
-  const filePath = path.join(STORAGE_DIR, refStockage);
-  await fs.unlink(filePath);
+  if (!doc) return;
+  if (doc.userId !== userId) throw new Error("Accès refusé");
+
+  await prisma.document.update({
+    where: { id: documentId },
+    data: { contenuChiffre: null },
+  });
 }
