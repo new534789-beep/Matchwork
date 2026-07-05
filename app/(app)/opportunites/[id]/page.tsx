@@ -24,7 +24,7 @@ export default async function DetailOpportunite({ params }: Props) {
       orderBy: { createdAt: "desc" },
     }),
     prisma.quotaUsage.findUnique({
-      where: { userId_mois: { userId: session.user.id, mois: new Date().toISOString().slice(0, 7) } },
+      where: { userId_mois: { userId: session.user.id, mois: new Date().toISOString().slice(0, 10) } },
     }),
   ]);
 
@@ -38,7 +38,7 @@ export default async function DetailOpportunite({ params }: Props) {
     }
   })();
 
-  const quotaMax = parseInt(process.env.QUOTA_GRATUIT_MENSUEL ?? "3") || 3;
+  const quotaMax = parseInt(process.env.QUOTA_GRATUIT_JOURNALIER ?? "3") || 3;
   const quotaRestant = Math.max(0, quotaMax - (quota?.generationsUtilisees ?? 0));
 
   return (

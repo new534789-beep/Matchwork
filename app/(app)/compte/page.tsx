@@ -9,8 +9,8 @@ export default async function Compte() {
   if (!session?.user?.id) redirect("/connexion");
 
   const userId = session.user.id;
-  const mois = new Date().toISOString().slice(0, 7);
-  const quotaMax = parseInt(process.env.QUOTA_GRATUIT_MENSUEL ?? "3") || 3;
+  const mois = new Date().toISOString().slice(0, 10);
+  const quotaMax = parseInt(process.env.QUOTA_GRATUIT_JOURNALIER ?? "3") || 3;
 
   const [user, quota, paiements] = await Promise.all([
     prisma.user.findUnique({ where: { id: userId }, select: { plan: true, email: true } }),

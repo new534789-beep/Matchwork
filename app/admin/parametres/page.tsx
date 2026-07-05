@@ -12,7 +12,7 @@ export default async function PageParametres() {
   for (const c of cles) valeurs[c] = courants[c] ?? "";
 
   const defauts: Record<string, string> = {
-    [CLES_PARAMETRES.quotaGratuitDefaut]: process.env.QUOTA_GRATUIT_MENSUEL || "3",
+    [CLES_PARAMETRES.quotaGratuitDefaut]: process.env.QUOTA_GRATUIT_JOURNALIER || "3",
     [CLES_PARAMETRES.fournisseurIa]: "mistral",
     [CLES_PARAMETRES.fournisseurEmail]: process.env.RESEND_API_KEY ? "resend" : "(non configuré)",
     [CLES_PARAMETRES.texteAccueil]: "",

@@ -81,7 +81,7 @@ export default async function TableauDeBord() {
   const session = await auth();
   if (!session?.user?.id) redirect("/connexion");
   const userId = session.user.id;
-  const mois = new Date().toISOString().slice(0, 7);
+  const mois = new Date().toISOString().slice(0, 10);
 
   const [profil, user, interactions, dossiers, documents, quota, suggestions] = await Promise.all([
     prisma.profil.findUnique({ where: { userId } }),
@@ -114,7 +114,7 @@ export default async function TableauDeBord() {
   const role = (session.user as { role?: string }).role;
   if (!profil?.complete && role !== "admin") redirect("/onboarding");
 
-  const quotaMax = parseInt(process.env.QUOTA_GRATUIT_MENSUEL ?? "3") || 3;
+  const quotaMax = parseInt(process.env.QUOTA_GRATUIT_JOURNALIER ?? "3") || 3;
   const estGratuit = user?.plan === "gratuit" || user?.plan === "GRATUIT";
   const generationsUtilisees = quota?.generationsUtilisees ?? 0;
   const quotaRestant = estGratuit ? Math.max(0, quotaMax - generationsUtilisees) : null;
