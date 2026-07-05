@@ -178,7 +178,9 @@ export function NavLateral({ userEmail = "", role }: { userEmail?: string; role?
             position: "fixed",
             inset: 0,
             zIndex: 69,
-            background: "rgba(0,0,0,0.5)",
+            background: "rgba(0,0,0,0.75)",
+            backdropFilter: "blur(4px)",
+            WebkitBackdropFilter: "blur(4px)",
           }}
         />
       )}
