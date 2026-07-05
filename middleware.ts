@@ -1,6 +1,6 @@
-import { auth } from "@/lib/auth";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { getToken } from "next-auth/jwt";
 
 const routesPrivees = [
   "/tableau-de-bord",
@@ -14,18 +14,17 @@ const routesPrivees = [
   "/parametres",
 ];
 
-export default auth((req: NextRequest & { auth: unknown }) => {
+export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
-  const session = req.auth as { user?: { role?: string } } | null;
+  const token = await getToken({ req, secret: process.env.AUTH_SECRET });
 
-  // Espace admin : réservé au rôle « admin ». Cette URL donne accès à tout → protection stricte.
   if (pathname.startsWith("/admin")) {
-    if (!session) {
+    if (!token) {
       const url = new URL("/connexion", req.url);
       url.searchParams.set("from", pathname);
       return NextResponse.redirect(url);
     }
-    if (session.user?.role !== "admin") {
+    if (token.role !== "admin") {
       return NextResponse.redirect(new URL("/tableau-de-bord", req.url));
     }
     return NextResponse.next();
@@ -33,18 +32,18 @@ export default auth((req: NextRequest & { auth: unknown }) => {
 
   const estPrivee = routesPrivees.some((r) => pathname.startsWith(r));
 
-  if (estPrivee && !session) {
+  if (estPrivee && !token) {
     const url = new URL("/connexion", req.url);
     url.searchParams.set("from", pathname);
     return NextResponse.redirect(url);
   }
 
-  if ((pathname === "/connexion" || pathname === "/inscription") && session) {
+  if ((pathname === "/connexion" || pathname === "/inscription") && token) {
     return NextResponse.redirect(new URL("/tableau-de-bord", req.url));
   }
 
   return NextResponse.next();
-});
+}
 
 export const config = {
   matcher: ["/((?!api|_next/static|_next/image|favicon.ico).*)"],
