@@ -36,7 +36,7 @@ async function main() {
       await scraperUneSource(source, { rapport, budget, aujourdhui });
       console.log(`  ✓ ${source.nom} → ${rapport.creees} total`);
     } catch (e: any) {
-      rapport.erreurs++;
+      rapport.sourcesEnPanne++;
       console.log(`  ✗ ${source.nom} → ${e.message?.slice(0, 80)}`);
     }
   }
