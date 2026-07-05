@@ -8,7 +8,7 @@ export default function Landing() {
     <main style={{ background: "#000", color: "#fff" }}>
 
       {/* ── Navigation — pilule noir glacé ── */}
-      <nav className="fixed top-0 left-0 right-0 z-50 px-3 md:px-4" style={{ paddingTop: "10px" }}>
+      <nav className="fixed top-0 left-0 right-0 z-50 px-2 sm:px-3 md:px-4" style={{ paddingTop: "10px" }}>
         <div
           className="max-w-5xl mx-auto flex items-center justify-between"
           style={{
@@ -17,13 +17,13 @@ export default function Landing() {
             WebkitBackdropFilter: "saturate(160%) blur(20px)",
             border: "1px solid rgba(255,255,255,0.09)",
             borderRadius: "14px",
-            padding: "8px 10px 8px 14px",
+            padding: "8px 8px 8px 12px",
             boxShadow: "0 10px 34px rgba(0,0,0,0.45)",
           }}
         >
-          <Link href="/" style={{ display: "flex", alignItems: "center", gap: 9, textDecoration: "none", flexShrink: 0 }}>
-            <Image src="/logo.png" alt="Matchwork" width={36} height={36} priority />
-            <span className="font-bold text-lg tracking-tight" style={{ color: "#fff" }}>Matchwork</span>
+          <Link href="/" style={{ display: "flex", alignItems: "center", gap: 8, textDecoration: "none", flexShrink: 0, minWidth: 0 }}>
+            <Image src="/logo.png" alt="Matchwork" width={32} height={32} className="w-8 h-8 md:w-9 md:h-9" priority />
+            <span className="font-bold text-base md:text-lg tracking-tight" style={{ color: "#fff" }}>Matchwork</span>
           </Link>
 
           <div className="hidden md:flex items-center gap-8">
