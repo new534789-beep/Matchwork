@@ -42,7 +42,8 @@ const ICONES = {
 };
 
 const CATEGORIES: Record<string, CatMeta> = {
-  BOURSE: { label: "Bourse", sousTitre: (o) => `Bourse d'études — ${o}`, icone: ICONES.bourse },
+  BOURSE: { label: "Bourse", sousTitre: (o) => `Bourse — ${o}`, icone: ICONES.bourse },
+  BOURSE_ETUDE: { label: "Bourse d'études", sousTitre: (o) => `Bourse d'études — ${o}`, icone: ICONES.bourse },
   FORMATION: { label: "Formation", sousTitre: (o) => `Formation initiée par ${o}`, icone: ICONES.formation },
   EMPLOI: { label: "Emploi", sousTitre: (o) => `Offre d'emploi — ${o}`, icone: ICONES.emploi },
   CONCOURS: { label: "Concours", sousTitre: (o) => `Concours organisé par ${o}`, icone: ICONES.concours },

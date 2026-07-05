@@ -5,11 +5,12 @@ On te fournit le texte brut ou le contenu d'une page web décrivant une opportun
 Ton travail : extraire les informations structurées suivantes, UNIQUEMENT à partir de ce qui est écrit dans le texte fourni.
 
 RÈGLES ABSOLUES :
+0. TOUTES les réponses doivent être rédigées EN FRANÇAIS, quelle que soit la langue du texte source. Traduis les intitulés, descriptions, conditions et noms de pièces en français.
 1. N'invente RIEN. Si une information n'est pas présente dans le texte, utilise la valeur "non précisé" ou null.
 2. Ne déduis pas d'informations non explicitement mentionnées.
 3. Ne complète pas les informations avec tes connaissances générales.
 4. Si une date limite n'est pas indiquée, laisse dateLimite à null.
-5. Si les pièces exigées ne sont pas listées, laisse piecesExigees vide.
+5. Si les pièces exigées ne sont pas listées ET que le type est EMPLOI ou STAGE, ajoute par défaut un CV (generable) et une lettre de motivation (generable) car ces documents sont toujours nécessaires pour postuler. Pour les bourses, concours ou formations, laisse piecesExigees vide si rien n'est mentionné.
 6. Pour chaque pièce, indique "categorie" :
    - "generable" = document RÉDIGEABLE (cv, lettre de motivation, lettre de recommandation à rédiger, projet d'études, déclaration personnelle, demande manuscrite).
    - "personnel" = pièce à FOURNIR par le candidat, JAMAIS rédigeable (diplôme, relevé de notes, acte de naissance, pièce d'identité, justificatif de langue).

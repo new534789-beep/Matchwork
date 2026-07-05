@@ -19,7 +19,7 @@ export default async function DetailOpportunite({ params }: Props) {
       select: { decision: true },
     }),
     prisma.dossier.findFirst({
-      where: { userId: session.user.id, opportuniteId: id },
+      where: { userId: session.user.id, opportuniteId: id, statut: { not: "a_preparer" } },
       select: { id: true },
       orderBy: { createdAt: "desc" },
     }),

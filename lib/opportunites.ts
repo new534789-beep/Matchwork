@@ -1,9 +1,10 @@
 // Constantes partagées (client + serveur) pour les opportunités.
 
-export const TYPES_OPP = ["BOURSE", "FORMATION", "EMPLOI", "CONCOURS", "STAGE", "RESIDENCE"] as const;
+export const TYPES_OPP = ["BOURSE", "BOURSE_ETUDE", "FORMATION", "EMPLOI", "CONCOURS", "STAGE", "RESIDENCE"] as const;
 
 export const LABEL_TYPE: Record<string, string> = {
   BOURSE: "Bourse",
+  BOURSE_ETUDE: "Bourse d'études",
   FORMATION: "Formation",
   EMPLOI: "Emploi",
   CONCOURS: "Concours",

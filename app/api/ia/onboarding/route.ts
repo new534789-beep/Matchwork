@@ -7,7 +7,8 @@ import { SYSTEM_PROMPT_ONBOARDING } from "@/lib/ia/prompts/onboarding";
 // Champs réellement stockables dans le modèle Profil (protège contre les clés
 // inattendues renvoyées par l'IA — une clé inconnue ferait planter Prisma).
 const CHAMPS_PROFIL = new Set([
-  "nomComplet", "bio", "formations", "experiences", "competences", "langues", "objectifs", "tonSouhaite",
+  "nomComplet", "dateNaissance", "lieuNaissance", "nationalite", "telephone", "adresse", "email", "signature", "linkedin",
+  "bio", "formations", "experiences", "competences", "langues", "objectifs", "tonSouhaite",
 ]);
 
 // Champs-listes stockés en JSON ; les autres champs valides sont du texte simple.
@@ -34,6 +35,14 @@ function parseTableau(val: unknown): unknown[] {
 function parseProfil(profil: Record<string, unknown>) {
   return {
     nomComplet: profil.nomComplet,
+    dateNaissance: profil.dateNaissance,
+    lieuNaissance: profil.lieuNaissance,
+    nationalite: profil.nationalite,
+    telephone: profil.telephone,
+    adresse: profil.adresse,
+    email: profil.email,
+    signature: profil.signature,
+    linkedin: profil.linkedin,
     bio: profil.bio,
     formations: parseTableau(profil.formations),
     experiences: parseTableau(profil.experiences),

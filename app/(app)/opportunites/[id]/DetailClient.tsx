@@ -53,7 +53,13 @@ export function DetailClient({
   const [description, setDescription] = useState(opportunite.description);
   const [loadingTraduction, setLoadingTraduction] = useState(false);
   const [traduit, setTraduit] = useState(false);
-  const [dossierId] = useState(dossierIdInitial);
+  const [dossierId, setDossierId] = useState(dossierIdInitial);
+  const [generation, setGeneration] = useState<"idle" | "loading" | "done" | "error">(
+    dossierIdInitial ? "done" : decisionInitiale === "interesse" ? "error" : "idle"
+  );
+  const [erreurGen, setErreurGen] = useState<string | null>(
+    !dossierIdInitial && decisionInitiale === "interesse" ? "La génération a échoué. Vérifiez que votre profil est complet, puis réessayez." : null
+  );
 
   const estEtranger = opportunite.langueDetectee && opportunite.langueDetectee !== "fr";
 
@@ -66,13 +72,34 @@ export function DetailClient({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ decision: "interesse" }),
       });
-      // Génération automatique du dossier en arrière-plan (étape 3) — aucun bouton « Générer ».
-      fetch("/api/dossiers/generer", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ opportuniteId: opportunite.id }),
-      }).catch(() => {});
       setDecision("interesse");
+      setGeneration("loading");
+      setErreurGen(null);
+      try {
+        const res = await fetch("/api/dossiers/generer", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ opportuniteId: opportunite.id }),
+        });
+        const data = await res.json() as { dossierId?: string; statut?: string; erreur?: string; quotaAtteint?: boolean };
+        if (data.dossierId && data.statut === "genere") {
+          setDossierId(data.dossierId);
+          setGeneration("done");
+        } else if (data.quotaAtteint) {
+          setGeneration("error");
+          setErreurGen("Quota mensuel atteint. Passez au plan Pro pour continuer.");
+        } else if (data.erreur) {
+          setGeneration("error");
+          setErreurGen(data.erreur);
+        } else {
+          setDossierId(data.dossierId ?? null);
+          setGeneration("error");
+          setErreurGen("La génération n'a pas abouti. Réessayez.");
+        }
+      } catch {
+        setGeneration("error");
+        setErreurGen("Erreur réseau lors de la génération.");
+      }
     } finally {
       setLoadingDecision(false);
     }
@@ -329,8 +356,8 @@ export function DetailClient({
           )}
         </button>
 
-        {/* Accès au dossier — la génération est automatique (aucun bouton « Générer ») */}
-        {dossierId ? (
+        {/* Accès au dossier */}
+        {generation === "done" && dossierId ? (
           <a
             href={`/dossiers/${dossierId}`}
             style={{
@@ -347,19 +374,68 @@ export function DetailClient({
             </svg>
             Voir mon dossier
           </a>
-        ) : decision === "interesse" ? (
-          <a
-            href="/candidatures"
+        ) : generation === "loading" ? (
+          <div
             style={{
-              width: "100%", padding: "13px", borderRadius: "14px",
-              fontWeight: 600, fontSize: "0.88rem", textAlign: "center",
-              background: "var(--bg-card)", border: "1px solid var(--border)",
-              color: "var(--text-2)", textDecoration: "none",
-              display: "flex", alignItems: "center", justifyContent: "center", gap: "8px",
+              width: "100%", padding: "16px", borderRadius: "14px",
+              background: "rgba(124,58,237,0.08)", border: "1px solid rgba(124,58,237,0.2)",
+              display: "flex", flexDirection: "column", alignItems: "center", gap: "10px",
             }}
           >
-            Dossier en préparation — voir mes candidatures
-          </a>
+            <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+              <span style={{ display: "inline-block", width: 18, height: 18, border: "2px solid rgba(124,58,237,0.3)", borderTopColor: "#a78bfa", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
+              <span style={{ fontSize: "0.88rem", fontWeight: 600, color: "#a78bfa" }}>
+                L&apos;IA rédige votre dossier…
+              </span>
+            </div>
+            <span style={{ fontSize: "0.75rem", color: "var(--text-3)" }}>
+              Cela peut prendre 15 à 30 secondes.
+            </span>
+          </div>
+        ) : generation === "error" ? (
+          <div
+            style={{
+              width: "100%", padding: "14px", borderRadius: "14px",
+              background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.25)",
+              display: "flex", flexDirection: "column", alignItems: "center", gap: "8px",
+            }}
+          >
+            <span style={{ fontSize: "0.85rem", color: "#fca5a5" }}>
+              {erreurGen ?? "La génération a échoué."}
+            </span>
+            <button
+              onClick={() => {
+                setGeneration("loading");
+                setErreurGen(null);
+                fetch("/api/dossiers/generer", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ opportuniteId: opportunite.id }),
+                })
+                  .then((r) => r.json())
+                  .then((data: { dossierId?: string; statut?: string; erreur?: string }) => {
+                    if (data.dossierId && data.statut === "genere") {
+                      setDossierId(data.dossierId);
+                      setGeneration("done");
+                    } else {
+                      setGeneration("error");
+                      setErreurGen(data.erreur ?? "La génération n'a pas abouti.");
+                    }
+                  })
+                  .catch(() => {
+                    setGeneration("error");
+                    setErreurGen("Erreur réseau. Vérifiez votre connexion.");
+                  });
+              }}
+              style={{
+                padding: "8px 20px", borderRadius: "10px",
+                background: "rgba(124,58,237,0.15)", border: "1px solid rgba(124,58,237,0.3)",
+                color: "#a78bfa", fontSize: "0.82rem", fontWeight: 600, cursor: "pointer",
+              }}
+            >
+              Réessayer
+            </button>
+          </div>
         ) : null}
       </div>
 

@@ -7,6 +7,7 @@ import { extraireDateLimite } from "@/lib/ia/extraction-date-limite";
 import { calculerDedupKey, canoniserUrl } from "@/lib/ingestion/dedup";
 import { recupererContenuPage } from "@/lib/ingestion/contenu-page";
 import { urlAutorisee } from "@/lib/ingestion/robots";
+import { traduireOffreFr } from "@/lib/ia/traduction";
 import type { RapportIngestion } from "@/lib/ingestion/recuperateur";
 
 const MAX_LIENS = 12; // articles examinés par page liste et par passage
@@ -125,10 +126,9 @@ export async function scraperUneSource(
       await dormir(PAUSE_MS); // politesse
       if (!contenu) continue; // page inaccessible → on ne crée rien (pas d'invention)
 
-      // ── CONDITION DU SCRAPING : date limite OBLIGATOIRE et NON dépassée ──
-      // On contrôle d'abord la date (appel IA léger). Sans date, ou date déjà
-      // passée → l'offre n'est PAS envoyée en file (on ne crée rien).
-      if (!iaDisponible() || budget.enrich <= 0) continue;
+      // ── IA OBLIGATOIRE : pas d'IA = pas d'insertion ──
+      if (!iaDisponible() || budget.enrich < 2) continue;
+
       budget.enrich--;
       const dl = await extraireDateLimite(titre || "Sans titre", contenu, aujourdhui);
       const dateLimite = dl?.dateLimite ?? null;
@@ -136,12 +136,16 @@ export async function scraperUneSource(
       const sourceDateLimite = dl?.source ?? null;
 
       if (!dateLimite || dateLimite.getTime() <= maintenant.getTime()) {
-        rapport.rejetees++; // pas de date OU date dépassée → écartée (jamais en file)
+        rapport.rejetees++;
         continue;
       }
       rapport.enrichies++;
 
-      // Date valide → on enrichit le reste (organisme, description, pièces…).
+      // Extraction complète IA obligatoire
+      budget.enrich--;
+      const offre = await extraireOffre(`${titre || ""}\n\n${contenu}`);
+      if (!offre) continue; // extraction échouée → on n'insère pas
+
       let organisme = source.nom;
       let intitule = (titre || "Sans titre").slice(0, 240);
       let descFinale = "Non précisé";
@@ -152,20 +156,25 @@ export async function scraperUneSource(
       let canalCandidature: string | null = null;
       let cibleCandidature: string | null = null;
 
-      if (budget.enrich > 0) {
+      if (offre.organisme && offre.organisme !== "non précisé") organisme = offre.organisme.slice(0, 120);
+      if (offre.intitule && offre.intitule !== "non précisé") intitule = offre.intitule.slice(0, 240);
+      if (offre.description && offre.description !== "non précisé") descFinale = offre.description.slice(0, 2000);
+      if (offre.conditions && offre.conditions !== "non précisé") conditions = offre.conditions;
+      if (Array.isArray(offre.piecesExigees) && offre.piecesExigees.length) piecesExigees = JSON.stringify(offre.piecesExigees);
+      if (offre.exigenceLangue && offre.exigenceLangue !== "non précisé") exigenceLangue = offre.exigenceLangue;
+      if (offre.langueDetectee) langueDetectee = offre.langueDetectee;
+      canalCandidature = normaliserCanal(offre.canalCandidature);
+      cibleCandidature = offre.cibleCandidature ?? null;
+
+      // Pas de pièces generables = pas d'intérêt pour Matchwork
+      const aGenerables = Array.isArray(offre.piecesExigees) && offre.piecesExigees.some((p) => p.categorie === "generable");
+      if (!aGenerables) { rapport.rejetees++; continue; }
+
+      // Traduction FR pour l'affichage (si l'offre n'est pas en français).
+      if (langueDetectee && langueDetectee !== "fr" && budget.enrich > 0) {
         budget.enrich--;
-        const offre = await extraireOffre(`${titre || ""}\n\n${contenu}`);
-        if (offre) {
-          if (offre.organisme && offre.organisme !== "non précisé") organisme = offre.organisme.slice(0, 120);
-          if (offre.intitule && offre.intitule !== "non précisé") intitule = offre.intitule.slice(0, 240);
-          if (offre.description && offre.description !== "non précisé") descFinale = offre.description.slice(0, 2000);
-          if (offre.conditions && offre.conditions !== "non précisé") conditions = offre.conditions;
-          if (Array.isArray(offre.piecesExigees) && offre.piecesExigees.length) piecesExigees = JSON.stringify(offre.piecesExigees);
-          if (offre.exigenceLangue && offre.exigenceLangue !== "non précisé") exigenceLangue = offre.exigenceLangue;
-          if (offre.langueDetectee) langueDetectee = offre.langueDetectee;
-          canalCandidature = normaliserCanal(offre.canalCandidature);
-          cibleCandidature = offre.cibleCandidature ?? null;
-        }
+        const tr = await traduireOffreFr({ intitule, description: descFinale, conditions });
+        if (tr) { intitule = tr.intitule; descFinale = tr.description; conditions = tr.conditions; }
       }
 
       try {

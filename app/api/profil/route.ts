@@ -37,6 +37,15 @@ export async function GET() {
 }
 
 const schemaMaj = z.object({
+  nomComplet: z.string().optional(),
+  dateNaissance: z.string().optional(),
+  lieuNaissance: z.string().optional(),
+  nationalite: z.string().optional(),
+  telephone: z.string().optional(),
+  adresse: z.string().optional(),
+  email: z.string().optional(),
+  signature: z.string().optional(),
+  linkedin: z.string().optional(),
   bio: z.string().optional(),
   formations: z.array(z.any()).optional(),
   experiences: z.array(z.any()).optional(),

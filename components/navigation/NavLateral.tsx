@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
@@ -113,26 +114,97 @@ function estActif(pathname: string, href: string) {
 export function NavLateral({ userEmail = "", role }: { userEmail?: string; role?: string }) {
   const pathname = usePathname();
   const { theme, toggle } = useTheme();
+  const [ouvert, setOuvert] = useState(false);
+
+  useEffect(() => {
+    setOuvert(false);
+  }, [pathname]);
 
   const initiale = (userEmail.trim()[0] || "U").toUpperCase();
   const nom = userEmail.split("@")[0] || "Mon compte";
 
   return (
     <>
-      <aside
-        className="fixed top-0 left-0 z-50 h-full flex flex-col"
+      {/* Header mobile avec hamburger */}
+      <header
+        className="mobile-header"
         style={{
-          width: "var(--sidebar-w, 64px)",
+          position: "fixed",
+          top: 0,
+          left: 0,
+          right: 0,
+          height: 56,
+          zIndex: 60,
+          display: "none",
+          alignItems: "center",
+          justifyContent: "space-between",
+          padding: "0 16px",
+          background: "var(--nav-bg)",
+          backdropFilter: "blur(20px)",
+          WebkitBackdropFilter: "blur(20px)",
+          borderBottom: "1px solid var(--border)",
+        }}
+      >
+        <Link href="/opportunites" className="flex items-center gap-2" style={{ textDecoration: "none" }}>
+          <Image src="/logo.png" alt="Matchwork" width={32} height={32} priority />
+          <span style={{ fontWeight: 700, fontSize: "1rem", color: "var(--text)" }}>Matchwork</span>
+        </Link>
+        <button
+          onClick={() => setOuvert(!ouvert)}
+          style={{ background: "transparent", cursor: "pointer", padding: 8, borderRadius: 8, color: "var(--text)" }}
+          aria-label={ouvert ? "Fermer le menu" : "Ouvrir le menu"}
+        >
+          {ouvert ? (
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round">
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+          ) : (
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round">
+              <line x1="3" y1="6" x2="21" y2="6" />
+              <line x1="3" y1="12" x2="21" y2="12" />
+              <line x1="3" y1="18" x2="21" y2="18" />
+            </svg>
+          )}
+        </button>
+      </header>
+
+      {/* Backdrop mobile */}
+      {ouvert && (
+        <div
+          className="mobile-backdrop"
+          onClick={() => setOuvert(false)}
+          style={{
+            position: "fixed",
+            inset: 0,
+            zIndex: 69,
+            background: "rgba(0,0,0,0.5)",
+          }}
+        />
+      )}
+
+      {/* Sidebar */}
+      <aside
+        className={`nav-sidebar ${ouvert ? "nav-sidebar-open" : ""}`}
+        style={{
+          position: "fixed",
+          top: 0,
+          left: 0,
+          zIndex: 70,
+          height: "100%",
+          display: "flex",
+          flexDirection: "column",
+          width: "var(--sidebar-w, 280px)",
           background: "var(--nav-bg)",
           backdropFilter: "blur(20px)",
           WebkitBackdropFilter: "blur(20px)",
           borderRight: "1px solid var(--border)",
-          transition: "width 0.2s ease",
+          transition: "transform 0.25s ease, width 0.2s ease",
         }}
       >
         {/* Logo */}
         <div className="flex items-center gap-2.5 px-3.5 py-4" style={{ minHeight: 64 }}>
-          <Link href="/opportunites" className="flex items-center gap-2.5 min-w-0" style={{ textDecoration: "none" }}>
+          <Link href="/opportunites" className="flex items-center gap-2.5 min-w-0" style={{ textDecoration: "none" }} onClick={() => setOuvert(false)}>
             <Image src="/logo.png" alt="Matchwork" width={36} height={36} priority style={{ flexShrink: 0 }} />
             <span className="font-bold text-base tracking-tight sidebar-label" style={{ color: "var(--text)", whiteSpace: "nowrap", overflow: "hidden" }}>
               Matchwork
@@ -157,6 +229,7 @@ export function NavLateral({ userEmail = "", role }: { userEmail?: string; role?
                     <Link
                       key={l.href}
                       href={l.href}
+                      onClick={() => setOuvert(false)}
                       className="flex items-center gap-3 px-2.5 py-2.5 rounded-xl transition-all sidebar-item"
                       style={{
                         color: actif ? "#fff" : "var(--text)",
@@ -188,6 +261,7 @@ export function NavLateral({ userEmail = "", role }: { userEmail?: string; role?
               </p>
               <Link
                 href="/admin"
+                onClick={() => setOuvert(false)}
                 className="flex items-center gap-3 px-2.5 py-2.5 rounded-xl transition-all sidebar-item"
                 style={{ color: "var(--text)", textDecoration: "none", fontWeight: 500 }}
                 title="Espace admin"
@@ -203,9 +277,8 @@ export function NavLateral({ userEmail = "", role }: { userEmail?: string; role?
           )}
         </nav>
 
-        {/* Bas : toggle thème + profil */}
+        {/* Bas : toggle theme + profil */}
         <div className="px-2.5 py-3" style={{ borderTop: "1px solid var(--border)" }}>
-          {/* Toggle thème */}
           <button
             onClick={toggle}
             className="flex items-center gap-3 px-2.5 py-2.5 rounded-xl transition-colors w-full sidebar-item"
@@ -230,7 +303,6 @@ export function NavLateral({ userEmail = "", role }: { userEmail?: string; role?
             </span>
           </button>
 
-          {/* Profil utilisateur */}
           <div
             className="flex items-center gap-2.5 mt-2 px-2 py-2 rounded-xl"
             style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}
@@ -265,16 +337,34 @@ export function NavLateral({ userEmail = "", role }: { userEmail?: string; role?
         </div>
       </aside>
 
-      {/* CSS responsive sidebar */}
+      {/* CSS responsive */}
       <style jsx global>{`
-        :root { --sidebar-w: 64px; }
-        .sidebar-label { display: none; }
-        .sidebar-content-offset { margin-left: 64px; }
+        /* Mobile : sidebar cachée, header visible */
+        :root { --sidebar-w: 280px; }
+        .nav-sidebar { transform: translateX(-100%); }
+        .nav-sidebar-open { transform: translateX(0); }
+        .mobile-header { display: flex !important; }
+        .mobile-backdrop { display: block; }
+        .sidebar-label { display: block; }
+        .sidebar-content-offset { margin-left: 0; padding-top: 56px; }
+
+        /* Tablette : sidebar icônes, pas de header mobile */
         @media (min-width: 768px) {
+          :root { --sidebar-w: 64px; }
+          .nav-sidebar { transform: translateX(0); }
+          .mobile-header { display: none !important; }
+          .mobile-backdrop { display: none !important; }
+          .sidebar-label { display: none; }
+          .sidebar-content-offset { margin-left: 64px; padding-top: 0; }
+        }
+
+        /* Desktop : sidebar etendue */
+        @media (min-width: 1024px) {
           :root { --sidebar-w: 250px; }
           .sidebar-label { display: block; }
           .sidebar-content-offset { margin-left: 250px; }
         }
+
         .sidebar-item:hover { background: var(--bg-card-hover); }
       `}</style>
     </>

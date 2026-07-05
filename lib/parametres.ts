@@ -29,9 +29,9 @@ export async function setParametre(cle: string, valeur: string) {
   });
 }
 
-/** Quota gratuit mensuel effectif : réglage base → variable d'env → 3. */
+/** Quota gratuit journalier effectif : réglage base → variable d'env → 3. */
 export async function getQuotaGratuit(): Promise<number> {
   const val = await getParametre(CLES_PARAMETRES.quotaGratuitDefaut, "");
-  const n = parseInt(val || process.env.QUOTA_GRATUIT_MENSUEL || "3", 10);
+  const n = parseInt(val || process.env.QUOTA_GRATUIT_JOURNALIER || process.env.QUOTA_GRATUIT_MENSUEL || "3", 10);
   return Number.isFinite(n) && n > 0 ? n : 3;
 }

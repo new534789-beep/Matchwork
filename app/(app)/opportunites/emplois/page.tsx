@@ -10,7 +10,7 @@ export default async function FilEmplois() {
 
   const opportunites = await prisma.opportunite.findMany({
     where: {
-      type: { in: ["EMPLOI", "STAGE"] },
+      type: "EMPLOI",
       actif: true,
       statut: "publiee",
       interactions: { none: { userId: session.user.id } },

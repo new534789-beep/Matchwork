@@ -51,7 +51,12 @@ export async function extraireOffre(contenu: string): Promise<OffreExtraite | nu
     const reponse = (result.choices?.[0]?.message?.content as string) ?? "";
     const match = reponse.match(/\{[\s\S]*\}/);
     if (!match) return null;
-    return JSON.parse(match[0]) as OffreExtraite;
+    const parsed = JSON.parse(match[0]) as OffreExtraite;
+    // L'IA renvoie parfois conditions comme un tableau — normaliser en string.
+    if (Array.isArray(parsed.conditions)) {
+      parsed.conditions = (parsed.conditions as string[]).join("\n");
+    }
+    return parsed;
   } catch {
     return null;
   }

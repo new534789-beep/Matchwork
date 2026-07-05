@@ -7,12 +7,12 @@ import { calculerDedupKey } from "@/lib/ingestion/dedup";
 import { trierSelonDeadline } from "@/lib/ingestion/tri";
 import { recupererContenuPage } from "@/lib/ingestion/contenu-page";
 import { scraperUneSource } from "@/lib/ingestion/scraper";
+import { traduireOffreFr } from "@/lib/ia/traduction";
 
 const parser = new Parser({ timeout: 15000 });
 
 const MAX_ITEMS_PAR_SOURCE = 15; // on ne lit que les N items les plus récents par flux
-const MAX_ENRICH_PAR_PASSAGE = 40; // plafond d'appels IA par passage (coût maîtrisé)
-const DESC_COURTE = 200; // sous ce nombre de caractères, on tente la page liée
+const MAX_ENRICH_PAR_PASSAGE = 700; // 2 appels IA par offre (date + extraction)
 
 export type RapportIngestion = {
   sources: number;
@@ -119,49 +119,52 @@ export async function ingererToutesLesSources(opts?: { skip?: number; take?: num
         let canalCandidature: string | null = null;
         let cibleCandidature: string | null = null;
 
-        // ─── Enrichissement IA : EXTRACTION DE LA DATE LIMITE ──────────────────
+        // ─── Enrichissement IA OBLIGATOIRE : pas d'IA = pas d'insertion ──────
         let dateLimite: Date | null = null;
         let confiance: number | null = null;
         let sourceDateLimite: string | null = null;
 
-        if (iaDisponible() && budget.enrich > 0) {
+        if (!iaDisponible() || budget.enrich < 2) continue; // pas assez de budget → on skip
+
+        const contenu = lien ? await recupererContenuPage(lien) : null;
+        const texteSource = contenu || descFlux;
+
+        // Extraction de la date limite
+        budget.enrich--;
+        const dl = await extraireDateLimite(titre ?? "", texteSource, aujourdhui);
+
+        if (dl) {
+          dateLimite = dl.dateLimite;
+          confiance = dl.confiance;
+          sourceDateLimite = dl.source;
+          if (dl.dateLimite) rapport.enrichies++;
+        }
+
+        // Extraction complète IA (pièces exigées, canal, description…)
+        budget.enrich--;
+        const offre = await extraireOffre(`${titre ?? ""}\n\n${texteSource}`);
+        if (!offre) continue; // extraction échouée → on n'insère pas
+
+        if (offre.organisme && offre.organisme !== "non précisé") organisme = offre.organisme.slice(0, 120);
+        if (offre.intitule && offre.intitule !== "non précisé") intitule = offre.intitule.slice(0, 240);
+        if (offre.description && offre.description !== "non précisé") descFinale = offre.description.slice(0, 2000);
+        if (offre.conditions && offre.conditions !== "non précisé") conditions = offre.conditions;
+        if (Array.isArray(offre.piecesExigees) && offre.piecesExigees.length) piecesExigees = JSON.stringify(offre.piecesExigees);
+        if (offre.exigenceLangue && offre.exigenceLangue !== "non précisé") exigenceLangue = offre.exigenceLangue;
+        if (offre.langueDetectee) langueDetectee = offre.langueDetectee;
+        canalCandidature = normaliserCanal(offre.canalCandidature);
+        cibleCandidature = offre.cibleCandidature ?? null;
+
+        // Pas de pièces generables = pas d'intérêt pour Matchwork
+        const aGenerables = Array.isArray(offre.piecesExigees) && offre.piecesExigees.some((p) => p.categorie === "generable");
+        if (!aGenerables) { rapport.rejetees++; continue; }
+
+        // ─── Traduction FR pour l'affichage (si l'offre n'est pas en français) ─
+        // langueDetectee reste la langue d'ORIGINE (utile pour rédiger le dossier).
+        if (langueDetectee && langueDetectee !== "fr" && iaDisponible() && budget.enrich > 0) {
           budget.enrich--;
-          // 1er passage : titre + description du flux + date du jour (pas de fetch).
-          let dl = await extraireDateLimite(titre ?? "", descFlux, aujourdhui);
-
-          // Fetch CONDITIONNEL : description trop courte ET aucune date trouvée →
-          // on récupère UNE fois le texte de la page liée, puis on relance.
-          if (lien && (!dl || !dl.dateLimite) && descFlux.length < DESC_COURTE && budget.enrich > 0) {
-            const contenu = await recupererContenuPage(lien);
-            if (contenu) {
-              budget.enrich--;
-              dl = await extraireDateLimite(titre ?? "", contenu, aujourdhui);
-              // La page est déjà récupérée : on réutilise l'extraction riche
-              // existante pour améliorer le contenu affiché (sans fetch en plus).
-              if (budget.enrich > 0) {
-                budget.enrich--;
-                const offre = await extraireOffre(`${titre ?? ""}\n\n${contenu}`);
-                if (offre) {
-                  if (offre.organisme && offre.organisme !== "non précisé") organisme = offre.organisme.slice(0, 120);
-                  if (offre.intitule && offre.intitule !== "non précisé") intitule = offre.intitule.slice(0, 240);
-                  if (offre.description && offre.description !== "non précisé") descFinale = offre.description.slice(0, 2000);
-                  if (offre.conditions && offre.conditions !== "non précisé") conditions = offre.conditions;
-                  if (Array.isArray(offre.piecesExigees) && offre.piecesExigees.length) piecesExigees = JSON.stringify(offre.piecesExigees);
-                  if (offre.exigenceLangue && offre.exigenceLangue !== "non précisé") exigenceLangue = offre.exigenceLangue;
-                  if (offre.langueDetectee) langueDetectee = offre.langueDetectee;
-                  canalCandidature = normaliserCanal(offre.canalCandidature);
-                  cibleCandidature = offre.cibleCandidature ?? null;
-                }
-              }
-            }
-          }
-
-          if (dl) {
-            dateLimite = dl.dateLimite;
-            confiance = dl.confiance;
-            sourceDateLimite = dl.source;
-            if (dl.dateLimite) rapport.enrichies++;
-          }
+          const tr = await traduireOffreFr({ intitule, description: descFinale, conditions });
+          if (tr) { intitule = tr.intitule; descFinale = tr.description; conditions = tr.conditions; }
         }
 
         // ─── Tri par validité (jamais de publication automatique) ──────────────

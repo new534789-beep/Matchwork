@@ -124,7 +124,27 @@ export function DossierClient({ dossier, checklist }: Props) {
     finally { setActionEnCours(false); }
   }
 
-  async function telecharger() { window.print(); await marquerUtilise(); }
+  async function telecharger() {
+    setActionEnCours(true);
+    try {
+      const res = await fetch(`/api/dossiers/${dossier.id}/pdf`);
+      if (!res.ok) { setErreur("Impossible de générer le PDF."); return; }
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `Matchwork-${opp.organisme.replace(/[^a-zA-Z0-9]/g, "_")}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+      await marquerUtilise();
+    } catch {
+      setErreur("Erreur lors du téléchargement du PDF.");
+    } finally {
+      setActionEnCours(false);
+    }
+  }
 
   async function annuler() {
     if (!confirm("Annuler ce dossier ? Il sera supprimé et le crédit vous sera rendu.")) return;

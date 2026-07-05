@@ -15,7 +15,8 @@
     "ingest:run": "tsx scripts/ingest.ts",
     "ingest:expirer": "tsx scripts/ingest-expirer.ts",
     "sources:seed": "tsx scripts/seed-sources.ts",
-    "sources:seed-reel": "tsx scripts/seed-sources-reelles.ts"
+    "sources:seed-reel": "tsx scripts/seed-sources-reelles.ts",
+    "offres:traduire": "tsx scripts/traduire-offres.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.36.3",
@@ -30,6 +31,7 @@
     "lucide-react": "^0.469.0",
     "next": "16.2.9",
     "next-auth": "^5.0.0-beta.25",
+    "pdf-lib": "^1.17.1",
     "react": "19.2.4",
     "react-dom": "19.2.4",
     "react-hook-form": "^7.54.2",

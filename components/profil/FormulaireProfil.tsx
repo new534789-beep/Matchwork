@@ -75,6 +75,15 @@ export function FormulaireProfil({ profilInitial }: Props) {
   const [chargement, setChargement] = useState(false);
   const [erreur, setErreur] = useState("");
 
+  const [nomComplet, setNomComplet] = useState(profilInitial?.nomComplet ?? "");
+  const [dateNaissance, setDateNaissance] = useState(profilInitial?.dateNaissance ?? "");
+  const [lieuNaissance, setLieuNaissance] = useState(profilInitial?.lieuNaissance ?? "");
+  const [nationalite, setNationalite] = useState(profilInitial?.nationalite ?? "");
+  const [telephone, setTelephone] = useState(profilInitial?.telephone ?? "");
+  const [adresse, setAdresse] = useState(profilInitial?.adresse ?? "");
+  const [email, setEmail] = useState(profilInitial?.email ?? "");
+  const [signature, setSignature] = useState(profilInitial?.signature ?? "");
+  const [linkedin, setLinkedin] = useState(profilInitial?.linkedin ?? "");
   const [bio, setBio] = useState(profilInitial?.bio ?? "");
   const [objectifs, setObjectifs] = useState(profilInitial?.objectifs ?? "");
   const [tonSouhaite, setTonSouhaite] = useState(profilInitial?.tonSouhaite ?? "");
@@ -103,7 +112,7 @@ export function FormulaireProfil({ profilInitial }: Props) {
       const res = await fetch("/api/profil", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ bio, objectifs, tonSouhaite, formations, experiences, competences, langues }),
+        body: JSON.stringify({ nomComplet, dateNaissance, lieuNaissance, nationalite, telephone, adresse, email, signature, linkedin, bio, objectifs, tonSouhaite, formations, experiences, competences, langues }),
       });
       if (!res.ok) throw new Error();
       setSauvegarde(true);
@@ -156,6 +165,22 @@ export function FormulaireProfil({ profilInitial }: Props) {
   return (
     <form onSubmit={sauvegarder} className="pb-8">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 items-start">
+
+      {/* Identité & Coordonnées */}
+      <Carte className="lg:col-span-2">
+        <CarteEntete><CarteTitre>Identité & Coordonnées</CarteTitre></CarteEntete>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <ChampTexte label="Nom complet" placeholder="Prénom NOM" value={nomComplet} onChange={(e) => setNomComplet(e.target.value)} />
+          <ChampTexte label="Signature" placeholder="Nom tel que vous signez" value={signature} onChange={(e) => setSignature(e.target.value)} />
+          <ChampTexte label="Date de naissance" placeholder="01/01/2000" value={dateNaissance} onChange={(e) => setDateNaissance(e.target.value)} />
+          <ChampTexte label="Lieu de naissance" placeholder="Cotonou, Bénin" value={lieuNaissance} onChange={(e) => setLieuNaissance(e.target.value)} />
+          <ChampTexte label="Nationalité" placeholder="Béninoise" value={nationalite} onChange={(e) => setNationalite(e.target.value)} />
+          <ChampTexte label="Téléphone" placeholder="+229 XX XX XX XX" value={telephone} onChange={(e) => setTelephone(e.target.value)} />
+          <ChampTexte label="Adresse e-mail" placeholder="prenom.nom@email.com" value={email} onChange={(e) => setEmail(e.target.value)} />
+          <ChampTexte label="Adresse postale" placeholder="Rue, Ville, Pays" value={adresse} onChange={(e) => setAdresse(e.target.value)} />
+          <ChampTexte label="LinkedIn (optionnel)" placeholder="linkedin.com/in/votre-nom" value={linkedin} onChange={(e) => setLinkedin(e.target.value)} />
+        </div>
+      </Carte>
 
       {/* Bio */}
       <Carte>

@@ -3,8 +3,9 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 // ─── Authentification ────────────────────────────────────────────────────────
@@ -37,15 +38,23 @@ model Profil {
   userId      String   @unique
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  nomComplet  String?
-  bio         String?
-  formations  String   @default("[]")
-  experiences String   @default("[]")
-  competences String   @default("[]")
-  langues     String   @default("[]")
-  objectifs   String?
-  tonSouhaite String?
-  complete    Boolean  @default(false)
+  nomComplet    String?
+  dateNaissance String?
+  lieuNaissance String?
+  nationalite   String?
+  telephone     String?
+  adresse       String?
+  email         String?
+  signature     String?  // nom tel que le candidat signe (peut différer du nom complet)
+  linkedin      String?
+  bio           String?
+  formations    String   @default("[]")
+  experiences   String   @default("[]")
+  competences   String   @default("[]")
+  langues       String   @default("[]")
+  objectifs     String?
+  tonSouhaite   String?
+  complete      Boolean  @default(false)
   sessionOnboarding String @default("[]")
 
   createdAt   DateTime @default(now())

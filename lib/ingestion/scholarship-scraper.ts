@@ -1,7 +1,7 @@
 /**
  * Ingestion de bourses d'études depuis des portails gouvernementaux et universitaires.
  * Scrape les pages HTML, extrait les liens d'annonces, enrichit via Mistral IA,
- * déduplique et insère en base via Prisma (type BOURSE, actif false, jamais auto-publié).
+ * déduplique et insère en base via Prisma (type BOURSE_ETUDE, actif false, jamais auto-publié).
  */
 import * as cheerio from "cheerio";
 import { createHash } from "crypto";
@@ -252,7 +252,8 @@ export async function ingererBourses(): Promise<RapportBourses> {
 
         const contenu = normaliserDatesLocales(contenuBrut, source.language);
 
-        if (!iaDisponible() || budgetEnrich <= 0) continue;
+        if (!iaDisponible() || budgetEnrich < 2) continue;
+
         budgetEnrich--;
         const dl = await extraireDateLimite(titre || "Sans titre", contenu, aujourdhui);
         const dateLimite = dl?.dateLimite ?? null;
@@ -262,6 +263,11 @@ export async function ingererBourses(): Promise<RapportBourses> {
         if (!dateLimite || dateLimite.getTime() <= maintenant.getTime()) {
           continue;
         }
+
+        // Extraction IA obligatoire
+        budgetEnrich--;
+        const offre = await extraireOffre(`${titre || ""}\n\n${contenu}`);
+        if (!offre) continue;
 
         let organisme = source.name;
         let intitule = (titre || "Sans titre").slice(0, 240);
@@ -273,26 +279,24 @@ export async function ingererBourses(): Promise<RapportBourses> {
         let canalCandidature: string | null = null;
         let cibleCandidature: string | null = null;
 
-        if (budgetEnrich > 0) {
-          budgetEnrich--;
-          const offre = await extraireOffre(`${titre || ""}\n\n${contenu}`);
-          if (offre) {
-            if (offre.organisme && offre.organisme !== "non précisé") organisme = offre.organisme.slice(0, 120);
-            if (offre.intitule && offre.intitule !== "non précisé") intitule = offre.intitule.slice(0, 240);
-            if (offre.description && offre.description !== "non précisé") descFinale = offre.description.slice(0, 2000);
-            if (offre.conditions && offre.conditions !== "non précisé") conditions = offre.conditions;
-            if (Array.isArray(offre.piecesExigees) && offre.piecesExigees.length) piecesExigees = JSON.stringify(offre.piecesExigees);
-            if (offre.exigenceLangue && offre.exigenceLangue !== "non précisé") exigenceLangue = offre.exigenceLangue;
-            if (offre.langueDetectee) langueDetectee = offre.langueDetectee;
-            canalCandidature = normaliserCanal(offre.canalCandidature);
-            cibleCandidature = offre.cibleCandidature ?? null;
-          }
-        }
+        if (offre.organisme && offre.organisme !== "non précisé") organisme = offre.organisme.slice(0, 120);
+        if (offre.intitule && offre.intitule !== "non précisé") intitule = offre.intitule.slice(0, 240);
+        if (offre.description && offre.description !== "non précisé") descFinale = offre.description.slice(0, 2000);
+        if (offre.conditions && offre.conditions !== "non précisé") conditions = offre.conditions;
+        if (Array.isArray(offre.piecesExigees) && offre.piecesExigees.length) piecesExigees = JSON.stringify(offre.piecesExigees);
+        if (offre.exigenceLangue && offre.exigenceLangue !== "non précisé") exigenceLangue = offre.exigenceLangue;
+        if (offre.langueDetectee) langueDetectee = offre.langueDetectee;
+        canalCandidature = normaliserCanal(offre.canalCandidature);
+        cibleCandidature = offre.cibleCandidature ?? null;
+
+        // Pas de pièces generables = pas d'intérêt pour Matchwork
+        const aGenerables = Array.isArray(offre.piecesExigees) && offre.piecesExigees.some((p) => p.categorie === "generable");
+        if (!aGenerables) continue;
 
         try {
           await prisma.opportunite.create({
             data: {
-              type: "BOURSE",
+              type: "BOURSE_ETUDE",
               source: `SCHOLARSHIP:${source.identifier}`,
               organisme,
               intitule,

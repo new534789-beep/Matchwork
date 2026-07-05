@@ -21,21 +21,19 @@ export async function POST(req: Request) {
     return NextResponse.json({ erreur: "opportuniteId manquant" }, { status: 400 });
   }
 
-  // Un dossier déjà « genere »/« utilise » est renvoyé tel quel ; un dossier
-  // « a_preparer » (créé par le swipe / « Ça m'intéresse ») est généré ci-dessous.
-  const existant = await prisma.dossier.findFirst({
-    where: { userId, opportuniteId },
-    select: { id: true, statut: true },
-  });
-  if (existant && existant.statut !== "a_preparer") {
-    return NextResponse.json({ dossierId: existant.id, statut: existant.statut });
-  }
-
-  const [user, profil, opportunite] = await Promise.all([
+  const [existant, user, profil, opportunite] = await Promise.all([
+    prisma.dossier.findFirst({
+      where: { userId, opportuniteId },
+      select: { id: true, statut: true },
+    }),
     prisma.user.findUnique({ where: { id: userId }, select: { plan: true } }),
     prisma.profil.findUnique({ where: { userId } }),
     prisma.opportunite.findUnique({ where: { id: opportuniteId } }),
   ]);
+
+  if (existant && existant.statut !== "a_preparer") {
+    return NextResponse.json({ dossierId: existant.id, statut: existant.statut });
+  }
 
   if (!profil?.complete) {
     return NextResponse.json({ erreur: "Profil incomplet. Terminez l'onboarding." }, { status: 400 });
@@ -44,19 +42,16 @@ export async function POST(req: Request) {
     return NextResponse.json({ erreur: "Opportunité introuvable" }, { status: 404 });
   }
 
-  // Réutilise le dossier « a_preparer » existant, sinon le crée immédiatement →
-  // visible dans Mes candidatures comme « en préparation » pendant la génération.
   const dossier = existant
     ? { id: existant.id }
     : await prisma.dossier.create({ data: { userId, opportuniteId, statut: "a_preparer" } });
 
-  const mois = new Date().toISOString().slice(0, 7);
+  const jour = new Date().toISOString().slice(0, 10);
   const gratuit = estPlanGratuit(user?.plan ?? "gratuit");
 
-  // Quota gratuit atteint → on s'arrête à « a_preparer » (déblocage par paiement, étape 4).
   if (gratuit) {
     const quotaMax = await getQuotaGratuit();
-    const quota = await prisma.quotaUsage.findUnique({ where: { userId_mois: { userId, mois } } });
+    const quota = await prisma.quotaUsage.findUnique({ where: { userId_mois: { userId, mois: jour } } });
     if ((quota?.generationsUtilisees ?? 0) >= quotaMax) {
       return NextResponse.json(
         { dossierId: dossier.id, statut: "a_preparer", quotaAtteint: true, cta: "/compte" },
@@ -72,7 +67,6 @@ export async function POST(req: Request) {
     );
   }
 
-  // Génération IA → passage à « genere »
   try {
     const [coffre, docsAnciens] = await Promise.all([
       prisma.document.findMany({ where: { userId }, select: { type: true, infosExtraites: true } }),
@@ -84,23 +78,18 @@ export async function POST(req: Request) {
       catch { return []; }
     });
 
-    // Documents rédactionnels demandés par l'offre (categorie "generable" sur piecesExigees).
-    // À défaut d'indication, on produit au minimum une lettre de motivation.
     type PieceReq = { nom?: string; type?: string; categorie?: string };
-    let documentsAGenerer: { type: string; nom: string }[] = [];
-    try {
-      const pieces = JSON.parse(opportunite.piecesExigees) as PieceReq[];
-      documentsAGenerer = (Array.isArray(pieces) ? pieces : [])
-        .filter((p) => p && p.categorie === "generable")
-        .map((p) => ({ type: (p.type || "lettre").toString(), nom: (p.nom || p.type || "Document").toString() }));
-    } catch {
-      documentsAGenerer = [];
-    }
+    let piecesArray: PieceReq[] = [];
+    try { piecesArray = JSON.parse(opportunite.piecesExigees) as PieceReq[]; } catch { piecesArray = []; }
+
+    let documentsAGenerer: { type: string; nom: string }[] = (Array.isArray(piecesArray) ? piecesArray : [])
+      .filter((p) => p && p.categorie === "generable")
+      .map((p) => ({ type: (p.type || "lettre").toString(), nom: (p.nom || p.type || "Document").toString() }));
     if (documentsAGenerer.length === 0) documentsAGenerer = [{ type: "lettre", nom: "Lettre de motivation" }];
 
     const client = getMistralClient();
     const result = await client.chat.complete({
-      model: MODELS.large,
+      model: MODELS.small,
       messages: [
         { role: "system", content: SYSTEM_GENERATION },
         { role: "user", content: buildGenerationMessage(profil, coffre, opportunite, historiqueAccroches, documentsAGenerer) },
@@ -134,15 +123,14 @@ export async function POST(req: Request) {
 
     if (gratuit) {
       await prisma.quotaUsage.upsert({
-        where: { userId_mois: { userId, mois } },
+        where: { userId_mois: { userId, mois: jour } },
         update: { generationsUtilisees: { increment: 1 } },
-        create: { userId, mois, generationsUtilisees: 1 },
+        create: { userId, mois: jour, generationsUtilisees: 1 },
       });
     }
 
     return NextResponse.json({ dossierId: dossier.id, statut: "genere" });
   } catch (err: unknown) {
-    // Le dossier reste « a_preparer » et reste régénérable.
     const msg = err instanceof Error ? err.message : String(err);
     const dispo = !(msg.includes("429") || msg.includes("rate") || msg.includes("quota"));
     return NextResponse.json(

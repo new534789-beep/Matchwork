@@ -27,6 +27,24 @@ const SECTIONS = [
     ),
   },
   {
+    id: "coordonnees",
+    label: "Coordonnées",
+    icon: (
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
+        <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z" />
+      </svg>
+    ),
+  },
+  {
+    id: "signature",
+    label: "Signature",
+    icon: (
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
+        <path d="M17 3a2.828 2.828 0 114 4L7.5 20.5 2 22l1.5-5.5L17 3z" />
+      </svg>
+    ),
+  },
+  {
     id: "presentation",
     label: "Présentation",
     icon: (
@@ -94,7 +112,10 @@ const SECTIONS = [
     label: "Style de lettre",
     icon: (
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
-        <path d="M17 3a2.828 2.828 0 114 4L7.5 20.5 2 22l1.5-5.5L17 3z" />
+        <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
+        <polyline points="14 2 14 8 20 8" />
+        <line x1="16" y1="13" x2="8" y2="13" />
+        <line x1="16" y1="17" x2="8" y2="17" />
       </svg>
     ),
   },
@@ -207,24 +228,55 @@ export function InterfaceOnboarding({ sessionOnboarding }: Props) {
   return (
     <div style={{ display: "flex", height: "100vh", overflow: "hidden", background: "var(--bg)" }}>
 
+      {/* CSS responsive onboarding */}
+      <style jsx global>{`
+        @media (max-width: 767px) {
+          .onboarding-sidebar {
+            position: fixed !important;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            z-index: 50;
+            transform: translateX(-100%);
+            transition: transform 0.25s ease;
+          }
+          .onboarding-sidebar-open {
+            transform: translateX(0) !important;
+          }
+        }
+        @media (min-width: 768px) {
+          .onboarding-sidebar {
+            position: relative !important;
+            transform: none !important;
+          }
+          .onboarding-mobile-overlay {
+            display: none !important;
+          }
+        }
+      `}</style>
+
       {/* Overlay mobile */}
       {sidebarOuverte && (
         <div
+          className="onboarding-mobile-overlay"
           onClick={() => setSidebarOuverte(false)}
           style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.6)", zIndex: 40 }}
         />
       )}
 
       {/* ── Sidebar gauche ── */}
-      <aside style={{
-        width: 260,
-        flexShrink: 0,
-        background: "var(--bg-card)",
-        borderRight: "1px solid var(--border)",
-        display: "flex",
-        flexDirection: "column",
-        overflow: "hidden",
-      }}>
+      <aside
+        className={sidebarOuverte ? "onboarding-sidebar onboarding-sidebar-open" : "onboarding-sidebar"}
+        style={{
+          width: 260,
+          flexShrink: 0,
+          background: "var(--bg-card)",
+          borderRight: "1px solid var(--border)",
+          display: "flex",
+          flexDirection: "column",
+          overflow: "hidden",
+        }}
+      >
         {/* Logo */}
         <div style={{ padding: "18px 20px 14px", borderBottom: "1px solid var(--border)", display: "flex", alignItems: "center", gap: 10 }}>
           <Image src="/logo.png" alt="Matchwork" width={40} height={40} priority />

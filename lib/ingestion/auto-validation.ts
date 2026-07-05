@@ -11,6 +11,7 @@
  */
 import { prisma } from "@/lib/prisma";
 import { STATUTS_EN_FILE } from "@/lib/opportunites";
+import { detecterBlog } from "@/lib/ia/detection-blog";
 
 export type RapportValidation = {
   traitees: number;
@@ -25,50 +26,16 @@ const MOTS_SPAM = [
   "click here", "free iphone", "congratulations you won",
 ];
 
-// ── Filtre anti-blog : rejeter les articles, événements, actus ──
+// ── Filtre anti-blog : détection par IA (Mistral) ──
 
-const TITRES_BLOG = [
-  "épisode", "episode", "podcast", "newsletter", "replay",
-  "webinaire", "miss université", "finale grandiose",
-  "quarts de finale", "que s'est-il passé", "ce qui s'est passé",
-  "retour sur", "retour en images", "top 10 des", "top 5 des",
-  "interview exclusive", "grandes gagnantes", "excellentes pour votre",
-  "un grand défi relevé", "la dernière ligne droite",
-  "mauvaises habitudes", "voici les résultats",
-  "l'article ", "chill & pro", "chill et pro",
-  // FAQ / guides / conseils — pas des offres directes
-  "voici comment", "comment le rédiger", "comment l'obtenir",
-  "faut-il prévoir", "peut-on rester", "est-il possible de",
-  "étapes pour bien", "les astuces les plus",
-  "parcours d'excellence", "coordonnées des ambassades",
-  "liste de ", "04 des meilleures", "05 des meilleures",
-  "ouvre le premier campus",
-];
+const SEUIL_CONFIANCE_BLOG = 0.7;
 
-const DESC_BLOG = [
-  "l'article ", "cet article", "dans cet épisode",
-  "lire la suite sur", "lire l'article",
-  "retrouvez notre", "abonnez-vous",
-  "notre rédaction", "notre journaliste",
-];
-
-function estContenuBlog(intitule: string, description: string): string | null {
-  const titre = intitule.toLowerCase();
-  const desc = (description || "").toLowerCase().slice(0, 300);
-
-  for (const m of TITRES_BLOG) {
-    if (titre.includes(m)) return `Titre blog/article détecté (${m})`;
+async function estContenuBlog(intitule: string, description: string): Promise<string | null> {
+  const resultat = await detecterBlog(intitule, description);
+  if (!resultat) return null;
+  if (resultat.estBlog && resultat.confiance >= SEUIL_CONFIANCE_BLOG) {
+    return `Contenu blog/article détecté par IA (${resultat.raison})`;
   }
-
-  for (const m of DESC_BLOG) {
-    if (desc.includes(m)) return `Description blog/article détectée (${m})`;
-  }
-
-  // Description qui finit par "L'article [titre]..." — pattern RSS de blogs WordPress
-  if (desc.includes("... l'article ") || desc.includes("… l'article ")) {
-    return "Description de flux blog WordPress";
-  }
-
   return null;
 }
 
@@ -95,14 +62,14 @@ function verifierCoherence(
   const desc = (description || "").toLowerCase().slice(0, 500);
   const texte = `${titre} ${desc}`;
 
-  if (type === "BOURSE") {
+  if (type === "BOURSE" || type === "BOURSE_ETUDE") {
     if (desc.startsWith("poste ") || desc.includes("poste chez")) {
-      return { coherent: false, raison: "Type BOURSE mais description d'emploi (poste chez...)" };
+      return { coherent: false, raison: `Type ${type} mais description d'emploi (poste chez...)` };
     }
     const aSignalEmploi = SIGNAUX_EMPLOI.some((s) => texte.includes(s));
     const aSignalBourse = SIGNAUX_BOURSE.some((s) => texte.includes(s));
     if (aSignalEmploi && !aSignalBourse && !titre.includes("bourse") && !titre.includes("scholarship")) {
-      return { coherent: false, raison: "Type BOURSE mais contenu d'emploi détecté" };
+      return { coherent: false, raison: `Type ${type} mais contenu d'emploi détecté` };
     }
   }
 
@@ -144,14 +111,14 @@ function champRempli(val: string | null | undefined): boolean {
 
 type Decision = { action: "publiee" | "rejetee"; raison: string };
 
-function deciderEmploi(opp: {
+async function deciderEmploi(opp: {
   type: string;
   intitule: string;
   organisme: string;
   description: string;
   lien: string | null;
   source: string;
-}): Decision {
+}): Promise<Decision> {
   if (!champRempli(opp.intitule)) {
     return { action: "rejetee", raison: "Titre manquant" };
   }
@@ -164,9 +131,8 @@ function deciderEmploi(opp: {
   if (estSpam(`${opp.intitule} ${opp.description}`)) {
     return { action: "rejetee", raison: "Contenu suspect (spam)" };
   }
-  // Sources ATS fiables : pas de filtre anti-blog (titres de postes légitimes comme "Podcast Engineer")
   if (!opp.source.startsWith("ATS:")) {
-    const blog = estContenuBlog(opp.intitule, opp.description);
+    const blog = await estContenuBlog(opp.intitule, opp.description);
     if (blog) {
       return { action: "rejetee", raison: blog };
     }
@@ -178,7 +144,7 @@ function deciderEmploi(opp: {
   return { action: "publiee", raison: "Source ATS fiable, champs complets" };
 }
 
-function deciderBourseOuAutre(opp: {
+async function deciderBourseOuAutre(opp: {
   type: string;
   intitule: string;
   organisme: string;
@@ -186,7 +152,7 @@ function deciderBourseOuAutre(opp: {
   lien: string | null;
   dateLimite: Date | null;
   confianceDateLimite: number | null;
-}): Decision {
+}): Promise<Decision> {
   if (!champRempli(opp.intitule)) {
     return { action: "rejetee", raison: "Titre manquant" };
   }
@@ -199,7 +165,7 @@ function deciderBourseOuAutre(opp: {
   if (estSpam(`${opp.intitule} ${opp.description}`)) {
     return { action: "rejetee", raison: "Contenu suspect (spam)" };
   }
-  const blog = estContenuBlog(opp.intitule, opp.description);
+  const blog = await estContenuBlog(opp.intitule, opp.description);
   if (blog) {
     return { action: "rejetee", raison: blog };
   }
@@ -254,8 +220,8 @@ export async function validerAutomatiquement(options?: { limite?: number }): Pro
     const estEmploi = opp.type === "EMPLOI" || estATS;
 
     const decision = estEmploi
-      ? deciderEmploi(opp)
-      : deciderBourseOuAutre(opp);
+      ? await deciderEmploi(opp)
+      : await deciderBourseOuAutre(opp);
 
     try {
       await prisma.opportunite.update({
@@ -315,9 +281,8 @@ export async function nettoyerOffresIncoherentes(): Promise<{
   for (const opp of publiees) {
     let raison: string | null = null;
 
-    // Sources ATS fiables : pas de filtre anti-blog
     if (!opp.source.startsWith("ATS:")) {
-      const blog = estContenuBlog(opp.intitule, opp.description);
+      const blog = await estContenuBlog(opp.intitule, opp.description);
       if (blog) raison = blog;
     }
 
@@ -326,7 +291,7 @@ export async function nettoyerOffresIncoherentes(): Promise<{
       if (!coherence.coherent) raison = coherence.raison!;
     }
 
-    if (!raison && opp.type === "BOURSE") {
+    if (!raison && (opp.type === "BOURSE" || opp.type === "BOURSE_ETUDE")) {
       raison = descriptionValide(opp.intitule, opp.description);
     }
 

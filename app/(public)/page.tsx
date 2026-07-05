@@ -8,7 +8,7 @@ export default function Landing() {
     <main style={{ background: "#000", color: "#fff" }}>
 
       {/* ── Navigation — pilule noir glacé ── */}
-      <nav className="fixed top-0 left-0 right-0 z-50 px-4" style={{ paddingTop: "14px" }}>
+      <nav className="fixed top-0 left-0 right-0 z-50 px-3 md:px-4" style={{ paddingTop: "10px" }}>
         <div
           className="max-w-5xl mx-auto flex items-center justify-between"
           style={{
@@ -16,8 +16,8 @@ export default function Landing() {
             backdropFilter: "saturate(160%) blur(20px)",
             WebkitBackdropFilter: "saturate(160%) blur(20px)",
             border: "1px solid rgba(255,255,255,0.09)",
-            borderRadius: "16px",
-            padding: "9px 12px 9px 18px",
+            borderRadius: "14px",
+            padding: "8px 10px 8px 14px",
             boxShadow: "0 10px 34px rgba(0,0,0,0.45)",
           }}
         >
@@ -59,7 +59,7 @@ export default function Landing() {
       <section
         className="hero-section"
         style={{
-          height: "100vh",
+          minHeight: "100vh",
           background: "#000",
           overflow: "hidden",
           position: "relative",

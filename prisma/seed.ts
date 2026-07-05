@@ -99,20 +99,20 @@ const bourses = [
   {
     id: "mastercard-scholars",
     organisme: "Mastercard Foundation",
-    intitule: "Mastercard Foundation Scholars Program",
+    intitule: "Programme de bourses Mastercard Foundation",
     description:
-      "The Mastercard Foundation Scholars Program provides scholarships to academically talented young people from Africa who have financial need. Scholars receive full tuition, living stipend, accommodation, airfare, and leadership development training. The program is available at partner universities in Africa, the US, UK, and Canada.",
-    langueDetectee: "en",
+      "Le Programme de bourses Mastercard Foundation offre des bourses aux jeunes Africains talentueux académiquement et ayant des besoins financiers. Les boursiers bénéficient de la prise en charge complète des frais de scolarité, d'une allocation de vie, du logement, du billet d'avion et d'une formation en leadership. Le programme est disponible dans des universités partenaires en Afrique, aux États-Unis, au Royaume-Uni et au Canada.",
+    langueDetectee: "fr",
     conditions:
-      "Must be a citizen of an African country. Demonstrated academic excellence (GPA ≥ 3.5 or equivalent). Financial need documented. Age 18–35. Commitment to give back to the African continent after graduation.",
+      "Être citoyen d'un pays africain. Excellence académique démontrée (moyenne ≥ 3.5/4 ou équivalent). Besoin financier documenté. Âge entre 18 et 35 ans. Engagement à contribuer au développement du continent africain après l'obtention du diplôme.",
     piecesExigees: JSON.stringify([
-      { nom: "Completed online application form", obligatoire: true },
-      { nom: "Official academic transcripts", obligatoire: true },
-      { nom: "Personal statement (500–800 words)", obligatoire: true },
-      { nom: "Two letters of recommendation", obligatoire: true },
-      { nom: "Proof of financial need", obligatoire: true },
-      { nom: "National ID or passport copy", obligatoire: true },
-      { nom: "English proficiency (IELTS 6.5+ or TOEFL 90+)", obligatoire: false },
+      { nom: "Formulaire de candidature en ligne", obligatoire: true },
+      { nom: "Relevés de notes officiels", obligatoire: true },
+      { nom: "Déclaration personnelle (500–800 mots)", obligatoire: true },
+      { nom: "Deux lettres de recommandation", obligatoire: true },
+      { nom: "Justificatif de besoin financier", obligatoire: true },
+      { nom: "Copie de la pièce d'identité ou du passeport", obligatoire: true },
+      { nom: "Certificat d'anglais (IELTS 6.5+ ou TOEFL 90+)", obligatoire: false },
     ]),
     exigenceLangue: "Anglais B2 (IELTS 6.5+)",
     dateLimite: new Date("2026-09-30"),
@@ -122,20 +122,20 @@ const bourses = [
   },
   {
     id: "chevening-2026",
-    organisme: "UK Foreign, Commonwealth & Development Office",
-    intitule: "Chevening Scholarship 2026–2027",
+    organisme: "Bureau des Affaires étrangères du Royaume-Uni (FCDO)",
+    intitule: "Bourse Chevening 2026–2027",
     description:
-      "Chevening is the UK government's international awards programme, aimed at developing global leaders. Funded by the Foreign, Commonwealth and Development Office (FCDO), Chevening offers full financial support to study any eligible master's degree course at any UK university. Scholars join a global network of over 50,000 alumni.",
-    langueDetectee: "en",
+      "Chevening est le programme de bourses internationales du gouvernement britannique, destiné à former les futurs leaders mondiaux. Financé par le Bureau des Affaires étrangères (FCDO), Chevening offre un soutien financier complet pour suivre un Master éligible dans n'importe quelle université britannique. Les boursiers rejoignent un réseau mondial de plus de 50 000 anciens lauréats.",
+    langueDetectee: "fr",
     conditions:
-      "Citizen of a Chevening-eligible country. At least 2 years' work experience. Hold an undergraduate degree equivalent to a UK 2:1. Return to your home country for at least 2 years after the scholarship. Not a dual UK national.",
+      "Être citoyen d'un pays éligible Chevening. Au moins 2 ans d'expérience professionnelle. Détenir un diplôme de Licence équivalent à un 2:1 britannique. Retourner dans son pays d'origine pendant au moins 2 ans après la bourse. Ne pas avoir la double nationalité britannique.",
     piecesExigees: JSON.stringify([
-      { nom: "Online application via Chevening portal", obligatoire: true },
-      { nom: "4 essay questions (500 words each)", obligatoire: true },
-      { nom: "Two references (submitted online)", obligatoire: true },
-      { nom: "Undergraduate degree certificate", obligatoire: true },
-      { nom: "English proficiency (IELTS 6.5 Academic)", obligatoire: true },
-      { nom: "CV / Résumé", obligatoire: true },
+      { nom: "Candidature en ligne via le portail Chevening", obligatoire: true },
+      { nom: "4 essais (500 mots chacun)", obligatoire: true },
+      { nom: "Deux références (soumises en ligne)", obligatoire: true },
+      { nom: "Diplôme de Licence", obligatoire: true },
+      { nom: "Certificat d'anglais (IELTS 6.5 Academic)", obligatoire: true },
+      { nom: "CV", obligatoire: true },
     ]),
     exigenceLangue: "Anglais — IELTS 6.5 Academic minimum",
     dateLimite: new Date("2026-11-04"),
@@ -145,21 +145,21 @@ const bourses = [
   },
   {
     id: "daad-helmut-schmidt",
-    organisme: "DAAD — Deutscher Akademischer Austauschdienst",
-    intitule: "Helmut-Schmidt-Programm — Master öffentliche Politik (Entwicklungsländer)",
+    organisme: "DAAD — Office allemand d'échanges universitaires",
+    intitule: "Programme Helmut-Schmidt — Master en politiques publiques (pays en développement)",
     description:
-      "Das Helmut-Schmidt-Programm richtet sich an Nachwuchsführungskräfte aus Entwicklungsländern, die ein Masterstudium in Public Policy oder Politikwissenschaften in Deutschland absolvieren möchten. Die Förderung umfasst monatliche Stipendien, Studiengebühren, Reisekostenbeihilfe, Krankenversicherung und Sprachkurse.",
-    langueDetectee: "de",
+      "Le programme Helmut-Schmidt s'adresse aux jeunes cadres des pays en développement souhaitant effectuer un Master en politiques publiques ou sciences politiques en Allemagne. Le financement comprend une allocation mensuelle, les frais de scolarité, une aide aux frais de voyage, l'assurance maladie et des cours de langue.",
+    langueDetectee: "fr",
     conditions:
-      "Hochschulabschluss (mindestens Bachelor) mit überdurchschnittlichen Noten. Mindestens zwei Jahre Berufserfahrung. Deutsch B1 oder Englisch B2. Staatsbürgerschaft eines Entwicklungslandes. Rückkehrverpflichtung nach Deutschland-Aufenthalt.",
+      "Diplôme universitaire (au moins Licence) avec d'excellents résultats. Au moins deux ans d'expérience professionnelle. Allemand B1 ou Anglais B2. Être ressortissant d'un pays en développement. Obligation de retour après le séjour en Allemagne.",
     piecesExigees: JSON.stringify([
-      { nom: "DAAD-Bewerbungsformular (online)", obligatoire: true },
-      { nom: "Lebenslauf (tabellarisch)", obligatoire: true },
-      { nom: "Motivationsschreiben", obligatoire: true },
-      { nom: "Hochschulzeugnisse und Transkripte", obligatoire: true },
-      { nom: "Zwei Empfehlungsschreiben", obligatoire: true },
-      { nom: "Nachweis Deutschkenntnisse (Goethe B1) oder Englisch (B2)", obligatoire: true },
-      { nom: "Lichtbildausweis", obligatoire: true },
+      { nom: "Formulaire de candidature DAAD (en ligne)", obligatoire: true },
+      { nom: "CV tabulaire", obligatoire: true },
+      { nom: "Lettre de motivation", obligatoire: true },
+      { nom: "Diplômes et relevés de notes", obligatoire: true },
+      { nom: "Deux lettres de recommandation", obligatoire: true },
+      { nom: "Certificat de langue — Allemand (Goethe B1) ou Anglais (B2)", obligatoire: true },
+      { nom: "Pièce d'identité avec photo", obligatoire: true },
     ]),
     exigenceLangue: "Allemand B1 ou Anglais B2",
     dateLimite: new Date("2026-10-01"),
@@ -192,20 +192,20 @@ const bourses = [
   },
   {
     id: "mo-ibrahim-fellowship",
-    organisme: "Mo Ibrahim Foundation",
-    intitule: "Ibrahim Leadership Fellowship — African Governance",
+    organisme: "Fondation Mo Ibrahim",
+    intitule: "Bourse de leadership Ibrahim — Gouvernance africaine",
     description:
-      "The Mo Ibrahim Foundation Fellowship provides an exceptional opportunity for outstanding Africans who want to make a difference on the continent. Fellows work within major African institutions for one year, gaining exposure to senior leadership and governance. The fellowship includes a monthly stipend of $5,000, travel, accommodation, and a dedicated mentor.",
-    langueDetectee: "en",
+      "La bourse de la Fondation Mo Ibrahim offre une opportunité exceptionnelle aux Africains talentueux souhaitant contribuer au développement du continent. Les boursiers travaillent au sein de grandes institutions africaines pendant un an, bénéficiant d'une exposition au leadership de haut niveau et à la gouvernance. La bourse comprend une allocation mensuelle de 5 000 $, le voyage, le logement et un mentor dédié.",
+    langueDetectee: "fr",
     conditions:
-      "African citizen, aged 25–35. Master's degree or higher in a relevant field (governance, economics, law, social sciences). Maximum 5 years of relevant professional experience. Demonstrated commitment to African development. Fluency in at least one African Union official language.",
+      "Être citoyen africain, âgé de 25 à 35 ans. Diplôme de Master ou supérieur dans un domaine pertinent (gouvernance, économie, droit, sciences sociales). Maximum 5 ans d'expérience professionnelle pertinente. Engagement démontré pour le développement africain. Maîtrise d'au moins une langue officielle de l'Union africaine.",
     piecesExigees: JSON.stringify([
-      { nom: "Online application", obligatoire: true },
-      { nom: "CV (max 3 pages)", obligatoire: true },
-      { nom: "Personal statement on African governance (1000 words)", obligatoire: true },
-      { nom: "Three letters of reference", obligatoire: true },
-      { nom: "Academic transcripts", obligatoire: true },
-      { nom: "Passport copy", obligatoire: true },
+      { nom: "Candidature en ligne", obligatoire: true },
+      { nom: "CV (3 pages maximum)", obligatoire: true },
+      { nom: "Déclaration personnelle sur la gouvernance africaine (1000 mots)", obligatoire: true },
+      { nom: "Trois lettres de référence", obligatoire: true },
+      { nom: "Relevés de notes", obligatoire: true },
+      { nom: "Copie du passeport", obligatoire: true },
     ]),
     exigenceLangue: "Anglais ou Français courant",
     dateLimite: new Date("2026-10-15"),
@@ -216,19 +216,19 @@ const bourses = [
   {
     id: "banque-mondiale-mcnamara",
     organisme: "Banque Mondiale",
-    intitule: "Robert S. McNamara Fellowships Program",
+    intitule: "Programme de bourses Robert S. McNamara",
     description:
-      "The World Bank Robert S. McNamara Fellowships Program supports the research of promising development economists and academics from developing countries. Fellows spend 5 to 10 months at the World Bank headquarters in Washington D.C., working with senior researchers on critical development issues. A monthly living allowance and round-trip airfare are provided.",
-    langueDetectee: "en",
+      "Le Programme de bourses Robert S. McNamara de la Banque Mondiale soutient la recherche de jeunes économistes et universitaires prometteurs issus de pays en développement. Les boursiers passent 5 à 10 mois au siège de la Banque Mondiale à Washington D.C., travaillant avec des chercheurs seniors sur des questions critiques de développement. Une allocation mensuelle de vie et un billet d'avion aller-retour sont fournis.",
+    langueDetectee: "fr",
     conditions:
-      "Citizen of a World Bank member developing country. Currently enrolled in a PhD program or faculty member at a university in a developing country. PhD dissertation or research proposal on a development economics topic. Must be affiliated with an institution in a developing country.",
+      "Être ressortissant d'un pays en développement membre de la Banque Mondiale. Être inscrit en doctorat ou être enseignant-chercheur dans une université d'un pays en développement. Thèse de doctorat ou proposition de recherche sur un sujet d'économie du développement. Être affilié à une institution dans un pays en développement.",
     piecesExigees: JSON.stringify([
-      { nom: "Completed online application", obligatoire: true },
+      { nom: "Formulaire de candidature en ligne", obligatoire: true },
       { nom: "Curriculum Vitae", obligatoire: true },
-      { nom: "Research proposal (1500–3000 words)", obligatoire: true },
-      { nom: "PhD enrollment certificate or faculty appointment letter", obligatoire: true },
-      { nom: "Two letters of recommendation from academics", obligatoire: true },
-      { nom: "Sample of published or working paper", obligatoire: false },
+      { nom: "Proposition de recherche (1500–3000 mots)", obligatoire: true },
+      { nom: "Attestation d'inscription en doctorat ou lettre de nomination", obligatoire: true },
+      { nom: "Deux lettres de recommandation académiques", obligatoire: true },
+      { nom: "Échantillon de publication ou article en cours", obligatoire: false },
     ]),
     exigenceLangue: "Anglais professionnel",
     dateLimite: new Date("2026-12-01"),
@@ -262,21 +262,21 @@ const bourses = [
   },
   {
     id: "usaid-humphrey",
-    organisme: "USAID / Bureau of Educational and Cultural Affairs",
-    intitule: "Hubert H. Humphrey Fellowship Program",
+    organisme: "USAID / Bureau des Affaires éducatives et culturelles",
+    intitule: "Programme de bourses Hubert H. Humphrey",
     description:
-      "The Hubert H. Humphrey Fellowship Program brings accomplished mid-level professionals from designated countries to the United States for one year of non-degree graduate study and professional development experiences. Fellows are placed at U.S. universities and engage in professional affiliations, leadership training, and networking.",
-    langueDetectee: "en",
+      "Le Programme Hubert H. Humphrey accueille des professionnels de niveau intermédiaire issus de pays désignés aux États-Unis pour une année d'études supérieures non diplômantes et de développement professionnel. Les boursiers sont placés dans des universités américaines et participent à des affiliations professionnelles, des formations en leadership et du réseautage.",
+    langueDetectee: "fr",
     conditions:
-      "Citizen of a participating country (West African countries eligible). Mid-level professional with at least 5 years of experience. English proficiency (TOEFL 525 paper or 70 iBT minimum). Currently employed. Committed to return to home country.",
+      "Être citoyen d'un pays participant (pays d'Afrique de l'Ouest éligibles). Professionnel de niveau intermédiaire avec au moins 5 ans d'expérience. Maîtrise de l'anglais (TOEFL 525 papier ou 70 iBT minimum). Être actuellement en activité. Engagement de retour dans le pays d'origine.",
     piecesExigees: JSON.stringify([
-      { nom: "Online application (embassy portal)", obligatoire: true },
-      { nom: "CV / Resume", obligatoire: true },
-      { nom: "Two professional letters of recommendation", obligatoire: true },
-      { nom: "Transcripts of all university degrees", obligatoire: true },
-      { nom: "English proficiency test score (TOEFL)", obligatoire: true },
-      { nom: "Personal statements (3 essays)", obligatoire: true },
-      { nom: "Passport copy", obligatoire: true },
+      { nom: "Candidature en ligne (portail ambassade)", obligatoire: true },
+      { nom: "CV", obligatoire: true },
+      { nom: "Deux lettres de recommandation professionnelles", obligatoire: true },
+      { nom: "Relevés de notes de tous les diplômes universitaires", obligatoire: true },
+      { nom: "Score au test d'anglais (TOEFL)", obligatoire: true },
+      { nom: "Déclarations personnelles (3 essais)", obligatoire: true },
+      { nom: "Copie du passeport", obligatoire: true },
     ]),
     exigenceLangue: "Anglais — TOEFL 70 iBT minimum",
     dateLimite: new Date("2026-09-01"),
@@ -297,10 +297,7 @@ async function main() {
     });
   }
 
-  console.log(`✓ ${bourses.length} bourses insérées/mises à jour`);
-  console.log("  → " + bourses.filter(b => b.langueDetectee === "fr").length + " en français");
-  console.log("  → " + bourses.filter(b => b.langueDetectee === "en").length + " en anglais");
-  console.log("  → " + bourses.filter(b => b.langueDetectee === "de").length + " en allemand");
+  console.log(`✓ ${bourses.length} bourses insérées/mises à jour (toutes en français)`);
 }
 
 main()

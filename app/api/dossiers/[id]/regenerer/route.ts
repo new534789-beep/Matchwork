@@ -71,7 +71,7 @@ export async function POST(_req: Request, { params }: Props) {
   try {
     const client = getMistralClient();
     const result = await client.chat.complete({
-      model: MODELS.large,
+      model: MODELS.small,
       messages: [
         { role: "system", content: SYSTEM_GENERATION },
         { role: "user", content: buildGenerationMessage(profil, coffre, dossier.opportunite, historiqueAccroches, documentsAGenerer) },

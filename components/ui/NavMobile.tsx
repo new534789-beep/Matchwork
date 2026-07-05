@@ -20,15 +20,25 @@ export function NavMobile() {
 
       {open && (
         <div
-          className="fixed inset-0 z-40"
-          style={{ background:"rgba(0,0,0,0.93)", backdropFilter:"blur(24px)", WebkitBackdropFilter:"blur(24px)", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", gap:"0" }}
+          className="fixed inset-0 z-[60]"
+          style={{ background:"rgba(0,0,0,0.95)", backdropFilter:"blur(24px)", WebkitBackdropFilter:"blur(24px)", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", gap:"0" }}
           onClick={() => setOpen(false)}
         >
-          <div style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:"28px" }}>
-            {["Solutions", "Fonctionnalités", "Tarifs", "À propos"].map(l => (
-              <span key={l} style={{ fontSize:"1.5rem", fontWeight:600, color:"rgba(255,255,255,0.72)", cursor:"pointer", letterSpacing:"-0.02em" }}>
-                {l}
-              </span>
+          <div style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:"24px" }}>
+            {[
+              { label: "Comment ça marche", href: "#comment" },
+              { label: "Fonctionnalités", href: "#fonctionnalites" },
+              { label: "Tarifs", href: "#tarifs" },
+              { label: "FAQ", href: "#faq" },
+            ].map(item => (
+              <a
+                key={item.href}
+                href={item.href}
+                onClick={() => setOpen(false)}
+                style={{ fontSize:"1.3rem", fontWeight:600, color:"rgba(255,255,255,0.72)", cursor:"pointer", letterSpacing:"-0.02em", textDecoration:"none" }}
+              >
+                {item.label}
+              </a>
             ))}
             <div style={{ width:"40px", height:"1px", background:"rgba(255,255,255,0.1)", margin:"4px 0" }} />
             <Link
@@ -41,7 +51,7 @@ export function NavMobile() {
             <Link
               href="/connexion"
               onClick={() => setOpen(false)}
-              style={{ fontSize:"0.9rem", color:"rgba(255,255,255,0.38)", textDecoration:"none" }}
+              style={{ fontSize:"0.9rem", color:"rgba(255,255,255,0.5)", textDecoration:"none" }}
             >
               Se connecter
             </Link>
