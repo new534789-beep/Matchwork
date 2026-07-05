@@ -236,9 +236,10 @@ export function InterfaceOnboarding({ sessionOnboarding }: Props) {
             top: 0;
             left: 0;
             bottom: 0;
-            z-index: 50;
+            z-index: 80;
             transform: translateX(-100%);
             transition: transform 0.25s ease;
+            box-shadow: 4px 0 30px rgba(0,0,0,0.6);
           }
           .onboarding-sidebar-open {
             transform: translateX(0) !important;
@@ -260,7 +261,7 @@ export function InterfaceOnboarding({ sessionOnboarding }: Props) {
         <div
           className="onboarding-mobile-overlay"
           onClick={() => setSidebarOuverte(false)}
-          style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.6)", zIndex: 40 }}
+          style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.85)", backdropFilter: "blur(6px)", WebkitBackdropFilter: "blur(6px)", zIndex: 70 }}
         />
       )}
 
