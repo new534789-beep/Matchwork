@@ -5,7 +5,7 @@ import { SectionTarifs } from "@/components/landing/SectionTarifs";
 
 export default function Landing() {
   return (
-    <main style={{ background: "#000", color: "#fff" }}>
+    <main style={{ background: "#000", color: "#fff", overflowX: "hidden", maxWidth: "100vw" }}>
 
       {/* ── Navigation — pilule noir glacé ── */}
       <nav className="fixed top-0 left-0 right-0 z-50 px-2 sm:px-3 md:px-4" style={{ paddingTop: "10px" }}>
