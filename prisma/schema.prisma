@@ -140,7 +140,7 @@ model FluxSource {
   nom          String
   url          String
   type         String        @default("rss") // format : rss | xml
-  categorie    String        @default("BOURSE") // catégorie d'opportunités produite : BOURSE | EMPLOI | FORMATION | CONCOURS | STAGE | RESIDENCE
+  categorie    String        @default("BOURSE") // catégorie d'opportunités produite : BOURSE | EMPLOI | FORMATION | CONCOURS | STAGE | RESIDENCE | ADMISSION
   actif        Boolean       @default(true)
   etat         String        @default("inconnu") // ok | panne | inconnu
   dernierFetch DateTime?

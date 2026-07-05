@@ -3,6 +3,9 @@ import { getAdminSession } from "@/lib/admin";
 import { ingererToutesLesSources } from "@/lib/ingestion/recuperateur";
 import { retirerExpirees } from "@/lib/ingestion/expiration";
 import { getParametre, setParametre } from "@/lib/parametres";
+import { ingererStages } from "@/lib/ingestion/stage-scraper";
+import { ingererFormations } from "@/lib/ingestion/formation-scraper";
+import { ingererAdmissions } from "@/lib/ingestion/admission-scraper";
 
 export const maxDuration = 60;
 
@@ -30,6 +33,18 @@ export async function POST(req: Request) {
   if (body.action === "expirer") {
     const expirees = await retirerExpirees();
     return NextResponse.json({ ok: true, expirees });
+  }
+  if (body.action === "stages") {
+    const rapport = await ingererStages();
+    return NextResponse.json({ ok: true, rapport });
+  }
+  if (body.action === "formations") {
+    const rapport = await ingererFormations();
+    return NextResponse.json({ ok: true, rapport });
+  }
+  if (body.action === "admissions") {
+    const rapport = await ingererAdmissions();
+    return NextResponse.json({ ok: true, rapport });
   }
 
   const skip = Number(body.skip) || 0;

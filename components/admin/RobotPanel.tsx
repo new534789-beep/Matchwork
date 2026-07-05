@@ -35,6 +35,27 @@ export function RobotPanel({ initial }: { initial: Initial }) {
   const [progress, setProgress] = useState<string | null>(null);
   const [resultat, setResultat] = useState<string | null>(null);
   const [erreur, setErreur] = useState<string | null>(null);
+  const [runningAction, setRunningAction] = useState<string | null>(null);
+
+  async function lancerAction(action: string, label: string) {
+    if (running || runningAction) return;
+    setRunningAction(action); setErreur(null); setResultat(null);
+    try {
+      const res = await fetch("/api/admin/ingestion", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action }),
+      });
+      const d = await res.json().catch(() => ({}));
+      if (!res.ok || !d.ok) { setErreur(d.erreur ?? `Échec ${label}.`); return; }
+      const r = d.rapport;
+      setResultat(`${label} terminé : ${r.creees ?? 0} créées · ${r.doublons ?? 0} doublons · ${r.erreurs ?? 0} erreurs`);
+      router.refresh();
+    } catch {
+      setErreur(`Erreur réseau (${label}).`);
+    } finally {
+      setRunningAction(null);
+    }
+  }
 
   async function lancer() {
     if (running) return;
@@ -89,6 +110,26 @@ export function RobotPanel({ initial }: { initial: Initial }) {
         </svg>
         {running ? "Collecte en cours…" : "Lancer maintenant"}
       </button>
+
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 10, marginTop: 14 }}>
+        {([
+          { action: "stages", label: "Stages", icon: "M12 14l9-5-9-5-9 5 9 5z M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" },
+          { action: "formations", label: "Formations", icon: "M4 19.5A2.5 2.5 0 016.5 17H20 M4 19.5A2.5 2.5 0 016.5 17H20 M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z" },
+          { action: "admissions", label: "Admissions", icon: "M12 2L2 7l10 5 10-5-10-5z M2 17l10 5 10-5 M2 12l10 5 10-5" },
+        ] as const).map((b) => (
+          <button key={b.action} onClick={() => lancerAction(b.action, b.label)} disabled={!!running || !!runningAction} style={{
+            display: "inline-flex", alignItems: "center", gap: 6, padding: "9px 16px", borderRadius: 10, border: "1px solid rgba(124,58,237,0.3)",
+            cursor: running || runningAction ? "default" : "pointer", fontWeight: 600, fontSize: "0.82rem", color: VL,
+            background: "rgba(124,58,237,0.08)", opacity: running || runningAction ? 0.5 : 1,
+          }}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+              style={runningAction === b.action ? { animation: "spin 1s linear infinite" } : undefined}>
+              <path d={b.icon} />
+            </svg>
+            {runningAction === b.action ? `${b.label}…` : b.label}
+          </button>
+        ))}
+      </div>
 
       {progress && <p style={{ fontSize: "0.8rem", color: VL, marginTop: 12 }}>{progress}</p>}
       {resultat && (
