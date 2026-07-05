@@ -271,7 +271,7 @@ export function InterfaceOnboarding({ sessionOnboarding }: Props) {
         style={{
           width: 260,
           flexShrink: 0,
-          background: "var(--bg-card)",
+          background: "#14141e",
           borderRight: "1px solid var(--border)",
           display: "flex",
           flexDirection: "column",
