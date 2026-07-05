@@ -344,11 +344,11 @@ export function NavLateral({ userEmail = "", role }: { userEmail?: string; role?
         /* Mobile : sidebar cachée, header visible */
         :root { --sidebar-w: 280px; }
         .nav-sidebar { transform: translateX(-100%); }
-        .nav-sidebar-open { transform: translateX(0); }
+        .nav-sidebar-open { transform: translateX(0); box-shadow: 4px 0 30px rgba(0,0,0,0.6); }
         .mobile-header { display: flex !important; }
         .mobile-backdrop { display: block; }
         .sidebar-label { display: block; }
-        .sidebar-content-offset { margin-left: 0; padding-top: 56px; }
+        .sidebar-content-offset { margin-left: 0; padding-top: 56px; position: relative; z-index: 1; }
 
         /* Tablette : sidebar icônes, pas de header mobile */
         @media (min-width: 768px) {
