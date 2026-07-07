@@ -6,32 +6,48 @@ import { ingererStages } from "@/lib/ingestion/stage-scraper";
 import { ingererFormations } from "@/lib/ingestion/formation-scraper";
 import { ingererAdmissions } from "@/lib/ingestion/admission-scraper";
 
-export const maxDuration = 300;
+export const maxDuration = 60;
 
 const RUN_KEY = "matchwork-run-all-2026";
 
-export async function GET(req: Request) {
+function checkAuth(req: Request): boolean {
   const url = new URL(req.url);
-  const key = url.searchParams.get("key");
+  if (url.searchParams.get("key") === RUN_KEY) return true;
+  const secret = process.env.CRON_SECRET;
+  if (secret && req.headers.get("authorization") === `Bearer ${secret}`) return true;
+  if (!secret) return true;
+  return false;
+}
 
-  if (key !== RUN_KEY) {
-    const secret = process.env.CRON_SECRET;
-    if (secret) {
-      const h = req.headers.get("authorization");
-      if (h !== `Bearer ${secret}`) {
-        return NextResponse.json({ erreur: "Non autorisé" }, { status: 401 });
-      }
+const BOTS: Record<string, () => Promise<unknown>> = {
+  rss: () => ingererToutesLesSources(),
+  bourses: () => ingererBourses(),
+  ats: () => ingererOffresATS(),
+  stages: () => ingererStages(),
+  formations: () => ingererFormations(),
+  admissions: () => ingererAdmissions(),
+};
+
+export async function GET(req: Request) {
+  if (!checkAuth(req)) {
+    return NextResponse.json({ erreur: "Non autorisé" }, { status: 401 });
+  }
+
+  const url = new URL(req.url);
+  const bot = url.searchParams.get("bot");
+
+  if (bot && BOTS[bot]) {
+    try {
+      const rapport = await BOTS[bot]();
+      return NextResponse.json({ ok: true, bot, rapport });
+    } catch (e) {
+      return NextResponse.json({ ok: false, bot, erreur: String(e) }, { status: 500 });
     }
   }
 
-  const resultats: Record<string, unknown> = {};
-
-  try { resultats.rss = await ingererToutesLesSources(); } catch (e) { resultats.rss = { erreur: String(e) }; }
-  try { resultats.bourses = await ingererBourses(); } catch (e) { resultats.bourses = { erreur: String(e) }; }
-  try { resultats.ats = await ingererOffresATS(); } catch (e) { resultats.ats = { erreur: String(e) }; }
-  try { resultats.stages = await ingererStages(); } catch (e) { resultats.stages = { erreur: String(e) }; }
-  try { resultats.formations = await ingererFormations(); } catch (e) { resultats.formations = { erreur: String(e) }; }
-  try { resultats.admissions = await ingererAdmissions(); } catch (e) { resultats.admissions = { erreur: String(e) }; }
-
-  return NextResponse.json({ ok: true, resultats });
+  return NextResponse.json({
+    ok: true,
+    message: "Spécifiez ?bot=rss|bourses|ats|stages|formations|admissions",
+    bots: Object.keys(BOTS),
+  });
 }
