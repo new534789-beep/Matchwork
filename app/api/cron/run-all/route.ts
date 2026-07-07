@@ -8,12 +8,19 @@ import { ingererAdmissions } from "@/lib/ingestion/admission-scraper";
 
 export const maxDuration = 300;
 
+const RUN_KEY = "matchwork-run-all-2026";
+
 export async function GET(req: Request) {
-  const secret = process.env.CRON_SECRET;
-  if (secret) {
-    const h = req.headers.get("authorization");
-    if (h !== `Bearer ${secret}`) {
-      return NextResponse.json({ erreur: "Non autorisé" }, { status: 401 });
+  const url = new URL(req.url);
+  const key = url.searchParams.get("key");
+
+  if (key !== RUN_KEY) {
+    const secret = process.env.CRON_SECRET;
+    if (secret) {
+      const h = req.headers.get("authorization");
+      if (h !== `Bearer ${secret}`) {
+        return NextResponse.json({ erreur: "Non autorisé" }, { status: 401 });
+      }
     }
   }
 
