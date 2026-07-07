@@ -6,8 +6,9 @@ import { getParametre, setParametre } from "@/lib/parametres";
 import { ingererStages } from "@/lib/ingestion/stage-scraper";
 import { ingererFormations } from "@/lib/ingestion/formation-scraper";
 import { ingererAdmissions } from "@/lib/ingestion/admission-scraper";
+import { ingererOffresATS } from "@/lib/ingestion/ats-scraper";
 
-export const maxDuration = 60;
+export const maxDuration = 120;
 
 const CLE_RUN = "robot_run_courant";
 const CLE_DERNIER = "robot_dernier_run";
@@ -44,6 +45,10 @@ export async function POST(req: Request) {
   }
   if (body.action === "admissions") {
     const rapport = await ingererAdmissions();
+    return NextResponse.json({ ok: true, rapport });
+  }
+  if (body.action === "ats") {
+    const rapport = await ingererOffresATS();
     return NextResponse.json({ ok: true, rapport });
   }
 
