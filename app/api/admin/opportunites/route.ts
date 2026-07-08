@@ -1,11 +1,12 @@
 import { NextResponse } from "next/server";
-import { getAdminSession } from "@/lib/admin";
+import { getAdminSession, journaliserActionAdmin } from "@/lib/admin";
 import { prisma } from "@/lib/prisma";
 import { TYPES_OPP } from "@/lib/opportunites";
 
 // Ajout manuel d'une opportunité vérifiée → publiée directement (ne passe pas par la file).
 export async function POST(req: Request) {
-  if (!(await getAdminSession())) {
+  const session = await getAdminSession();
+  if (!session) {
     return NextResponse.json({ erreur: "Accès refusé" }, { status: 403 });
   }
 
@@ -36,6 +37,8 @@ export async function POST(req: Request) {
       actif: true,
     },
   });
+
+  await journaliserActionAdmin(session.user!.id as string, "opportunite.creation", opp.id, { type, organisme, intitule });
 
   return NextResponse.json({ ok: true, id: opp.id });
 }

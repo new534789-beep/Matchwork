@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { uploadFichier } from "@/lib/storage";
+import { fichierValide } from "@/lib/file-validation";
 
 const TAILLE_MAX = 10 * 1024 * 1024; // 10 Mo
 const TYPES_AUTORISES = ["application/pdf", "image/jpeg", "image/png", "image/webp"];
@@ -70,6 +71,13 @@ export async function POST(req: NextRequest) {
     }
 
     const buffer = Buffer.from(await fichier.arrayBuffer());
+
+    if (!fichierValide(buffer, fichier.type)) {
+      return NextResponse.json(
+        { erreur: "Le contenu du fichier ne correspond pas au format déclaré." },
+        { status: 400 }
+      );
+    }
 
     const doc = await prisma.document.create({
       data: {

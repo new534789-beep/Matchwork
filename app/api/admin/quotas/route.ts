@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getAdminSession } from "@/lib/admin";
+import { getAdminSession, journaliserActionAdmin } from "@/lib/admin";
 import { prisma } from "@/lib/prisma";
 
 function moisCourant() {
@@ -8,7 +8,8 @@ function moisCourant() {
 
 // Ajuste manuellement le nombre de générations utilisées pour le mois courant.
 export async function POST(req: Request) {
-  if (!(await getAdminSession())) {
+  const session = await getAdminSession();
+  if (!session) {
     return NextResponse.json({ erreur: "Accès refusé" }, { status: 403 });
   }
   const b = (await req.json()) as { userId?: string; generationsUtilisees?: unknown; mois?: string };
@@ -28,5 +29,6 @@ export async function POST(req: Request) {
     update: { generationsUtilisees: Math.floor(n) },
     create: { userId, mois, generationsUtilisees: Math.floor(n) },
   });
+  await journaliserActionAdmin(session.user!.id as string, "quota.maj", userId, { mois, generationsUtilisees: Math.floor(n) });
   return NextResponse.json({ ok: true });
 }

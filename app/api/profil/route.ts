@@ -36,25 +36,54 @@ export async function GET() {
   return NextResponse.json(parseProfil(profil as unknown as Record<string, unknown>));
 }
 
+const MAX_TEXTE = 5000;
+const texte = (max = MAX_TEXTE) => z.string().max(max);
+
+const schemaFormation = z.object({
+  etablissement: texte(300),
+  diplome: texte(300),
+  annee: texte(20),
+  note: texte(100).optional(),
+  domaine: texte(300).optional(),
+});
+
+const schemaExperience = z.object({
+  poste: texte(300),
+  organisation: texte(300),
+  dateDebut: texte(20),
+  dateFin: texte(20).optional(),
+  description: texte(2000).optional(),
+});
+
+const schemaLangue = z.object({
+  langue: texte(100),
+  niveau: texte(50),
+});
+
+const schemaMessage = z.object({
+  role: z.enum(["assistant", "user"]),
+  content: texte(10000),
+});
+
 const schemaMaj = z.object({
-  nomComplet: z.string().optional(),
-  dateNaissance: z.string().optional(),
-  lieuNaissance: z.string().optional(),
-  nationalite: z.string().optional(),
-  telephone: z.string().optional(),
-  adresse: z.string().optional(),
-  email: z.string().optional(),
-  signature: z.string().optional(),
-  linkedin: z.string().optional(),
-  bio: z.string().optional(),
-  formations: z.array(z.any()).optional(),
-  experiences: z.array(z.any()).optional(),
-  competences: z.array(z.any()).optional(),
-  langues: z.array(z.any()).optional(),
-  objectifs: z.string().optional(),
-  tonSouhaite: z.string().optional(),
+  nomComplet: texte(200).optional(),
+  dateNaissance: texte(50).optional(),
+  lieuNaissance: texte(200).optional(),
+  nationalite: texte(100).optional(),
+  telephone: texte(50).optional(),
+  adresse: texte(500).optional(),
+  email: z.union([z.literal(""), z.string().email()]).optional(),
+  signature: texte(200).optional(),
+  linkedin: texte(300).optional(),
+  bio: texte(3000).optional(),
+  formations: z.array(schemaFormation).max(50).optional(),
+  experiences: z.array(schemaExperience).max(50).optional(),
+  competences: z.array(texte(200)).max(100).optional(),
+  langues: z.array(schemaLangue).max(30).optional(),
+  objectifs: texte(3000).optional(),
+  tonSouhaite: texte(50).optional(),
   complete: z.boolean().optional(),
-  sessionOnboarding: z.array(z.any()).optional(),
+  sessionOnboarding: z.array(schemaMessage).max(500).optional(),
 });
 
 export async function PUT(req: NextRequest) {

@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { redirect, notFound } from "next/navigation";
@@ -5,6 +6,38 @@ import { EnteteApp } from "@/components/navigation/EnteteApp";
 import { DetailClient } from "./DetailClient";
 
 type Props = { params: Promise<{ id: string }> };
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { id } = await params;
+  const opp = await prisma.opportunite.findUnique({
+    where: { id },
+    select: { intitule: true, organisme: true, description: true },
+  });
+  if (!opp) return { title: "Offre introuvable" };
+
+  const baseUrl = process.env.AUTH_URL || "http://localhost:3000";
+  const title = `${opp.intitule} — ${opp.organisme}`;
+  const description = opp.description.slice(0, 200);
+
+  return {
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      type: "article",
+      url: `${baseUrl}/opportunites/${id}`,
+      images: [{ url: `${baseUrl}/api/og/${id}`, width: 1200, height: 630, alt: title }],
+      siteName: "Matchwork",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: [`${baseUrl}/api/og/${id}`],
+    },
+  };
+}
 
 export default async function DetailOpportunite({ params }: Props) {
   const session = await auth();

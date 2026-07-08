@@ -5,18 +5,14 @@ import { ingererOffresATS } from "@/lib/ingestion/ats-scraper";
 import { ingererStages } from "@/lib/ingestion/stage-scraper";
 import { ingererFormations } from "@/lib/ingestion/formation-scraper";
 import { ingererAdmissions } from "@/lib/ingestion/admission-scraper";
+import { ingererAppelsProjets } from "@/lib/ingestion/appel-projet-scraper";
 
 export const maxDuration = 60;
 
-const RUN_KEY = "matchwork-run-all-2026";
-
 function checkAuth(req: Request): boolean {
-  const url = new URL(req.url);
-  if (url.searchParams.get("key") === RUN_KEY) return true;
   const secret = process.env.CRON_SECRET;
-  if (secret && req.headers.get("authorization") === `Bearer ${secret}`) return true;
-  if (!secret) return true;
-  return false;
+  if (!secret) return false;
+  return req.headers.get("authorization") === `Bearer ${secret}`;
 }
 
 const BOTS: Record<string, () => Promise<unknown>> = {
@@ -26,6 +22,7 @@ const BOTS: Record<string, () => Promise<unknown>> = {
   stages: () => ingererStages(),
   formations: () => ingererFormations(),
   admissions: () => ingererAdmissions(),
+  "appels-projets": () => ingererAppelsProjets(),
 };
 
 export async function GET(req: Request) {

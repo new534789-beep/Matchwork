@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getAdminSession } from "@/lib/admin";
+import { getAdminSession, journaliserActionAdmin } from "@/lib/admin";
 import { ingererToutesLesSources } from "@/lib/ingestion/recuperateur";
 import { retirerExpirees } from "@/lib/ingestion/expiration";
 import { getParametre, setParametre } from "@/lib/parametres";
@@ -7,6 +7,7 @@ import { ingererStages } from "@/lib/ingestion/stage-scraper";
 import { ingererFormations } from "@/lib/ingestion/formation-scraper";
 import { ingererAdmissions } from "@/lib/ingestion/admission-scraper";
 import { ingererOffresATS } from "@/lib/ingestion/ats-scraper";
+import { ingererAppelsProjets } from "@/lib/ingestion/appel-projet-scraper";
 
 export const maxDuration = 120;
 
@@ -26,29 +27,41 @@ function accVide(): Acc {
 // Déclenchement manuel (bouton « Récupérer maintenant » / panneau robot).
 // Par lots : passer { skip, take } et boucler jusqu'à `termine: true`.
 export async function POST(req: Request) {
-  if (!(await getAdminSession())) {
+  const session = await getAdminSession();
+  if (!session) {
     return NextResponse.json({ erreur: "Accès refusé" }, { status: 403 });
   }
+  const adminId = session.user!.id as string;
   const body = (await req.json().catch(() => ({}))) as { action?: string; skip?: number; take?: number };
 
   if (body.action === "expirer") {
     const expirees = await retirerExpirees();
+    await journaliserActionAdmin(adminId, "ingestion.expirer", undefined, { expirees });
     return NextResponse.json({ ok: true, expirees });
   }
   if (body.action === "stages") {
     const rapport = await ingererStages();
+    await journaliserActionAdmin(adminId, "ingestion.stages", undefined, rapport);
     return NextResponse.json({ ok: true, rapport });
   }
   if (body.action === "formations") {
     const rapport = await ingererFormations();
+    await journaliserActionAdmin(adminId, "ingestion.formations", undefined, rapport);
     return NextResponse.json({ ok: true, rapport });
   }
   if (body.action === "admissions") {
     const rapport = await ingererAdmissions();
+    await journaliserActionAdmin(adminId, "ingestion.admissions", undefined, rapport);
     return NextResponse.json({ ok: true, rapport });
   }
   if (body.action === "ats") {
     const rapport = await ingererOffresATS();
+    await journaliserActionAdmin(adminId, "ingestion.ats", undefined, rapport);
+    return NextResponse.json({ ok: true, rapport });
+  }
+  if (body.action === "appels-projets") {
+    const rapport = await ingererAppelsProjets();
+    await journaliserActionAdmin(adminId, "ingestion.appels-projets", undefined, rapport);
     return NextResponse.json({ ok: true, rapport });
   }
 
@@ -80,6 +93,7 @@ export async function POST(req: Request) {
     acc.finAt = new Date().toISOString();
     acc.expirees = expirees;
     await setParametre(CLE_DERNIER, JSON.stringify(acc));
+    await journaliserActionAdmin(adminId, "ingestion.run-complet", undefined, acc);
   }
 
   return NextResponse.json({

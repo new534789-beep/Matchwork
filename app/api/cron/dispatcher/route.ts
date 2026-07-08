@@ -6,6 +6,7 @@ import { ingererOffresATS } from "@/lib/ingestion/ats-scraper";
 import { ingererStages } from "@/lib/ingestion/stage-scraper";
 import { ingererFormations } from "@/lib/ingestion/formation-scraper";
 import { ingererAdmissions } from "@/lib/ingestion/admission-scraper";
+import { ingererAppelsProjets } from "@/lib/ingestion/appel-projet-scraper";
 import { validerAutomatiquement } from "@/lib/ingestion/auto-validation";
 
 export const maxDuration = 120;
@@ -23,11 +24,8 @@ export const maxDuration = 120;
  */
 export async function GET(req: Request) {
   const secret = process.env.CRON_SECRET;
-  if (secret) {
-    const h = req.headers.get("authorization");
-    if (h !== `Bearer ${secret}`) {
-      return NextResponse.json({ erreur: "Non autorisé" }, { status: 401 });
-    }
+  if (!secret || req.headers.get("authorization") !== `Bearer ${secret}`) {
+    return NextResponse.json({ erreur: "Non autorisé" }, { status: 401 });
   }
 
   const jour = new Date().getUTCDay(); // 0=dim, 1=lun, ..., 6=sam
@@ -57,8 +55,8 @@ export async function GET(req: Request) {
       rapport = await ingererFormations();
       break;
     case 6: // Samedi
-      tache = "admissions";
-      rapport = await ingererAdmissions();
+      tache = "admissions+appels-projets";
+      rapport = { admissions: await ingererAdmissions(), appelsProjets: await ingererAppelsProjets() };
       break;
     case 0: // Dimanche
       tache = "validation-nettoyage";

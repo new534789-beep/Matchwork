@@ -117,6 +117,7 @@ export function RobotPanel({ initial }: { initial: Initial }) {
           { action: "formations", label: "Formations", icon: "M4 19.5A2.5 2.5 0 016.5 17H20 M4 19.5A2.5 2.5 0 016.5 17H20 M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z" },
           { action: "admissions", label: "Admissions", icon: "M12 2L2 7l10 5 10-5-10-5z M2 17l10 5 10-5 M2 12l10 5 10-5" },
           { action: "ats", label: "Emplois ATS", icon: "M20 7H4a2 2 0 00-2 2v6a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2z M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16" },
+          { action: "appels-projets", label: "Appels à projets", icon: "M12 2L4.5 20.29l.71.71L12 18l6.79 3 .71-.71z M12 2v16" },
         ] as const).map((b) => (
           <button key={b.action} onClick={() => lancerAction(b.action, b.label)} disabled={!!running || !!runningAction} style={{
             display: "inline-flex", alignItems: "center", gap: 6, padding: "9px 16px", borderRadius: 10, border: "1px solid rgba(124,58,237,0.3)",

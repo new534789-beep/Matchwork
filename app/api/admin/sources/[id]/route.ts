@@ -1,10 +1,11 @@
 import { NextResponse } from "next/server";
-import { getAdminSession } from "@/lib/admin";
+import { getAdminSession, journaliserActionAdmin } from "@/lib/admin";
 import { prisma } from "@/lib/prisma";
 import { TYPES_OPP } from "@/lib/opportunites";
 
 export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
-  if (!(await getAdminSession())) {
+  const session = await getAdminSession();
+  if (!session) {
     return NextResponse.json({ erreur: "Accès refusé" }, { status: 403 });
   }
   const { id } = await params;
@@ -21,15 +22,18 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   }
   const s = await prisma.fluxSource.update({ where: { id }, data }).catch(() => null);
   if (!s) return NextResponse.json({ erreur: "Source introuvable" }, { status: 404 });
+  await journaliserActionAdmin(session.user!.id as string, "source.maj", id, data);
   return NextResponse.json({ ok: true });
 }
 
 export async function DELETE(_req: Request, { params }: { params: Promise<{ id: string }> }) {
-  if (!(await getAdminSession())) {
+  const session = await getAdminSession();
+  if (!session) {
     return NextResponse.json({ erreur: "Accès refusé" }, { status: 403 });
   }
   const { id } = await params;
   const s = await prisma.fluxSource.delete({ where: { id } }).catch(() => null);
   if (!s) return NextResponse.json({ erreur: "Source introuvable" }, { status: 404 });
+  await journaliserActionAdmin(session.user!.id as string, "source.suppression", id);
   return NextResponse.json({ ok: true });
 }

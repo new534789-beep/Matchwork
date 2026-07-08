@@ -10,9 +10,9 @@ RÈGLES ABSOLUES :
 2. Ne déduis pas d'informations non explicitement mentionnées.
 3. Ne complète pas les informations avec tes connaissances générales.
 4. Si une date limite n'est pas indiquée, laisse dateLimite à null.
-5. Si les pièces exigées ne sont pas listées ET que le type est EMPLOI ou STAGE, ajoute par défaut un CV (generable) et une lettre de motivation (generable) car ces documents sont toujours nécessaires pour postuler. Pour les bourses, concours ou formations, laisse piecesExigees vide si rien n'est mentionné.
+5. Si les pièces exigées ne sont pas listées ET que le type est EMPLOI ou STAGE, ajoute par défaut un CV (generable) et une lettre de motivation (generable) car ces documents sont toujours nécessaires pour postuler. Si le type est APPEL_PROJET et aucune pièce n'est listée, ajoute par défaut une note conceptuelle (generable, type "note_conceptuelle") et un budget prévisionnel (generable, type "budget_previsionnel"). Pour les bourses, concours ou formations, laisse piecesExigees vide si rien n'est mentionné.
 6. Pour chaque pièce, indique "categorie" :
-   - "generable" = document RÉDIGEABLE (cv, lettre de motivation, lettre de recommandation à rédiger, projet d'études, déclaration personnelle, demande manuscrite).
+   - "generable" = document RÉDIGEABLE (cv, lettre de motivation, lettre de recommandation à rédiger, projet d'études, déclaration personnelle, demande manuscrite, note conceptuelle, budget prévisionnel, cadre logique, plan d'action, présentation d'équipe).
    - "personnel" = pièce à FOURNIR par le candidat, JAMAIS rédigeable (diplôme, relevé de notes, acte de naissance, pièce d'identité, justificatif de langue).
 7. "canalCandidature" = comment postuler :
    - "email" si une adresse e-mail de candidature est écrite noir sur blanc (cibleCandidature = cette adresse) ;
@@ -29,13 +29,13 @@ FORMAT DE RÉPONSE (JSON strict, rien d'autre) :
   "description": "Résumé factuel ORIGINAL de l'offre (max 400 mots). IMPORTANT : rédige un texte clair et structuré, NE RÉPÈTE PAS le titre ni l'organisme dans la description, NE COPIE PAS des phrases mot pour mot du texte source. Décris ce que couvre l'offre, le niveau, les domaines, le montant, la durée.",
   "conditions": "Critères d'éligibilité mentionnés explicitement dans le texte",
   "piecesExigees": [
-    { "nom": "nom du document exigé", "obligatoire": true, "categorie": "generable ou personnel", "type": "cv | lettre | lettre_reco | projet_etudes | declaration | demande_manuscrite | diplome | releve_notes | acte_naissance | piece_identite | justificatif_langue | autre" }
+    { "nom": "nom du document exigé", "obligatoire": true, "categorie": "generable ou personnel", "type": "cv | lettre | lettre_reco | projet_etudes | declaration | demande_manuscrite | note_conceptuelle | budget_previsionnel | cadre_logique | plan_action | presentation_equipe | diplome | releve_notes | acte_naissance | piece_identite | justificatif_langue | autre" }
   ],
   "exigenceLangue": "Exigences de langue telles qu'écrites (ex: 'Français B2', 'IELTS 6.5') ou null si non précisé",
   "dateLimite": "YYYY-MM-DD si une date limite est mentionnée, sinon null",
   "lien": "URL de la bourse si présente dans le texte, sinon null",
   "langueDetectee": "code ISO 2 lettres de la langue principale du texte (fr, en, de, es, pt, ar...)",
-  "type": "BOURSE | EMPLOI | STAGE | CONCOURS | FORMATION | RESIDENCE — choisis le type qui correspond réellement au contenu. Si c'est un recrutement, une offre d'emploi ou un poste à pourvoir : EMPLOI. Si c'est un stage : STAGE. Si c'est une bourse d'études ou aide financière : BOURSE.",
+  "type": "BOURSE | EMPLOI | STAGE | CONCOURS | FORMATION | RESIDENCE | APPEL_PROJET — choisis le type qui correspond réellement au contenu. Si c'est un recrutement, une offre d'emploi ou un poste à pourvoir : EMPLOI. Si c'est un stage : STAGE. Si c'est une bourse d'études ou aide financière : BOURSE. Si c'est un appel à propositions, un appel à projets, un financement de recherche, un grant, un fonds d'innovation ou une subvention de projet : APPEL_PROJET.",
   "canalCandidature": "email | formulaire | lien_info | aucun",
   "cibleCandidature": "adresse e-mail (si email) ou URL (si formulaire/lien_info), sinon null"
 }

@@ -1,10 +1,11 @@
 import { NextResponse } from "next/server";
-import { getAdminSession } from "@/lib/admin";
+import { getAdminSession, journaliserActionAdmin } from "@/lib/admin";
 import { prisma } from "@/lib/prisma";
 
 // Approuver (→ publiee, visible dans le fil) ou rejeter (→ rejetee) une opportunité en attente.
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
-  if (!(await getAdminSession())) {
+  const session = await getAdminSession();
+  if (!session) {
     return NextResponse.json({ erreur: "Accès refusé" }, { status: 403 });
   }
 
@@ -33,5 +34,6 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     .catch(() => null);
 
   if (!opp) return NextResponse.json({ erreur: "Opportunité introuvable" }, { status: 404 });
+  await journaliserActionAdmin(session.user!.id as string, `opportunite.${action}`, id);
   return NextResponse.json({ ok: true, statut });
 }

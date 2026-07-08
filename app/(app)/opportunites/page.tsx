@@ -95,6 +95,21 @@ const CATEGORIES = [
       </svg>
     ),
   },
+  {
+    type: "APPEL_PROJET" as const,
+    label: "Appels à projets",
+    tag: "Financement & projets",
+    desc: "Appels à propositions, fonds d'innovation, subventions de recherche.",
+    href: "/opportunites/appels-projets",
+    gradient: "linear-gradient(140deg,#ec4899 0%,#db2777 55%,#be185d 100%)",
+    shadow: "rgba(190,24,93,0.3)",
+    icon: (
+      <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.12)" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" style={{ position: "absolute" as const, top: 16, right: 16 }}>
+        <path d="M12 2L4.5 20.29l.71.71L12 18l6.79 3 .71-.71z" />
+        <path d="M12 2v16" />
+      </svg>
+    ),
+  },
 ];
 
 export default async function Opportunites() {

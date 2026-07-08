@@ -3,6 +3,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { hasMistralKey, getMistralClient, MODELS } from "@/lib/ia/mistral";
 import { SYSTEM_PROMPT_ONBOARDING } from "@/lib/ia/prompts/onboarding";
+import { rateLimit } from "@/lib/rate-limit";
 
 // Champs réellement stockables dans le modèle Profil (protège contre les clés
 // inattendues renvoyées par l'IA — une clé inconnue ferait planter Prisma).
@@ -57,6 +58,14 @@ export async function POST(req: NextRequest) {
   const session = await auth();
   if (!session?.user?.id) {
     return NextResponse.json({ erreur: "Non authentifié" }, { status: 401 });
+  }
+
+  const rl = await rateLimit(`onboarding:${session.user.id}`, 20, 60 * 1000);
+  if (!rl.ok) {
+    return NextResponse.json(
+      { erreur: "Trop de messages. Attendez une minute." },
+      { status: 429 }
+    );
   }
 
   if (!hasMistralKey()) {

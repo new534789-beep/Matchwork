@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { EnteteAdmin } from "@/components/admin/EnteteAdmin";
+import { GraphiqueSuivi } from "@/components/admin/GraphiqueSuivi";
 import Link from "next/link";
 
 export const dynamic = "force-dynamic";
@@ -33,7 +34,7 @@ export default async function AdminSuivi() {
   const debutMois = debutDuMois();
   const [
     inscriptions, inscriptionsMois, dossiersGeneres, opportunitesEnLigne,
-    generationsMois, aValider, sourcesActives, sourcesEnPanne, comptesSuspendus,
+    generationsMois, aValider, sourcesActives, sourcesEnPanne, comptesSuspendus, messagesNonLus,
   ] = await Promise.all([
     prisma.user.count(),
     prisma.user.count({ where: { createdAt: { gte: debutMois } } }),
@@ -44,6 +45,7 @@ export default async function AdminSuivi() {
     prisma.fluxSource.count({ where: { actif: true } }),
     prisma.fluxSource.count({ where: { etat: "erreur" } }),
     prisma.user.count({ where: { suspendu: true } }),
+    prisma.message.count({ where: { auteur: "candidat", lu: false } }),
   ]);
 
   const stats = [
@@ -61,7 +63,9 @@ export default async function AdminSuivi() {
           {stats.map((s) => <CarteStat key={s.label} stat={s} />)}
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <GraphiqueSuivi />
+
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-5">
           <Link href="/admin/validation" style={{ textDecoration: "none" }}>
             <div style={{ borderRadius: 16, padding: 18, height: "100%", background: aValider > 0 ? "rgba(124,58,237,0.1)" : "var(--bg-card)", border: `1px solid ${aValider > 0 ? "rgba(124,58,237,0.3)" : "var(--border)"}` }}>
               <p style={{ fontSize: "0.8rem", fontWeight: 700, color: "var(--text)" }}>File de validation</p>
@@ -81,6 +85,13 @@ export default async function AdminSuivi() {
               <p style={{ fontSize: "0.8rem", fontWeight: 700, color: "var(--text)" }}>Comptes suspendus</p>
               <p style={{ fontSize: "1.6rem", fontWeight: 800, color: "var(--text)", margin: "4px 0" }}>{comptesSuspendus}</p>
               <p style={{ fontSize: "0.74rem", color: "var(--text-3)" }}>sur {inscriptions} au total</p>
+            </div>
+          </Link>
+          <Link href="/admin/support" style={{ textDecoration: "none" }}>
+            <div style={{ borderRadius: 16, padding: 18, height: "100%", background: messagesNonLus > 0 ? "rgba(124,58,237,0.1)" : "var(--bg-card)", border: `1px solid ${messagesNonLus > 0 ? "rgba(124,58,237,0.3)" : "var(--border)"}` }}>
+              <p style={{ fontSize: "0.8rem", fontWeight: 700, color: "var(--text)" }}>Support client</p>
+              <p style={{ fontSize: "1.6rem", fontWeight: 800, color: messagesNonLus > 0 ? "#a78bfa" : "var(--text)", margin: "4px 0" }}>{messagesNonLus}</p>
+              <p style={{ fontSize: "0.74rem", color: "var(--text-3)" }}>message{messagesNonLus > 1 ? "s" : ""} non lu{messagesNonLus > 1 ? "s" : ""}</p>
             </div>
           </Link>
         </div>

@@ -1,11 +1,12 @@
 import { NextResponse } from "next/server";
-import { getAdminSession } from "@/lib/admin";
+import { getAdminSession, journaliserActionAdmin } from "@/lib/admin";
 import { prisma } from "@/lib/prisma";
 
 // Suspendre / réactiver un compte, ou changer son plan.
 // On ne touche JAMAIS au contenu du coffre-fort.
 export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
-  if (!(await getAdminSession())) {
+  const session = await getAdminSession();
+  if (!session) {
     return NextResponse.json({ erreur: "Accès refusé" }, { status: 403 });
   }
   const { id } = await params;
@@ -32,5 +33,6 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   }
 
   await prisma.user.update({ where: { id }, data });
+  await journaliserActionAdmin(session.user!.id as string, "utilisateur.maj", id, data);
   return NextResponse.json({ ok: true });
 }

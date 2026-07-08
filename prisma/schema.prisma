@@ -3,9 +3,8 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
-  directUrl = env("DIRECT_URL")
+  provider  = "sqlite"
+  url       = env("DATABASE_URL")
 }
 
 // ─── Authentification ────────────────────────────────────────────────────────
@@ -27,6 +26,7 @@ model User {
   quotas       QuotaUsage[]
   paiements    Paiement[]
   messages     Message[]
+  sessions     SessionActivity[]
 
   @@map("users")
 }
@@ -165,6 +165,21 @@ model Parametre {
   @@map("parametres")
 }
 
+// ─── Journal des actions admin (audit trail) ─────────────────────────────────
+
+model JournalAdmin {
+  id        String   @id @default(cuid())
+  adminId   String
+  action    String
+  cible     String?
+  details   String?
+  createdAt DateTime @default(now())
+
+  @@index([adminId])
+  @@index([createdAt])
+  @@map("journal_admin")
+}
+
 // ─── Interactions (swipe) — étape 2 ─────────────────────────────────────────
 
 model Interaction {
@@ -192,6 +207,7 @@ model Dossier {
 
   statut        String        @default("A_PREPARER")
   checklist     String?
+  briefProjet   String?
   docsGeneres   DocumentGenere[]
 
   createdAt     DateTime      @default(now())
@@ -263,4 +279,19 @@ model Message {
 
   @@index([userId])
   @@map("messages")
+}
+
+// ─── Tracking de session (temps passé sur le SaaS) ──────────────────────────
+
+model SessionActivity {
+  id      String   @id @default(cuid())
+  userId  String
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  debutAt DateTime @default(now())
+  finAt   DateTime @default(now())
+  dureeMs Int      @default(0)
+
+  @@index([userId])
+  @@index([debutAt])
+  @@map("session_activities")
 }

@@ -25,6 +25,11 @@ LONGUEUR DES DOCUMENTS :
 - DEMANDE MANUSCRITE : 200 à 350 mots. Directe et formelle.
 - PROJET D'ÉTUDES : 400 à 600 mots. Structuré et convaincant.
 - DÉCLARATION PERSONNELLE : 400 à 600 mots.
+- NOTE CONCEPTUELLE : 500 à 800 mots. Contexte/problématique, objectifs SMART, résultats attendus, méthodologie résumée, public cible, zone d'intervention.
+- BUDGET PRÉVISIONNEL : Tableau structuré avec postes de dépenses (personnel, équipement, déplacements, fonctionnement), montants estimés, justifications. Format texte tabulé.
+- CADRE LOGIQUE : Objectif général, objectifs spécifiques, résultats, activités, indicateurs vérifiables, sources de vérification, hypothèses. Format tableau.
+- PLAN D'ACTION : Calendrier des activités sur la durée du projet avec jalons et responsables.
+- PRÉSENTATION DE L'ÉQUIPE : Profil synthétique du porteur et des membres, rôles, compétences clés.
 - Privilégie l'IMPACT sur la longueur : des phrases concrètes avec des chiffres et résultats plutôt que du remplissage.
 
 FORMAT DES DOCUMENTS — respecte les normes de rédaction :
@@ -32,7 +37,18 @@ FORMAT DES DOCUMENTS — respecte les normes de rédaction :
 - CV : coordonnées complètes en en-tête, sections claires (Formation, Expérience, Compétences, Langues), dates précises.
 - DEMANDE MANUSCRITE : lieu et date, identité complète de l'expéditeur, destinataire, objet, corps, formule de politesse, signature.
 - PROJET D'ÉTUDES : introduction, objectifs, plan de formation, perspectives, adéquation avec la bourse.
+- NOTE CONCEPTUELLE : résumé exécutif, contexte et justification, objectifs, méthodologie, résultats attendus, calendrier, budget résumé, durabilité.
+- BUDGET PRÉVISIONNEL : tableau postes/montants/justifications, total, contribution demandée vs apport propre.
+- CADRE LOGIQUE : tableau (objectif général / spécifiques / résultats / activités / indicateurs / sources de vérification / hypothèses).
+- PLAN D'ACTION : tableau (activité / mois 1-2-3... / responsable / livrable).
+- PRÉSENTATION DE L'ÉQUIPE : pour chaque membre (nom, fonction, compétences clés, rôle dans le projet).
 - Tout document doit être COMPLET et prêt à l'envoi, sans aucune retouche nécessaire.
+
+RÈGLE SPÉCIALE APPELS À PROJETS :
+- Si un BRIEF PROJET (E) est fourni, utilise-le comme source principale pour le contenu des documents.
+- Utilise les infos du profil (A) comme PORTEUR DE PROJET / CHEF D'ÉQUIPE, pas comme candidat individuel.
+- L'objectif est de convaincre un BAILLEUR DE FONDS, pas un recruteur.
+- Adapte le ton : professionnel, orienté impact et résultats mesurables.
 
 Sortie : un objet JSON strict, sans balises markdown, un objet par document demandé, avec le "type" EXACTEMENT tel que fourni en (C) :
 { "documents": [ { "type": "...", "contenu": "..." } ], "accrochesCles": ["...", "..."] }`;
@@ -79,7 +95,8 @@ export function buildGenerationMessage(
   coffreFort: DocCoffre[],
   opportunite: OpportuniteInput,
   historiqueAccroches: string[],
-  documentsAGenerer: DocumentAGenerer[]
+  documentsAGenerer: DocumentAGenerer[],
+  briefProjet?: string | null
 ): string {
   const coffre = coffreFort
     .filter((d) => d.infosExtraites)
@@ -138,5 +155,23 @@ ${aProduire}
 (D) HISTORIQUE DES ACCROCHES ET TOURNURES DÉJÀ UTILISÉES :
 ${historique}
 
-RAPPEL : utilise DIRECTEMENT les coordonnées du profil (A) et les infos de l'offre (C) dans les documents. AUCUN champ vide, AUCUN placeholder, AUCUN "[à compléter]". Le document doit être prêt à imprimer et envoyer.`;
+RAPPEL : utilise DIRECTEMENT les coordonnées du profil (A) et les infos de l'offre (C) dans les documents. AUCUN champ vide, AUCUN placeholder, AUCUN "[à compléter]". Le document doit être prêt à imprimer et envoyer.${
+    briefProjet
+      ? `
+
+(E) BRIEF PROJET (collecté via entretien avec le porteur) :
+${(() => {
+  try {
+    const b = JSON.parse(briefProjet);
+    return Object.entries(b)
+      .map(([k, v]) => `${k} : ${v}`)
+      .join("\n");
+  } catch {
+    return briefProjet;
+  }
+})()}
+
+IMPORTANT : Pour ce dossier d'appel à projets, base-toi PRINCIPALEMENT sur le brief projet (E) pour rédiger les documents. Le profil (A) sert à identifier le porteur de projet.`
+      : ""
+  }`;
 }

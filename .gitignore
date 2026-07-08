@@ -43,3 +43,5 @@ next-env.d.ts
 # logs & données locales
 .devlog*.txt
 /.storage/
+.vercel
+.env*

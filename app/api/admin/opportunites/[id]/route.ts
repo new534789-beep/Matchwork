@@ -1,11 +1,12 @@
 import { NextResponse } from "next/server";
-import { getAdminSession } from "@/lib/admin";
+import { getAdminSession, journaliserActionAdmin } from "@/lib/admin";
 import { prisma } from "@/lib/prisma";
 import { TYPES_OPP } from "@/lib/opportunites";
 
 // Éditer une opportunité, ou la retirer / remettre en ligne (champ `actif` + `statut`).
 export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
-  if (!(await getAdminSession())) {
+  const session = await getAdminSession();
+  if (!session) {
     return NextResponse.json({ erreur: "Accès refusé" }, { status: 403 });
   }
 
@@ -31,16 +32,19 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
 
   const opp = await prisma.opportunite.update({ where: { id }, data }).catch(() => null);
   if (!opp) return NextResponse.json({ erreur: "Opportunité introuvable" }, { status: 404 });
+  await journaliserActionAdmin(session.user!.id as string, "opportunite.maj", id, data);
   return NextResponse.json({ ok: true });
 }
 
 // Suppression définitive (rare — préférer « retirer » via PATCH actif=false).
 export async function DELETE(_req: Request, { params }: { params: Promise<{ id: string }> }) {
-  if (!(await getAdminSession())) {
+  const session = await getAdminSession();
+  if (!session) {
     return NextResponse.json({ erreur: "Accès refusé" }, { status: 403 });
   }
   const { id } = await params;
   const opp = await prisma.opportunite.delete({ where: { id } }).catch(() => null);
   if (!opp) return NextResponse.json({ erreur: "Opportunité introuvable" }, { status: 404 });
+  await journaliserActionAdmin(session.user!.id as string, "opportunite.suppression", id);
   return NextResponse.json({ ok: true });
 }

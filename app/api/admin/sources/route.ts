@@ -1,10 +1,11 @@
 import { NextResponse } from "next/server";
-import { getAdminSession } from "@/lib/admin";
+import { getAdminSession, journaliserActionAdmin } from "@/lib/admin";
 import { prisma } from "@/lib/prisma";
 import { TYPES_OPP } from "@/lib/opportunites";
 
 export async function POST(req: Request) {
-  if (!(await getAdminSession())) {
+  const session = await getAdminSession();
+  if (!session) {
     return NextResponse.json({ erreur: "Accès refusé" }, { status: 403 });
   }
   const b = (await req.json()) as Record<string, string | undefined>;
@@ -16,6 +17,7 @@ export async function POST(req: Request) {
   const type = ["rss", "xml", "scrape"].includes(b.type ?? "") ? (b.type as string) : "rss";
   const categorie = (TYPES_OPP as readonly string[]).includes(b.categorie ?? "") ? (b.categorie as string) : "BOURSE";
   const s = await prisma.fluxSource.create({ data: { nom, url, type, categorie } });
+  await journaliserActionAdmin(session.user!.id as string, "source.creation", s.id, { nom, url, type, categorie });
   return NextResponse.json({
     ok: true,
     source: { id: s.id, nom: s.nom, url: s.url, type: s.type, categorie: s.categorie, actif: s.actif, etat: s.etat, dernierFetch: null },

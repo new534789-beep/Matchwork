@@ -2,6 +2,7 @@ import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { AppShell } from "@/components/navigation/AppShell";
+import { SessionTrackerWrapper } from "@/components/admin/SessionTrackerWrapper";
 
 export default async function LayoutApp({ children }: { children: React.ReactNode }) {
   const session = await auth();
@@ -15,6 +16,7 @@ export default async function LayoutApp({ children }: { children: React.ReactNod
 
   return (
     <div className="min-h-screen flex" style={{ background: "var(--bg)" }}>
+      <SessionTrackerWrapper />
       <AppShell userEmail={session.user.email ?? ""} role={(session.user as { role?: string }).role}>{children}</AppShell>
     </div>
   );
