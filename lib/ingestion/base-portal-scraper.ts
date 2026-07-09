@@ -58,6 +58,7 @@ export interface PortalScraperConfig {
   pauseMs?: number;
   sourceOffset?: number;
   sourceLimit?: number;
+  lightMode?: boolean;
 }
 
 // ── Normalisation des dates locales ─────────────────────────────────────────
@@ -225,6 +226,28 @@ export async function scraperPortails<S extends BasePortalSource>(
         }
 
         if (!(await urlAutorisee(lien))) continue;
+
+        if (config.lightMode) {
+          try {
+            await prisma.opportunite.create({
+              data: {
+                type: config.type,
+                source: `${config.sourcePrefix}:${source.identifier}`,
+                organisme: source.name,
+                intitule: (titre || "Sans titre").slice(0, 240),
+                description: "En attente d'enrichissement IA",
+                langueDetectee: source.language,
+                lien, sourceUrl: lien, dedupKey, hash: hashLegacy(lien, titre),
+                datePublication: null, premiereVue: maintenant, derniereVerif: maintenant,
+                statut: "revue_manuelle", actif: false,
+              },
+            });
+            rapport.creees++;
+          } catch {
+            rapport.doublons++;
+          }
+          continue;
+        }
 
         const contenuBrut = await recupererContenuPage(lien);
         await dormir(pauseMs);

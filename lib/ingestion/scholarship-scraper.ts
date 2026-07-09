@@ -62,8 +62,9 @@ export async function ingererBourses(offset = 0, limit?: number): Promise<Rappor
   return scraperPortails(SCHOLARSHIP_SOURCES, {
     type: "BOURSE_ETUDE",
     sourcePrefix: "SCHOLARSHIP",
-    maxLiens: isPaginated ? 3 : 30,
-    maxEnrich: isPaginated ? 6 : 150,
+    maxLiens: isPaginated ? 8 : 30,
+    maxEnrich: isPaginated ? 0 : 150,
+    lightMode: isPaginated,
     sourceOffset: offset,
     sourceLimit: batchSize,
   });
