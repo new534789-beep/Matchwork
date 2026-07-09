@@ -59,16 +59,20 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       if (account?.provider === "google") {
         const email = user.email;
         if (!email) return false;
-        const dbUser = await prisma.user.upsert({
-          where: { email },
-          update: {},
-          create: { email, motDePasse: "", profil: { create: {} } },
-        });
-        if (dbUser.suspendu) return false; // compte suspendu : connexion bloquée
-        // Propage l'id (et le plan) de NOTRE base vers le token via le callback jwt ci-dessous.
-        user.id = dbUser.id;
-        (user as { plan?: string; role?: string }).plan = dbUser.plan;
-        (user as { plan?: string; role?: string }).role = dbUser.role;
+        try {
+          const dbUser = await prisma.user.upsert({
+            where: { email },
+            update: {},
+            create: { email, motDePasse: "", profil: { create: {} } },
+          });
+          if (dbUser.suspendu) return false;
+          user.id = dbUser.id;
+          (user as { plan?: string; role?: string }).plan = dbUser.plan;
+          (user as { plan?: string; role?: string }).role = dbUser.role;
+        } catch (e) {
+          console.error("[auth] signIn callback error:", e);
+          return false;
+        }
       }
       return true;
     },
