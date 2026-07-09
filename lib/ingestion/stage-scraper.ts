@@ -37,11 +37,15 @@ const STAGE_SOURCES: BasePortalSource[] = [
   { name: "IAESTE Internships", country: "international", url: "https://iaeste.org/internships", identifier: "iaeste", language: "en" },
 ];
 
-export async function ingererStages(): Promise<RapportPortail> {
+export const STAGE_SOURCE_COUNT = STAGE_SOURCES.length;
+
+export async function ingererStages(offset = 0, limit?: number): Promise<RapportPortail> {
   return scraperPortails(STAGE_SOURCES, {
     type: "STAGE",
     sourcePrefix: "INTERNSHIP",
     maxLiens: 30,
     maxEnrich: 150,
+    sourceOffset: offset,
+    sourceLimit: limit ?? STAGE_SOURCES.length,
   });
 }

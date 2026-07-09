@@ -56,6 +56,8 @@ export interface PortalScraperConfig {
   maxLiens?: number;
   maxEnrich?: number;
   pauseMs?: number;
+  sourceOffset?: number;
+  sourceLimit?: number;
 }
 
 // ── Normalisation des dates locales ─────────────────────────────────────────
@@ -177,8 +179,12 @@ export async function scraperPortails<S extends BasePortalSource>(
   const pauseMs = config.pauseMs ?? DEFAULT_PAUSE_MS;
   const maxEnrich = config.maxEnrich ?? DEFAULT_MAX_ENRICH;
 
+  const offset = config.sourceOffset ?? 0;
+  const limit = config.sourceLimit ?? sources.length;
+  const batch = sources.slice(offset, offset + limit);
+
   const rapport: RapportPortail = {
-    sources: sources.length,
+    sources: batch.length,
     offresLues: 0,
     creees: 0,
     doublons: 0,
@@ -189,7 +195,7 @@ export async function scraperPortails<S extends BasePortalSource>(
   const aujourdhui = new Date().toISOString().slice(0, 10);
   let budgetEnrich = maxEnrich;
 
-  for (const source of sources) {
+  for (const source of batch) {
     try {
       if (!(await urlAutorisee(source.url))) {
         rapport.erreurs++;
