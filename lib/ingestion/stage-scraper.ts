@@ -45,8 +45,8 @@ export async function ingererStages(offset = 0, limit?: number): Promise<Rapport
   return scraperPortails(STAGE_SOURCES, {
     type: "STAGE",
     sourcePrefix: "INTERNSHIP",
-    maxLiens: isPaginated ? 4 : 30,
-    maxEnrich: isPaginated ? 10 : 150,
+    maxLiens: isPaginated ? 3 : 30,
+    maxEnrich: isPaginated ? 6 : 150,
     sourceOffset: offset,
     sourceLimit: batchSize,
   });

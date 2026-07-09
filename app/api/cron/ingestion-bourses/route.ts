@@ -12,7 +12,7 @@ export async function GET(req: Request) {
 
   const url = new URL(req.url);
   const offset = parseInt(url.searchParams.get("offset") || "0", 10);
-  const limit = parseInt(url.searchParams.get("limit") || "3", 10);
+  const limit = parseInt(url.searchParams.get("limit") || "1", 10);
 
   const rapport = await ingererBourses(offset, limit);
   const validation = await validerAutomatiquement();
