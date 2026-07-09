@@ -28,40 +28,61 @@ export async function GET(req: Request) {
     return NextResponse.json({ erreur: "Non autorisé" }, { status: 401 });
   }
 
+  const url = new URL(req.url);
+  const force = url.searchParams.get("force");
+
   const jour = new Date().getUTCDay(); // 0=dim, 1=lun, ..., 6=sam
   let tache = "";
   let rapport: unknown = null;
 
-  switch (jour) {
-    case 1: // Lundi
-      tache = "fluxsource";
-      rapport = await ingererToutesLesSources();
-      await retirerExpirees();
-      break;
-    case 2: // Mardi
-      tache = "bourses";
-      rapport = await ingererBourses();
-      break;
-    case 3: // Mercredi
-      tache = "emplois-ats";
-      rapport = await ingererOffresATS();
-      break;
-    case 4: // Jeudi
-      tache = "stages";
-      rapport = await ingererStages();
-      break;
-    case 5: // Vendredi
-      tache = "formations";
-      rapport = await ingererFormations();
-      break;
-    case 6: // Samedi
-      tache = "admissions+appels-projets";
-      rapport = { admissions: await ingererAdmissions(), appelsProjets: await ingererAppelsProjets() };
-      break;
-    case 0: // Dimanche
-      tache = "nettoyage";
-      await retirerExpirees();
-      break;
+  if (force) {
+    const bots = force.split(",");
+    const rapports: Record<string, unknown> = {};
+    for (const bot of bots) {
+      switch (bot.trim()) {
+        case "bourses": rapports.bourses = await ingererBourses(); break;
+        case "stages": rapports.stages = await ingererStages(); break;
+        case "emplois-ats": rapports.ats = await ingererOffresATS(); break;
+        case "formations": rapports.formations = await ingererFormations(); break;
+        case "admissions": rapports.admissions = await ingererAdmissions(); break;
+        case "appels-projets": rapports.appelsProjets = await ingererAppelsProjets(); break;
+        case "fluxsource": rapports.flux = await ingererToutesLesSources(); break;
+      }
+    }
+    tache = force;
+    rapport = rapports;
+  } else {
+    switch (jour) {
+      case 1:
+        tache = "fluxsource";
+        rapport = await ingererToutesLesSources();
+        await retirerExpirees();
+        break;
+      case 2:
+        tache = "bourses";
+        rapport = await ingererBourses();
+        break;
+      case 3:
+        tache = "emplois-ats";
+        rapport = await ingererOffresATS();
+        break;
+      case 4:
+        tache = "stages";
+        rapport = await ingererStages();
+        break;
+      case 5:
+        tache = "formations";
+        rapport = await ingererFormations();
+        break;
+      case 6:
+        tache = "admissions+appels-projets";
+        rapport = { admissions: await ingererAdmissions(), appelsProjets: await ingererAppelsProjets() };
+        break;
+      case 0:
+        tache = "nettoyage";
+        await retirerExpirees();
+        break;
+    }
   }
 
   const validation = await validerAutomatiquement();

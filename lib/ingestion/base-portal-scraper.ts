@@ -234,7 +234,10 @@ export async function scraperPortails<S extends BasePortalSource>(
         const confiance = dl?.confiance ?? null;
         const sourceDateLimite = dl?.source ?? null;
 
-        if (!dateLimite || dateLimite.getTime() <= maintenant.getTime()) continue;
+        const dateLimitePassee = dateLimite && dateLimite.getTime() <= maintenant.getTime();
+        if (dateLimitePassee) continue;
+
+        const sansDateLimite = !dateLimite;
 
         budgetEnrich--;
         const offre = await extraireOffre(`${titre || ""}\n\n${contenu}`);
@@ -261,7 +264,13 @@ export async function scraperPortails<S extends BasePortalSource>(
         cibleCandidature = offre.cibleCandidature ?? null;
 
         const aGenerables = Array.isArray(offre.piecesExigees) && offre.piecesExigees.some((p) => p.categorie === "generable");
-        if (!aGenerables) continue;
+
+        let statut: string;
+        if (sansDateLimite || !aGenerables) {
+          statut = "revue_manuelle";
+        } else {
+          statut = "a_valider";
+        }
 
         try {
           await prisma.opportunite.create({
@@ -273,7 +282,7 @@ export async function scraperPortails<S extends BasePortalSource>(
               dateLimite, confianceDateLimite: confiance, sourceDateLimite,
               lien, sourceUrl: lien, dedupKey, hash: hashLegacy(lien, titre),
               datePublication: null, premiereVue: maintenant, derniereVerif: maintenant,
-              statut: "a_valider", actif: false,
+              statut, actif: false,
             },
           });
           rapport.creees++;
