@@ -59,11 +59,12 @@ export async function GET(req: Request) {
       rapport = { admissions: await ingererAdmissions(), appelsProjets: await ingererAppelsProjets() };
       break;
     case 0: // Dimanche
-      tache = "validation-nettoyage";
-      rapport = await validerAutomatiquement();
+      tache = "nettoyage";
       await retirerExpirees();
       break;
   }
 
-  return NextResponse.json({ ok: true, jour, tache, rapport });
+  const validation = await validerAutomatiquement();
+
+  return NextResponse.json({ ok: true, jour, tache, rapport, validation });
 }
