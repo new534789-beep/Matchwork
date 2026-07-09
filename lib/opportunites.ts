@@ -14,9 +14,10 @@ export const LABEL_TYPE: Record<string, string> = {
   APPEL_PROJET: "Appel à projets",
 };
 
-export const STATUTS_OPP = ["a_valider", "revue_manuelle", "publiee", "expiree", "rejetee"] as const;
+export const STATUTS_OPP = ["brouillon", "a_valider", "revue_manuelle", "publiee", "expiree", "rejetee"] as const;
 
 export const LABEL_STATUT: Record<string, string> = {
+  brouillon: "Brouillon (en attente IA)",
   a_valider: "À valider",
   revue_manuelle: "Revue manuelle",
   publiee: "Publiée",

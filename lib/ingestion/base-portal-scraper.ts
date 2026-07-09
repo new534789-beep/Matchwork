@@ -58,7 +58,6 @@ export interface PortalScraperConfig {
   pauseMs?: number;
   sourceOffset?: number;
   sourceLimit?: number;
-  lightMode?: boolean;
 }
 
 // ── Normalisation des dates locales ─────────────────────────────────────────
@@ -227,91 +226,18 @@ export async function scraperPortails<S extends BasePortalSource>(
 
         if (!(await urlAutorisee(lien))) continue;
 
-        if (config.lightMode) {
-          try {
-            await prisma.opportunite.create({
-              data: {
-                type: config.type,
-                source: `${config.sourcePrefix}:${source.identifier}`,
-                organisme: source.name,
-                intitule: (titre || "Sans titre").slice(0, 240),
-                description: "En attente d'enrichissement IA",
-                langueDetectee: source.language,
-                lien, sourceUrl: lien, dedupKey, hash: hashLegacy(lien, titre),
-                datePublication: null, premiereVue: maintenant, derniereVerif: maintenant,
-                statut: "revue_manuelle", actif: false,
-              },
-            });
-            rapport.creees++;
-          } catch {
-            rapport.doublons++;
-          }
-          continue;
-        }
-
-        const contenuBrut = await recupererContenuPage(lien);
-        await dormir(pauseMs);
-        if (!contenuBrut) continue;
-
-        const contenu = normaliserDatesLocales(contenuBrut, source.language);
-
-        if (!iaDisponible() || budgetEnrich < 2) continue;
-
-        budgetEnrich--;
-        const dl = await extraireDateLimite(titre || "Sans titre", contenu, aujourdhui);
-        const dateLimite = dl?.dateLimite ?? null;
-        const confiance = dl?.confiance ?? null;
-        const sourceDateLimite = dl?.source ?? null;
-
-        const dateLimitePassee = dateLimite && dateLimite.getTime() <= maintenant.getTime();
-        if (dateLimitePassee) continue;
-
-        const sansDateLimite = !dateLimite;
-
-        budgetEnrich--;
-        const offre = await extraireOffre(`${titre || ""}\n\n${contenu}`);
-        if (!offre) continue;
-
-        let organisme = source.name;
-        let intitule = (titre || "Sans titre").slice(0, 240);
-        let descFinale = "Non précisé";
-        let conditions: string | null = null;
-        let piecesExigees = "[]";
-        let exigenceLangue: string | null = null;
-        let langueDetectee: string = source.language;
-        let canalCandidature: string | null = null;
-        let cibleCandidature: string | null = null;
-
-        if (offre.organisme && offre.organisme !== "non précisé") organisme = offre.organisme.slice(0, 120);
-        if (offre.intitule && offre.intitule !== "non précisé") intitule = offre.intitule.slice(0, 240);
-        if (offre.description && offre.description !== "non précisé") descFinale = offre.description.slice(0, 2000);
-        if (offre.conditions && offre.conditions !== "non précisé") conditions = offre.conditions;
-        if (Array.isArray(offre.piecesExigees) && offre.piecesExigees.length) piecesExigees = JSON.stringify(offre.piecesExigees);
-        if (offre.exigenceLangue && offre.exigenceLangue !== "non précisé") exigenceLangue = offre.exigenceLangue;
-        if (offre.langueDetectee) langueDetectee = offre.langueDetectee;
-        canalCandidature = normaliserCanal(offre.canalCandidature);
-        cibleCandidature = offre.cibleCandidature ?? null;
-
-        const aGenerables = Array.isArray(offre.piecesExigees) && offre.piecesExigees.some((p) => p.categorie === "generable");
-
-        let statut: string;
-        if (sansDateLimite || !aGenerables) {
-          statut = "revue_manuelle";
-        } else {
-          statut = "a_valider";
-        }
-
         try {
           await prisma.opportunite.create({
             data: {
               type: config.type,
               source: `${config.sourcePrefix}:${source.identifier}`,
-              organisme, intitule, description: descFinale, conditions, piecesExigees,
-              exigenceLangue, langueDetectee, canalCandidature, cibleCandidature,
-              dateLimite, confianceDateLimite: confiance, sourceDateLimite,
+              organisme: source.name,
+              intitule: (titre || "Sans titre").slice(0, 240),
+              description: "En attente de vérification IA",
+              langueDetectee: source.language,
               lien, sourceUrl: lien, dedupKey, hash: hashLegacy(lien, titre),
               datePublication: null, premiereVue: maintenant, derniereVerif: maintenant,
-              statut, actif: false,
+              statut: "brouillon", actif: false,
             },
           });
           rapport.creees++;

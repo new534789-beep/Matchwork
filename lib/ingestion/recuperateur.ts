@@ -11,8 +11,8 @@ import { traduireOffreFr } from "@/lib/ia/traduction";
 
 const parser = new Parser({ timeout: 15000 });
 
-const MAX_ITEMS_PAR_SOURCE = 15; // on ne lit que les N items les plus récents par flux
-const MAX_ENRICH_PAR_PASSAGE = 700; // 2 appels IA par offre (date + extraction)
+const MAX_ITEMS_PAR_SOURCE = 100;
+const MAX_ENRICH_PAR_PASSAGE = 700;
 
 export type RapportIngestion = {
   sources: number;
