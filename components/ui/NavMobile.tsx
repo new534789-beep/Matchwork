@@ -1,10 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import Link from "next/link";
 
 export function NavMobile() {
   const [open, setOpen] = useState(false);
+  const [monte, setMonte] = useState(false);
+
+  // Le portail ne peut cibler document.body qu'une fois monté côté client.
+  useEffect(() => { setMonte(true); }, []);
 
   return (
     <>
@@ -13,15 +18,18 @@ export function NavMobile() {
         onClick={() => setOpen(!open)}
         aria-label={open ? "Fermer le menu" : "Ouvrir le menu"}
       >
-        <span style={{ display:"block", width:"24px", height:"2.5px", background:"#c4b5fd", borderRadius:"2px", transition:"transform 0.22s ease, opacity 0.22s ease", transform: open ? "rotate(45deg) translate(2px,3px)" : "none" }} />
-        <span style={{ display:"block", width:"24px", height:"2.5px", background:"#c4b5fd", borderRadius:"2px", transition:"opacity 0.22s ease", opacity: open ? 0 : 1 }} />
-        <span style={{ display:"block", width:"24px", height:"2.5px", background:"#c4b5fd", borderRadius:"2px", transition:"transform 0.22s ease", transform: open ? "rotate(-45deg) translate(2px,-3px)" : "none" }} />
+        <span style={{ display:"block", width:"24px", height:"2.5px", background:"#fff", borderRadius:"2px", transition:"transform 0.22s ease, opacity 0.22s ease", transform: open ? "rotate(45deg) translate(2px,3px)" : "none" }} />
+        <span style={{ display:"block", width:"24px", height:"2.5px", background:"#fff", borderRadius:"2px", transition:"opacity 0.22s ease", opacity: open ? 0 : 1 }} />
+        <span style={{ display:"block", width:"24px", height:"2.5px", background:"#fff", borderRadius:"2px", transition:"transform 0.22s ease", transform: open ? "rotate(-45deg) translate(2px,-3px)" : "none" }} />
       </button>
 
-      {open && (
+      {/* Portail vers document.body : un ancêtre de la nav a un backdrop-filter, qui
+          crée un containing block et piégerait un position:fixed dans la pilule au
+          lieu de couvrir tout l'écran. */}
+      {monte && open && createPortal(
         <div
-          className="fixed inset-0 z-[60]"
-          style={{ background:"rgba(0,0,0,0.95)", backdropFilter:"blur(24px)", WebkitBackdropFilter:"blur(24px)", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", gap:"0" }}
+          className="fixed inset-0 z-[100]"
+          style={{ background:"#0a0a0a", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", gap:"0" }}
           onClick={() => setOpen(false)}
         >
           <div style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:"24px" }}>
@@ -56,7 +64,8 @@ export function NavMobile() {
               Se connecter
             </Link>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </>
   );

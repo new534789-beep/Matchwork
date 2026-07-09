@@ -5,7 +5,7 @@ import { SectionTarifs } from "@/components/landing/SectionTarifs";
 
 export default function Landing() {
   return (
-    <main style={{ background: "#000", color: "#fff", overflowX: "hidden", maxWidth: "100vw" }}>
+    <main style={{ background: "#fff", color: "#0a0a0a", overflowX: "hidden", maxWidth: "100vw" }}>
 
       {/* ── Navigation — pilule noir glacé ── */}
       <nav className="fixed top-0 left-0 right-0 z-50 px-2 sm:px-3 md:px-4" style={{ paddingTop: "10px" }}>
@@ -60,7 +60,7 @@ export default function Landing() {
         className="hero-section"
         style={{
           minHeight: "100vh",
-          background: "#000",
+          background: "#fff",
           overflow: "hidden",
           position: "relative",
           display: "flex",
@@ -77,7 +77,7 @@ export default function Landing() {
               fontWeight: 800,
               letterSpacing: "-0.04em",
               lineHeight: 1.08,
-              color: "#fff",
+              color: "#0a0a0a",
               marginBottom: "20px",
             }}
           >
@@ -94,7 +94,7 @@ export default function Landing() {
 
           <p
             style={{
-              color: "rgba(255,255,255,0.45)",
+              color: "rgba(10,10,10,0.55)",
               fontSize: "0.95rem",
               lineHeight: 1.7,
               maxWidth: "420px",
@@ -135,7 +135,7 @@ export default function Landing() {
               className="nav-link"
               style={{
                 fontSize: "0.85rem",
-                color: "rgba(255,255,255,0.4)",
+                color: "rgba(10,10,10,0.5)",
                 textDecoration: "none",
               }}
             >
@@ -150,7 +150,7 @@ export default function Landing() {
               { t: "Sans engagement", d: "M9 12l2 2 4-4 M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" },
               { t: "Coffre-fort chiffré", d: "M19 11H5a2 2 0 00-2 2v7a2 2 0 002 2h14a2 2 0 002-2v-7a2 2 0 00-2-2zM7 11V7a5 5 0 0110 0v4" },
             ].map((b) => (
-              <span key={b.t} style={{ display: "inline-flex", alignItems: "center", gap: "7px", fontSize: "0.78rem", color: "rgba(255,255,255,0.5)" }}>
+              <span key={b.t} style={{ display: "inline-flex", alignItems: "center", gap: "7px", fontSize: "0.78rem", color: "rgba(10,10,10,0.55)" }}>
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                   <path d={b.d} />
                 </svg>
@@ -206,11 +206,11 @@ export default function Landing() {
                 left: "140px",
                 width: "240px",
                 height: "175px",
-                background: "#080810",
+                background: "#fff",
                 border: "1px solid rgba(124,58,237,0.35)",
                 borderRadius: "16px",
                 padding: "22px",
-                boxShadow: "0 0 50px rgba(124,58,237,0.18), 0 20px 60px rgba(0,0,0,0.7)",
+                boxShadow: "0 0 50px rgba(124,58,237,0.15), 0 20px 60px rgba(124,58,237,0.12)",
                 transform: "translateZ(25px)",
                 zIndex: 10,
               }}
@@ -221,23 +221,23 @@ export default function Landing() {
                   width: "44px",
                   height: "44px",
                   borderRadius: "50%",
-                  background: "rgba(124,58,237,0.2)",
+                  background: "rgba(124,58,237,0.12)",
                   border: "1px solid rgba(124,58,237,0.4)",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
                   marginBottom: "14px",
-                  boxShadow: "0 0 20px rgba(124,58,237,0.3)",
+                  boxShadow: "0 0 20px rgba(124,58,237,0.2)",
                 }}
               >
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-                  <path d="M12 2v20M2 12h20M4.93 4.93l14.14 14.14M19.07 4.93L4.93 19.07" stroke="#a78bfa" strokeWidth="2" strokeLinecap="round"/>
+                  <path d="M12 2v20M2 12h20M4.93 4.93l14.14 14.14M19.07 4.93L4.93 19.07" stroke="#7c3aed" strokeWidth="2" strokeLinecap="round"/>
                 </svg>
               </div>
-              <p style={{ color: "#fff", fontWeight: 700, fontSize: "0.85rem", lineHeight: 1.3 }}>
+              <p style={{ color: "#0a0a0a", fontWeight: 700, fontSize: "0.85rem", lineHeight: 1.3 }}>
                 Bourse d&apos;Excellence Eiffel
               </p>
-              <p style={{ color: "rgba(167,139,250,0.6)", fontSize: "0.7rem", marginTop: "4px" }}>
+              <p style={{ color: "rgba(124,58,237,0.75)", fontSize: "0.7rem", marginTop: "4px" }}>
                 Campus France · Master
               </p>
             </div>
@@ -251,18 +251,19 @@ export default function Landing() {
                 right: "50px",
                 width: "140px",
                 height: "82px",
-                background: "#040408",
-                border: "1px solid rgba(255,255,255,0.07)",
+                background: "#fff",
+                border: "1px solid rgba(124,58,237,0.18)",
                 borderRadius: "12px",
                 padding: "14px 16px",
+                boxShadow: "0 10px 30px rgba(124,58,237,0.08)",
                 transform: "translateZ(10px)",
                 zIndex: 6,
               }}
             >
-              <p style={{ color: "rgba(255,255,255,0.28)", fontSize: "0.6rem", letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: "5px" }}>
+              <p style={{ color: "rgba(124,58,237,0.55)", fontSize: "0.6rem", letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: "5px" }}>
                 Analyse IA
               </p>
-              <p style={{ color: "rgba(255,255,255,0.7)", fontSize: "0.78rem", fontWeight: 600 }}>
+              <p style={{ color: "#0a0a0a", fontSize: "0.78rem", fontWeight: 600 }}>
                 Profil candidat
               </p>
             </div>
@@ -276,18 +277,19 @@ export default function Landing() {
                 right: "20px",
                 width: "125px",
                 height: "95px",
-                background: "#040408",
-                border: "1px solid rgba(255,255,255,0.07)",
+                background: "#fff",
+                border: "1px solid rgba(124,58,237,0.18)",
                 borderRadius: "12px",
                 padding: "14px 16px",
+                boxShadow: "0 10px 30px rgba(124,58,237,0.08)",
                 transform: "translateZ(8px)",
                 zIndex: 6,
               }}
             >
-              <p style={{ color: "rgba(255,255,255,0.28)", fontSize: "0.6rem", letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: "5px" }}>
+              <p style={{ color: "rgba(124,58,237,0.55)", fontSize: "0.6rem", letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: "5px" }}>
                 Document
               </p>
-              <p style={{ color: "rgba(255,255,255,0.7)", fontSize: "0.78rem", fontWeight: 600 }}>
+              <p style={{ color: "#0a0a0a", fontSize: "0.78rem", fontWeight: 600 }}>
                 Lettre de motivation
               </p>
             </div>
@@ -301,18 +303,19 @@ export default function Landing() {
                 right: "70px",
                 width: "155px",
                 height: "78px",
-                background: "#040408",
-                border: "1px solid rgba(255,255,255,0.06)",
+                background: "#fff",
+                border: "1px solid rgba(124,58,237,0.15)",
                 borderRadius: "12px",
                 padding: "14px 16px",
+                boxShadow: "0 10px 30px rgba(124,58,237,0.06)",
                 transform: "translateZ(5px)",
                 zIndex: 5,
               }}
             >
-              <p style={{ color: "rgba(255,255,255,0.28)", fontSize: "0.6rem", letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: "5px" }}>
+              <p style={{ color: "rgba(124,58,237,0.5)", fontSize: "0.6rem", letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: "5px" }}>
                 Checklist
               </p>
-              <p style={{ color: "rgba(255,255,255,0.7)", fontSize: "0.78rem", fontWeight: 600 }}>
+              <p style={{ color: "#0a0a0a", fontSize: "0.78rem", fontWeight: 600 }}>
                 Pièces exigées
               </p>
             </div>
@@ -326,18 +329,19 @@ export default function Landing() {
                 left: "20px",
                 width: "130px",
                 height: "78px",
-                background: "#040408",
-                border: "1px solid rgba(255,255,255,0.06)",
+                background: "#fff",
+                border: "1px solid rgba(124,58,237,0.15)",
                 borderRadius: "12px",
                 padding: "14px 16px",
+                boxShadow: "0 10px 30px rgba(124,58,237,0.06)",
                 transform: "translateZ(6px)",
                 zIndex: 5,
               }}
             >
-              <p style={{ color: "rgba(255,255,255,0.28)", fontSize: "0.6rem", letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: "5px" }}>
+              <p style={{ color: "rgba(124,58,237,0.5)", fontSize: "0.6rem", letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: "5px" }}>
                 Profil
               </p>
-              <p style={{ color: "rgba(255,255,255,0.7)", fontSize: "0.78rem", fontWeight: 600 }}>
+              <p style={{ color: "#0a0a0a", fontSize: "0.78rem", fontWeight: 600 }}>
                 Formation &amp; langues
               </p>
             </div>
@@ -351,18 +355,19 @@ export default function Landing() {
                 left: "40px",
                 width: "120px",
                 height: "72px",
-                background: "#040408",
-                border: "1px solid rgba(255,255,255,0.06)",
+                background: "#fff",
+                border: "1px solid rgba(124,58,237,0.15)",
                 borderRadius: "12px",
                 padding: "14px 16px",
+                boxShadow: "0 10px 30px rgba(124,58,237,0.06)",
                 transform: "translateZ(4px)",
                 zIndex: 4,
               }}
             >
-              <p style={{ color: "rgba(255,255,255,0.28)", fontSize: "0.6rem", letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: "5px" }}>
+              <p style={{ color: "rgba(124,58,237,0.5)", fontSize: "0.6rem", letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: "5px" }}>
                 CV
               </p>
-              <p style={{ color: "rgba(255,255,255,0.7)", fontSize: "0.78rem", fontWeight: 600 }}>
+              <p style={{ color: "#0a0a0a", fontSize: "0.78rem", fontWeight: 600 }}>
                 Généré par IA
               </p>
             </div>
@@ -373,30 +378,30 @@ export default function Landing() {
               viewBox="0 0 520 420"
             >
               {/* Lines connecting chips to main */}
-              <line x1="260" y1="177" x2="380" y2="59" stroke="rgba(124,58,237,0.15)" strokeWidth="1" strokeDasharray="4 4"/>
-              <line x1="380" y1="177" x2="445" y2="207" stroke="rgba(255,255,255,0.05)" strokeWidth="1" strokeDasharray="4 4"/>
-              <line x1="260" y1="265" x2="300" y2="340" stroke="rgba(255,255,255,0.05)" strokeWidth="1" strokeDasharray="4 4"/>
-              <line x1="140" y1="177" x2="85" y2="205" stroke="rgba(255,255,255,0.05)" strokeWidth="1" strokeDasharray="4 4"/>
+              <line x1="260" y1="177" x2="380" y2="59" stroke="rgba(124,58,237,0.2)" strokeWidth="1" strokeDasharray="4 4"/>
+              <line x1="380" y1="177" x2="445" y2="207" stroke="rgba(124,58,237,0.12)" strokeWidth="1" strokeDasharray="4 4"/>
+              <line x1="260" y1="265" x2="300" y2="340" stroke="rgba(124,58,237,0.12)" strokeWidth="1" strokeDasharray="4 4"/>
+              <line x1="140" y1="177" x2="85" y2="205" stroke="rgba(124,58,237,0.12)" strokeWidth="1" strokeDasharray="4 4"/>
               {/* Corner dots */}
               <circle cx="380" cy="59" r="2.5" fill="rgba(124,58,237,0.4)"/>
-              <circle cx="445" cy="207" r="2.5" fill="rgba(255,255,255,0.12)"/>
-              <circle cx="300" cy="340" r="2.5" fill="rgba(255,255,255,0.12)"/>
-              <circle cx="85" cy="205" r="2.5" fill="rgba(255,255,255,0.12)"/>
+              <circle cx="445" cy="207" r="2.5" fill="rgba(124,58,237,0.25)"/>
+              <circle cx="300" cy="340" r="2.5" fill="rgba(124,58,237,0.25)"/>
+              <circle cx="85" cy="205" r="2.5" fill="rgba(124,58,237,0.25)"/>
             </svg>
           </div>
         </div>
       </section>
 
       {/* ── Bénéfices : ce que Matchwork change pour vous ── */}
-      <section className="py-28 px-8" style={{ background: "#0a0a0a", borderTop: "1px solid rgba(255,255,255,0.06)" }}>
+      <section className="py-28 px-8" style={{ background: "#fff", borderTop: "1px solid rgba(10,10,10,0.08)" }}>
         <div className="max-w-6xl mx-auto">
-          <p className="text-center text-xs font-semibold tracking-widest uppercase mb-4" style={{ color: "rgba(167,139,250,0.8)" }}>
+          <p className="text-center text-xs font-semibold tracking-widest uppercase mb-4" style={{ color: "rgba(124,58,237,0.9)" }}>
             Ce que ça change
           </p>
-          <h2 className="text-center font-extrabold mb-5 text-white" style={{ fontSize: "clamp(2rem,3.6vw,3.1rem)", letterSpacing: "-0.03em", lineHeight: 1.08 }}>
+          <h2 className="text-center font-extrabold mb-5" style={{ fontSize: "clamp(2rem,3.6vw,3.1rem)", letterSpacing: "-0.03em", lineHeight: 1.08, color: "#0a0a0a" }}>
             Et si candidater devenait<br />enfin simple ?
           </h2>
-          <p className="text-center mx-auto mb-16" style={{ color: "rgba(255,255,255,0.42)", fontSize: "1rem", maxWidth: 540, lineHeight: 1.65 }}>
+          <p className="text-center mx-auto mb-16" style={{ color: "rgba(10,10,10,0.5)", fontSize: "1rem", maxWidth: 540, lineHeight: 1.65 }}>
             Fini la page blanche et les dossiers bâclés à la dernière minute. Matchwork s&apos;occupe du plus dur, vous gardez le contrôle.
           </p>
 
@@ -423,14 +428,14 @@ export default function Landing() {
                 path: "M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0",
               },
             ].map((b) => (
-              <div key={b.t} className="hover-border" style={{ padding: "26px 22px", borderRadius: "18px", background: "rgba(255,255,255,0.025)", border: "1px solid rgba(255,255,255,0.08)" }}>
+              <div key={b.t} className="hover-border" style={{ padding: "26px 22px", borderRadius: "18px", background: "rgba(10,10,10,0.025)", border: "1px solid rgba(10,10,10,0.08)" }}>
                 <div style={{ width: "48px", height: "48px", borderRadius: "13px", background: "rgba(124,58,237,0.14)", border: "1px solid rgba(124,58,237,0.3)", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: "18px" }}>
-                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                     <path d={b.path} />
                   </svg>
                 </div>
-                <h3 className="font-bold text-white mb-2" style={{ fontSize: "1.02rem" }}>{b.t}</h3>
-                <p style={{ fontSize: "0.86rem", color: "rgba(255,255,255,0.45)", lineHeight: 1.6 }}>{b.d}</p>
+                <h3 className="font-bold mb-2" style={{ fontSize: "1.02rem", color: "#0a0a0a" }}>{b.t}</h3>
+                <p style={{ fontSize: "0.86rem", color: "rgba(10,10,10,0.5)", lineHeight: 1.6 }}>{b.d}</p>
               </div>
             ))}
           </div>
@@ -515,7 +520,7 @@ export default function Landing() {
             overflow: "visible",
           }}
         >
-          {/* ── Carte 1 : EMPLOI ── */}
+          {/* ── Carte 1 : FORMATION ── */}
           <div
             className="fan-card fan-c1"
             style={{
@@ -525,13 +530,13 @@ export default function Landing() {
             }}
           >
             <div style={{ width: "28px", height: "2px", background: "rgba(255,255,255,0.5)", marginBottom: "14px" }} />
-            <p style={{ fontSize: "0.6rem", letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(255,255,255,0.5)", marginBottom: "7px" }}>Emploi</p>
-            <p style={{ fontSize: "1.1rem", fontWeight: 800, color: "#fff", lineHeight: 1.2 }}>Ingénieur<br />web junior</p>
-            <p style={{ fontSize: "0.68rem", color: "rgba(255,255,255,0.5)", marginTop: "7px" }}>Dakar · Remote</p>
+            <p style={{ fontSize: "0.6rem", letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(255,255,255,0.5)", marginBottom: "7px" }}>Formation</p>
+            <p style={{ fontSize: "1.1rem", fontWeight: 800, color: "#fff", lineHeight: 1.2 }}>Bootcamp<br />Développement</p>
+            <p style={{ fontSize: "0.68rem", color: "rgba(255,255,255,0.5)", marginTop: "7px" }}>En ligne · 6 sem.</p>
             <div style={{ position: "absolute", bottom: "-28px", right: "-28px", width: "90px", height: "90px", borderRadius: "50%", background: "rgba(255,255,255,0.05)" }} />
           </div>
 
-          {/* ── Carte 2 : CONCOURS ── */}
+          {/* ── Carte 2 : APPEL À PROJETS ── */}
           <div
             className="fan-card fan-c2"
             style={{
@@ -540,13 +545,13 @@ export default function Landing() {
               boxShadow: "0 20px 50px rgba(0,0,0,0.45)", overflow: "hidden",
             }}
           >
-            <p style={{ fontSize: "0.58rem", letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(30,10,60,0.35)", marginBottom: "8px" }}>Concours</p>
-            <p style={{ fontSize: "1.2rem", fontWeight: 800, color: "#1a0840", lineHeight: 1.15 }}>Prix<br />Innovation<br />Jeunesse</p>
-            <p style={{ fontSize: "0.65rem", color: "rgba(30,10,60,0.4)", marginTop: "8px" }}>Bénin · 2026</p>
+            <p style={{ fontSize: "0.58rem", letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(30,10,60,0.35)", marginBottom: "8px" }}>Appel à projets</p>
+            <p style={{ fontSize: "1.2rem", fontWeight: 800, color: "#1a0840", lineHeight: 1.15 }}>Fonds<br />Jeunesse<br />Innovante</p>
+            <p style={{ fontSize: "0.65rem", color: "rgba(30,10,60,0.4)", marginTop: "8px" }}>Afrique de l&apos;Ouest · 2026</p>
             <div style={{ position: "absolute", bottom: "14px", left: "20px", right: "20px", height: "2px", borderRadius: "2px", background: "linear-gradient(90deg,#7c3aed,#a78bfa)" }} />
           </div>
 
-          {/* ── Carte 3 : BOURSE (centrale, focus) ── */}
+          {/* ── Carte 3 : BOURSE D'ÉTUDE (centrale, focus) ── */}
           <div
             className="fan-card fan-c3"
             style={{
@@ -557,7 +562,7 @@ export default function Landing() {
               overflow: "hidden",
             }}
           >
-            <p style={{ fontSize: "0.58rem", letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(167,139,250,0.45)", marginBottom: "14px" }}>Matchwork</p>
+            <p style={{ fontSize: "0.58rem", letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(167,139,250,0.45)", marginBottom: "14px" }}>Bourse d&apos;étude</p>
             <p style={{ fontSize: "1.2rem", fontWeight: 800, color: "#fff", lineHeight: 1.2, marginBottom: "4px" }}>
               Bourse<br />d&apos;Excellence<br />Eiffel
             </p>
@@ -590,7 +595,7 @@ export default function Landing() {
             <p style={{ fontSize: "0.65rem", color: "rgba(5,60,100,0.45)", marginTop: "3px" }}>3 mois · Cotonou</p>
           </div>
 
-          {/* ── Carte 5 : RÉSIDENCE ── */}
+          {/* ── Carte 5 : ADMISSION ── */}
           <div
             className="fan-card fan-c5"
             style={{
@@ -601,10 +606,10 @@ export default function Landing() {
           >
             <div style={{ display: "flex", alignItems: "center", gap: "5px", marginBottom: "12px" }}>
               <div style={{ width: "7px", height: "7px", borderRadius: "50%", background: "#e05050" }} />
-              <p style={{ fontSize: "0.58rem", letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(224,80,80,0.6)" }}>Résidence</p>
+              <p style={{ fontSize: "0.58rem", letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(224,80,80,0.6)" }}>Admission</p>
             </div>
-            <p style={{ fontSize: "1rem", fontWeight: 800, color: "#fff", lineHeight: 1.2 }}>Centre d&apos;Art<br />Contemporain</p>
-            <p style={{ fontSize: "0.65rem", color: "rgba(255,255,255,0.3)", marginTop: "7px" }}>Paris · 6 mois</p>
+            <p style={{ fontSize: "1rem", fontWeight: 800, color: "#fff", lineHeight: 1.2 }}>Master IA<br />Polytechnique</p>
+            <p style={{ fontSize: "0.65rem", color: "rgba(255,255,255,0.3)", marginTop: "7px" }}>Lomé · Rentrée 2026</p>
             <div style={{ position: "absolute", bottom: "16px", right: "14px", fontSize: "0.6rem", color: "rgba(224,80,80,0.3)", letterSpacing: "0.06em" }}>RÉF 26</div>
             <div style={{ position: "absolute", top: "-16px", right: "-16px", width: "70px", height: "70px", borderRadius: "50%", background: "rgba(224,80,80,0.07)" }} />
           </div>
@@ -625,21 +630,21 @@ export default function Landing() {
       </section>
 
       {/* ── Comment ça marche — étapes + captures ── */}
-      <section id="comment" className="py-28 px-8" style={{ borderTop: "1px solid rgba(255,255,255,0.06)", background: "#0a0a0a" }}>
+      <section id="comment" className="py-28 px-8" style={{ borderTop: "1px solid rgba(10,10,10,0.08)", background: "#fff" }}>
         <div className="max-w-6xl mx-auto">
-          <p className="text-center text-xs font-semibold tracking-widest uppercase mb-4" style={{ color: "rgba(167,139,250,0.8)" }}>
+          <p className="text-center text-xs font-semibold tracking-widest uppercase mb-4" style={{ color: "rgba(124,58,237,0.9)" }}>
             Comment ça marche
           </p>
-          <h2 className="text-center font-extrabold mb-6 text-white" style={{ fontSize: "clamp(2rem,3.6vw,3.1rem)", letterSpacing: "-0.03em", lineHeight: 1.08 }}>
+          <h2 className="text-center font-extrabold mb-6" style={{ fontSize: "clamp(2rem,3.6vw,3.1rem)", letterSpacing: "-0.03em", lineHeight: 1.08, color: "#0a0a0a" }}>
             De l&apos;opportunité au dossier,<br />en 4 étapes
           </h2>
-          <p className="text-center mx-auto mb-20" style={{ color: "rgba(255,255,255,0.42)", fontSize: "1rem", maxWidth: 540, lineHeight: 1.65 }}>
+          <p className="text-center mx-auto mb-20" style={{ color: "rgba(10,10,10,0.5)", fontSize: "1rem", maxWidth: 540, lineHeight: 1.65 }}>
             Pas de paperasse, pas de blocage. Vous avancez, Matchwork fait le reste.
           </p>
 
           <div className="flex flex-col gap-16 max-w-4xl mx-auto">
             {[
-              { n: "01", t: "Créez votre profil avec Amara", d: "Notre assistante IA vous interviewe naturellement et construit votre profil : formations, expériences, langues — sans formulaire fastidieux.", path: "M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2 M12 7a4 4 0 100-8 4 4 0 000 8z" },
+              { n: "01", t: "Créez votre profil avec Blessing", d: "Notre assistante IA vous interviewe naturellement et construit votre profil : formations, expériences, langues — sans formulaire fastidieux.", path: "M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2 M12 7a4 4 0 100-8 4 4 0 000 8z" },
               { n: "02", t: "Swipez les opportunités faites pour vous", d: "Bourses, emplois, concours, résidences — triés selon votre profil. Glissez à droite celles qui vous intéressent.", path: "M2 7h20 M2 7a2 2 0 012-2h16a2 2 0 012 2v10a2 2 0 01-2 2H4a2 2 0 01-2-2z" },
               { n: "03", t: "Générez votre dossier en un clic", d: "CV et lettre de motivation personnalisés, rédigés par l'IA pour chaque opportunité — dans la bonne langue, jamais recopiés.", path: "M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z M14 2v6h6 M9 13l2 2 4-4" },
               { n: "04", t: "Suivez vos candidatures et deadlines", d: "Tableau de bord clair, checklist des pièces exigées et alertes avant chaque date limite. Vous candidatez toujours à temps.", path: "M3 3v18h18 M7 14l4-4 3 3 5-6" },
@@ -650,18 +655,18 @@ export default function Landing() {
                   <div className="flex items-center gap-3 mb-5">
                     <span style={{ fontSize: "2.4rem", fontWeight: 900, color: "rgba(124,58,237,0.35)", letterSpacing: "-0.04em", lineHeight: 1 }}>{step.n}</span>
                     <div style={{ width: 40, height: 40, borderRadius: 11, background: "rgba(124,58,237,0.14)", border: "1px solid rgba(124,58,237,0.3)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                      <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d={step.path} /></svg>
+                      <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d={step.path} /></svg>
                     </div>
                   </div>
-                  <h3 className="font-bold text-white mb-3" style={{ fontSize: "1.45rem", letterSpacing: "-0.02em" }}>{step.t}</h3>
-                  <p style={{ fontSize: "0.95rem", color: "rgba(255,255,255,0.45)", lineHeight: 1.7, maxWidth: 420 }}>{step.d}</p>
+                  <h3 className="font-bold mb-3" style={{ fontSize: "1.45rem", letterSpacing: "-0.02em", color: "#0a0a0a" }}>{step.t}</h3>
+                  <p style={{ fontSize: "0.95rem", color: "rgba(10,10,10,0.5)", lineHeight: 1.7, maxWidth: 420 }}>{step.d}</p>
                 </div>
 
                 {/* Capture / illustration de l'étape */}
                 <div className="flex-1 w-full">
                   {step.n === "01" ? (
                     <div style={{ aspectRatio: "16 / 10", width: "100%", maxWidth: 420, margin: "0 auto", borderRadius: 18, overflow: "hidden", border: "1px solid rgba(124,58,237,0.3)", boxShadow: "0 24px 60px rgba(0,0,0,0.45)" }}>
-                      <Image src="/apercu-amara.png" alt="Création de profil avec Amara, l'assistante IA" width={900} height={563} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                      <Image src="/apercu-amara.png" alt="Création de profil avec Blessing, l'assistante IA" width={900} height={563} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                     </div>
                   ) : (
                     <div style={{
@@ -673,8 +678,8 @@ export default function Landing() {
                       <div style={{ width: 46, height: 46, borderRadius: 12, background: "rgba(124,58,237,0.12)", border: "1px solid rgba(124,58,237,0.25)", display: "flex", alignItems: "center", justifyContent: "center" }}>
                         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" /><circle cx="8.5" cy="8.5" r="1.5" /><path d="M21 15l-5-5L5 21" /></svg>
                       </div>
-                      <span style={{ fontSize: "0.8rem", fontWeight: 600, color: "rgba(167,139,250,0.7)" }}>Capture à venir</span>
-                      <span style={{ fontSize: "0.72rem", color: "rgba(255,255,255,0.25)" }}>Étape {step.n}</span>
+                      <span style={{ fontSize: "0.8rem", fontWeight: 600, color: "rgba(124,58,237,0.8)" }}>Capture à venir</span>
+                      <span style={{ fontSize: "0.72rem", color: "rgba(10,10,10,0.3)" }}>Étape {step.n}</span>
                     </div>
                   )}
                 </div>
@@ -704,7 +709,7 @@ export default function Landing() {
             {/* Gauche (miroir : icône à droite, texte aligné à droite) */}
             <div className="order-2 lg:order-1 flex flex-col gap-10">
               {[
-                { t: "Amara, votre assistante IA", d: "Elle vous interviewe et construit votre profil en conversation — sans formulaire à remplir.", path: "M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" },
+                { t: "Blessing, votre assistante IA", d: "Elle vous interviewe et construit votre profil en conversation — sans formulaire à remplir.", path: "M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" },
                 { t: "Dossiers personnalisés", d: "CV et lettre générés pour chaque opportunité. Jamais génériques, jamais recopiés.", path: "M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z M14 2v6h6 M16 13H8 M16 17H8" },
               ].map((f) => (
                 <div key={f.t} className="flex gap-4 lg:flex-row-reverse lg:text-right">
@@ -721,7 +726,7 @@ export default function Landing() {
 
             {/* Téléphone (au centre) */}
             <div className="order-1 lg:order-2 flex justify-center">
-              <div style={{
+              <div className="float-anim" style={{
                 width: 268, flexShrink: 0, borderRadius: 42, padding: 10,
                 background: "linear-gradient(160deg,#1a1a1d,#050505)",
                 border: "1px solid rgba(255,255,255,0.14)",
@@ -744,10 +749,10 @@ export default function Landing() {
                   {/* En-tête conversation */}
                   <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "15px 16px 13px", borderBottom: "1px solid rgba(255,255,255,0.07)" }}>
                     <div style={{ width: 36, height: 36, borderRadius: "50%", background: "linear-gradient(135deg,#7c3aed,#5b21b6)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                      <span style={{ fontSize: "0.82rem", fontWeight: 800, color: "#fff" }}>A</span>
+                      <span style={{ fontSize: "0.82rem", fontWeight: 800, color: "#fff" }}>B</span>
                     </div>
                     <div style={{ flex: 1 }}>
-                      <p style={{ fontSize: "0.83rem", fontWeight: 700, color: "#fff" }}>Amara</p>
+                      <p style={{ fontSize: "0.83rem", fontWeight: 700, color: "#fff" }}>Blessing</p>
                       <span style={{ display: "inline-flex", alignItems: "center", gap: 5, fontSize: "0.66rem", color: "rgba(255,255,255,0.45)" }}>
                         <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#4ade80" }} />
                         En ligne
@@ -757,26 +762,26 @@ export default function Landing() {
 
                   {/* Messages */}
                   <div style={{ padding: "14px 12px", display: "flex", flexDirection: "column", gap: 9 }}>
-                    <div style={{ alignSelf: "flex-start", maxWidth: "84%", padding: "8px 12px", borderRadius: "4px 13px 13px 13px", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.07)" }}>
+                    <div className="msg-in" style={{ animationDelay: "0.2s", alignSelf: "flex-start", maxWidth: "84%", padding: "8px 12px", borderRadius: "4px 13px 13px 13px", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.07)" }}>
                       <p style={{ fontSize: "0.77rem", color: "rgba(255,255,255,0.85)", lineHeight: 1.5 }}>Bonjour ! Quel est votre niveau d&apos;études ?</p>
                     </div>
-                    <div style={{ alignSelf: "flex-end", maxWidth: "84%", padding: "8px 12px", borderRadius: "13px 4px 13px 13px", background: "linear-gradient(135deg,#7c3aed,#5b21b6)", boxShadow: "0 2px 14px rgba(124,58,237,0.3)" }}>
+                    <div className="msg-in" style={{ animationDelay: "0.7s", alignSelf: "flex-end", maxWidth: "84%", padding: "8px 12px", borderRadius: "13px 4px 13px 13px", background: "linear-gradient(135deg,#7c3aed,#5b21b6)", boxShadow: "0 2px 14px rgba(124,58,237,0.3)" }}>
                       <p style={{ fontSize: "0.77rem", color: "#fff", lineHeight: 1.5 }}>Master 1 en informatique</p>
                     </div>
-                    <div style={{ alignSelf: "flex-start", maxWidth: "84%", padding: "8px 12px", borderRadius: "4px 13px 13px 13px", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.07)" }}>
+                    <div className="msg-in" style={{ animationDelay: "1.2s", alignSelf: "flex-start", maxWidth: "84%", padding: "8px 12px", borderRadius: "4px 13px 13px 13px", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.07)" }}>
                       <p style={{ fontSize: "0.77rem", color: "rgba(255,255,255,0.85)", lineHeight: 1.5 }}>Parfait. J&apos;ai trouvé 3 bourses pour vous.</p>
                     </div>
-                    <div style={{ alignSelf: "flex-end", maxWidth: "84%", padding: "8px 12px", borderRadius: "13px 4px 13px 13px", background: "linear-gradient(135deg,#7c3aed,#5b21b6)", boxShadow: "0 2px 14px rgba(124,58,237,0.3)" }}>
+                    <div className="msg-in" style={{ animationDelay: "1.7s", alignSelf: "flex-end", maxWidth: "84%", padding: "8px 12px", borderRadius: "13px 4px 13px 13px", background: "linear-gradient(135deg,#7c3aed,#5b21b6)", boxShadow: "0 2px 14px rgba(124,58,237,0.3)" }}>
                       <p style={{ fontSize: "0.77rem", color: "#fff", lineHeight: 1.5 }}>Génère mon dossier pour la première</p>
                     </div>
-                    <div style={{ alignSelf: "flex-start", maxWidth: "84%", padding: "8px 12px", borderRadius: "4px 13px 13px 13px", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.07)" }}>
+                    <div className="msg-in" style={{ animationDelay: "2.2s", alignSelf: "flex-start", maxWidth: "84%", padding: "8px 12px", borderRadius: "4px 13px 13px 13px", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.07)" }}>
                       <p style={{ fontSize: "0.77rem", color: "rgba(255,255,255,0.85)", lineHeight: 1.5 }}>C&apos;est parti — CV et lettre en préparation…</p>
                     </div>
                   </div>
 
                   {/* Barre de saisie */}
                   <div style={{ position: "absolute", bottom: 13, left: 12, right: 12, display: "flex", alignItems: "center", gap: 8, padding: "7px 7px 7px 13px", borderRadius: 999, background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)" }}>
-                    <span style={{ flex: 1, fontSize: "0.75rem", color: "rgba(255,255,255,0.3)" }}>Répondez à Amara…</span>
+                    <span style={{ flex: 1, fontSize: "0.75rem", color: "rgba(255,255,255,0.3)" }}>Répondez à Blessing…</span>
                     <div style={{ width: 29, height: 29, borderRadius: "50%", background: "linear-gradient(135deg,#7c3aed,#5b21b6)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
                       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
                     </div>
@@ -808,20 +813,20 @@ export default function Landing() {
       </section>
 
       {/* ── Sécurité & conformité ── */}
-      <section className="py-28 px-8" style={{ background: "#0a0a0a", borderTop: "1px solid rgba(255,255,255,0.06)" }}>
+      <section className="py-28 px-8" style={{ background: "#fff", borderTop: "1px solid rgba(10,10,10,0.08)" }}>
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-16">
             <span className="inline-flex items-center gap-2 mb-5" style={{ padding: "5px 14px", borderRadius: "999px", background: "rgba(124,58,237,0.1)", border: "1px solid rgba(124,58,237,0.25)" }}>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
                 <path d="M9 12l2 2 4-4" />
               </svg>
-              <span style={{ fontSize: "0.78rem", fontWeight: 600, color: "#c4b5fd" }}>Sécurité &amp; confidentialité</span>
+              <span style={{ fontSize: "0.78rem", fontWeight: 600, color: "#7c3aed" }}>Sécurité &amp; confidentialité</span>
             </span>
-            <h2 className="font-extrabold text-white mb-5" style={{ fontSize: "clamp(2rem,3.6vw,3.1rem)", letterSpacing: "-0.03em", lineHeight: 1.08 }}>
+            <h2 className="font-extrabold mb-5" style={{ fontSize: "clamp(2rem,3.6vw,3.1rem)", letterSpacing: "-0.03em", lineHeight: 1.08, color: "#0a0a0a" }}>
               Vos documents les plus sensibles,<br />entre de bonnes mains.
             </h2>
-            <p className="mx-auto" style={{ color: "rgba(255,255,255,0.42)", fontSize: "1rem", maxWidth: 540, lineHeight: 1.65 }}>
+            <p className="mx-auto" style={{ color: "rgba(10,10,10,0.5)", fontSize: "1rem", maxWidth: 540, lineHeight: 1.65 }}>
               Diplômes, relevés, pièces d&apos;identité : tout ce que vous confiez à Matchwork est protégé. Vos données ne servent qu&apos;à vous.
             </p>
           </div>
@@ -843,15 +848,19 @@ export default function Landing() {
                 d: "MTN MoMo, Moov, BjPay. Aucune carte bancaire requise, aucune donnée de paiement stockée chez nous.",
                 path: "M2 7a2 2 0 012-2h16a2 2 0 012 2v10a2 2 0 01-2 2H4a2 2 0 01-2-2zM2 10h20M6 15h4",
               },
-            ].map((p) => (
-              <div key={p.t} style={{ padding: "26px 22px", borderRadius: "18px", background: "rgba(255,255,255,0.025)", border: "1px solid rgba(255,255,255,0.08)" }}>
+            ].map((p, i) => (
+              <div
+                key={p.t}
+                className="feature-card float-anim"
+                style={{ padding: "26px 22px", borderRadius: "18px", background: "rgba(10,10,10,0.025)", border: "1px solid rgba(10,10,10,0.08)", animationDelay: `${i * 0.6}s` }}
+              >
                 <div style={{ width: "46px", height: "46px", borderRadius: "12px", background: "rgba(124,58,237,0.14)", border: "1px solid rgba(124,58,237,0.3)", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: "16px" }}>
-                  <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                  <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                     <path d={p.path} />
                   </svg>
                 </div>
-                <h3 className="font-bold text-white mb-2" style={{ fontSize: "1rem" }}>{p.t}</h3>
-                <p style={{ fontSize: "0.86rem", color: "rgba(255,255,255,0.45)", lineHeight: 1.6 }}>{p.d}</p>
+                <h3 className="font-bold mb-2" style={{ fontSize: "1rem", color: "#0a0a0a" }}>{p.t}</h3>
+                <p style={{ fontSize: "0.86rem", color: "rgba(10,10,10,0.5)", lineHeight: 1.6 }}>{p.d}</p>
               </div>
             ))}
           </div>
@@ -859,11 +868,11 @@ export default function Landing() {
       </section>
 
       {/* ── Témoignages — défilement automatique ── */}
-      <section style={{ background: "#000", borderTop: "1px solid rgba(255,255,255,0.05)", paddingTop: "80px", paddingBottom: "80px", overflow: "hidden" }}>
+      <section style={{ background: "#fff", borderTop: "1px solid rgba(10,10,10,0.06)", paddingTop: "80px", paddingBottom: "80px", overflow: "hidden" }}>
         <p className="text-center text-xs font-semibold tracking-widest uppercase mb-4 px-8" style={{ color: "rgba(124,58,237,0.7)" }}>
           Témoignages
         </p>
-        <h2 className="text-center font-extrabold mb-14 text-white px-8" style={{ fontSize: "clamp(2rem,3.5vw,3rem)", letterSpacing: "-0.025em" }}>
+        <h2 className="text-center font-extrabold mb-14 px-8" style={{ fontSize: "clamp(2rem,3.5vw,3rem)", letterSpacing: "-0.025em", color: "#0a0a0a" }}>
           Ils ont décroché leur opportunité
         </h2>
         <div style={{ overflow: "hidden", width: "100%" }}>
@@ -873,7 +882,7 @@ export default function Landing() {
                 key={i}
                 style={{
                   minWidth: "300px", maxWidth: "320px", borderRadius: "20px", padding: "22px",
-                  background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)",
+                  background: "rgba(10,10,10,0.03)", border: "1px solid rgba(10,10,10,0.08)",
                   flexShrink: 0,
                 }}
               >
@@ -884,7 +893,7 @@ export default function Landing() {
                     </svg>
                   ))}
                 </div>
-                <p className="text-sm leading-relaxed mb-5" style={{ color: "rgba(255,255,255,0.58)" }}>
+                <p className="text-sm leading-relaxed mb-5" style={{ color: "rgba(10,10,10,0.62)" }}>
                   &ldquo;{t.texte}&rdquo;
                 </p>
                 <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
@@ -899,8 +908,8 @@ export default function Landing() {
                     {t.initiales}
                   </div>
                   <div>
-                    <p className="text-sm font-semibold text-white">{t.nom}</p>
-                    <p className="text-xs" style={{ color: "rgba(255,255,255,0.3)" }}>{t.ville}</p>
+                    <p className="text-sm font-semibold" style={{ color: "#0a0a0a" }}>{t.nom}</p>
+                    <p className="text-xs" style={{ color: "rgba(10,10,10,0.4)" }}>{t.ville}</p>
                   </div>
                 </div>
               </div>
@@ -910,12 +919,12 @@ export default function Landing() {
       </section>
 
       {/* ── FAQ ── */}
-      <section id="faq" className="py-28 px-8" style={{ background: "#0a0a0a", borderTop: "1px solid rgba(255,255,255,0.06)" }}>
+      <section id="faq" className="py-28 px-8" style={{ background: "#fff", borderTop: "1px solid rgba(10,10,10,0.08)" }}>
         <div className="max-w-3xl mx-auto">
-          <p className="text-center text-xs font-semibold tracking-widest uppercase mb-4" style={{ color: "rgba(167,139,250,0.8)" }}>
+          <p className="text-center text-xs font-semibold tracking-widest uppercase mb-4" style={{ color: "rgba(124,58,237,0.9)" }}>
             FAQ
           </p>
-          <h2 className="text-center font-extrabold text-white mb-14" style={{ fontSize: "clamp(2rem,3.5vw,3rem)", letterSpacing: "-0.03em" }}>
+          <h2 className="text-center font-extrabold mb-14" style={{ fontSize: "clamp(2rem,3.5vw,3rem)", letterSpacing: "-0.03em", color: "#0a0a0a" }}>
             Vos questions, nos réponses
           </h2>
 
@@ -946,14 +955,14 @@ export default function Landing() {
                 r: "Matchwork est pensé pour l'Afrique de l'Ouest, mais fonctionne partout : il suffit d'une opportunité et de votre profil pour générer un dossier.",
               },
             ].map((f) => (
-              <details key={f.q} className="faq-item" style={{ borderRadius: "14px", background: "rgba(255,255,255,0.025)", border: "1px solid rgba(255,255,255,0.08)", overflow: "hidden" }}>
+              <details key={f.q} className="faq-item" style={{ borderRadius: "14px", background: "rgba(10,10,10,0.025)", border: "1px solid rgba(10,10,10,0.08)", overflow: "hidden" }}>
                 <summary className="faq-summary" style={{ padding: "18px 20px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "16px", cursor: "pointer" }}>
-                  <span className="font-semibold text-white" style={{ fontSize: "0.95rem" }}>{f.q}</span>
-                  <svg className="faq-chevron" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+                  <span className="font-semibold" style={{ fontSize: "0.95rem", color: "#0a0a0a" }}>{f.q}</span>
+                  <svg className="faq-chevron" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
                     <polyline points="6 9 12 15 18 9" />
                   </svg>
                 </summary>
-                <p style={{ padding: "0 20px 20px", fontSize: "0.88rem", color: "rgba(255,255,255,0.5)", lineHeight: 1.65 }}>
+                <p style={{ padding: "0 20px 20px", fontSize: "0.88rem", color: "rgba(10,10,10,0.55)", lineHeight: 1.65 }}>
                   {f.r}
                 </p>
               </details>
@@ -967,27 +976,27 @@ export default function Landing() {
 
       {/* ── CTA final ── */}
       <section
-        className="py-32 px-8 text-center relative overflow-hidden"
-        style={{ background: "#000", borderTop: "1px solid rgba(255,255,255,0.05)" }}
+        className="py-16 px-8 text-center relative overflow-hidden"
+        style={{ background: "#fff", borderTop: "1px solid rgba(10,10,10,0.06)" }}
       >
         <div
           className="absolute inset-0 pointer-events-none"
           aria-hidden
-          style={{ background: "radial-gradient(ellipse 60% 40% at 50% 100%,rgba(124,58,237,0.1),transparent)" }}
+          style={{ background: "radial-gradient(ellipse 60% 40% at 50% 100%,rgba(124,58,237,0.08),transparent)" }}
         />
         <div className="relative z-10 max-w-2xl mx-auto">
           <h2
-            className="font-extrabold mb-4 text-white"
-            style={{ fontSize: "clamp(2rem,5vw,3.5rem)", letterSpacing: "-0.03em" }}
+            className="font-extrabold mb-3"
+            style={{ fontSize: "clamp(1.6rem,3.6vw,2.4rem)", letterSpacing: "-0.03em", color: "#0a0a0a" }}
           >
             Votre prochaine opportunité <br />commence ici.
           </h2>
-          <p className="mb-10 text-base" style={{ color: "rgba(255,255,255,0.35)" }}>
+          <p className="mb-8 text-base" style={{ color: "rgba(10,10,10,0.45)" }}>
             Rejoignez des centaines de candidats qui ont déjà généré leur dossier avec Matchwork.
           </p>
           <Link
             href="/inscription"
-            className="hover-glow inline-flex items-center justify-center px-10 py-4 text-base font-semibold rounded-xl"
+            className="hover-glow inline-flex items-center justify-center px-10 py-3.5 text-base font-semibold rounded-xl"
             style={{ background: "linear-gradient(135deg,#7c3aed,#5b21b6)", color: "#fff", boxShadow: "0 0 50px rgba(124,58,237,0.3)" }}
           >
             Commencer gratuitement
@@ -996,7 +1005,7 @@ export default function Landing() {
       </section>
 
       {/* ── Footer ── */}
-      <footer style={{ background: "#050505", borderTop: "1px solid rgba(255,255,255,0.07)" }}>
+      <footer style={{ background: "#0a0a0a", borderTop: "1px solid rgba(255,255,255,0.07)" }}>
         <div style={{ maxWidth: "1200px", margin: "0 auto", padding: "64px 32px 32px" }}>
 
           {/* Grid principal */}
@@ -1008,23 +1017,23 @@ export default function Landing() {
                 <Image src="/logo.png" alt="Matchwork" width={34} height={34} />
                 <span style={{ fontWeight: 800, fontSize: "1.3rem", color: "#fff", letterSpacing: "-0.025em" }}>Matchwork</span>
               </div>
-              <p style={{ fontSize: "0.85rem", color: "rgba(255,255,255,0.32)", lineHeight: 1.75, marginTop: "14px", maxWidth: "270px" }}>
+              <p style={{ fontSize: "0.85rem", color: "rgba(255,255,255,0.45)", lineHeight: 1.75, marginTop: "14px", maxWidth: "270px" }}>
                 La plateforme IA qui trouve vos opportunités et génère vos dossiers de candidature. Bourses, emplois, concours, résidences.
               </p>
               <div style={{ display: "flex", gap: "8px", marginTop: "20px", flexWrap: "wrap" }}>
                 {["MTN MoMo", "Moov", "BjPay"].map(m => (
-                  <span key={m} style={{ fontSize: "0.72rem", fontWeight: 600, padding: "4px 10px", borderRadius: "6px", background: "rgba(255,255,255,0.05)", color: "rgba(255,255,255,0.38)", border: "1px solid rgba(255,255,255,0.09)" }}>{m}</span>
+                  <span key={m} style={{ fontSize: "0.72rem", fontWeight: 600, padding: "4px 10px", borderRadius: "6px", background: "rgba(255,255,255,0.06)", color: "rgba(255,255,255,0.55)", border: "1px solid rgba(255,255,255,0.12)" }}>{m}</span>
                 ))}
               </div>
             </div>
 
             {/* Produit */}
             <div>
-              <p style={{ fontSize: "0.72rem", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(255,255,255,0.28)", marginBottom: "18px" }}>Produit</p>
+              <p style={{ fontSize: "0.72rem", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(255,255,255,0.4)", marginBottom: "18px" }}>Produit</p>
               <ul style={{ display: "flex", flexDirection: "column", gap: "11px" }}>
                 {["Bourses", "Emplois", "Concours", "Résidences", "Tarifs"].map(l => (
                   <li key={l}>
-                    <Link href="/inscription" style={{ fontSize: "0.875rem", color: "rgba(255,255,255,0.42)", textDecoration: "none", transition: "color 0.18s ease" }}>
+                    <Link href="/inscription" style={{ fontSize: "0.875rem", color: "rgba(255,255,255,0.6)", textDecoration: "none", transition: "color 0.18s ease" }}>
                       {l}
                     </Link>
                   </li>
@@ -1034,11 +1043,11 @@ export default function Landing() {
 
             {/* Support */}
             <div>
-              <p style={{ fontSize: "0.72rem", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(255,255,255,0.28)", marginBottom: "18px" }}>Support</p>
+              <p style={{ fontSize: "0.72rem", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(255,255,255,0.4)", marginBottom: "18px" }}>Support</p>
               <ul style={{ display: "flex", flexDirection: "column", gap: "11px" }}>
                 {["Contact", "FAQ", "Documentation", "Statut"].map(l => (
                   <li key={l}>
-                    <span style={{ fontSize: "0.875rem", color: "rgba(255,255,255,0.42)", cursor: "pointer" }}>{l}</span>
+                    <span style={{ fontSize: "0.875rem", color: "rgba(255,255,255,0.6)", cursor: "pointer" }}>{l}</span>
                   </li>
                 ))}
               </ul>
@@ -1046,11 +1055,11 @@ export default function Landing() {
 
             {/* Légal */}
             <div>
-              <p style={{ fontSize: "0.72rem", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(255,255,255,0.28)", marginBottom: "18px" }}>Légal</p>
+              <p style={{ fontSize: "0.72rem", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(255,255,255,0.4)", marginBottom: "18px" }}>Légal</p>
               <ul style={{ display: "flex", flexDirection: "column", gap: "11px" }}>
                 {["Conditions d'utilisation", "Confidentialité", "Cookies"].map(l => (
                   <li key={l}>
-                    <span style={{ fontSize: "0.875rem", color: "rgba(255,255,255,0.42)", cursor: "pointer" }}>{l}</span>
+                    <span style={{ fontSize: "0.875rem", color: "rgba(255,255,255,0.6)", cursor: "pointer" }}>{l}</span>
                   </li>
                 ))}
               </ul>
@@ -1058,11 +1067,11 @@ export default function Landing() {
           </div>
 
           {/* Barre inférieure */}
-          <div className="footer-bottom" style={{ borderTop: "1px solid rgba(255,255,255,0.06)", paddingTop: "24px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <p style={{ fontSize: "0.78rem", color: "rgba(255,255,255,0.18)" }}>
+          <div className="footer-bottom" style={{ borderTop: "1px solid rgba(255,255,255,0.08)", paddingTop: "24px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <p style={{ fontSize: "0.78rem", color: "rgba(255,255,255,0.35)" }}>
               © 2026 Matchwork · Conçu pour les candidats d&apos;Afrique de l&apos;Ouest francophone
             </p>
-            <p style={{ fontSize: "0.78rem", color: "rgba(255,255,255,0.14)" }}>
+            <p style={{ fontSize: "0.78rem", color: "rgba(255,255,255,0.3)" }}>
               Cotonou, Bénin 🇧🇯
             </p>
           </div>

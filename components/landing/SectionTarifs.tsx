@@ -197,10 +197,11 @@ export function SectionTarifs() {
 
                 <Link
                   href="/inscription"
+                  className={vedette ? undefined : "btn-fill-white"}
                   style={
                     vedette
                       ? { display: "block", width: "100%", textAlign: "center", padding: "13px 0", borderRadius: "12px", fontWeight: 700, fontSize: "0.875rem", textDecoration: "none", background: "#7c3aed", color: "#fff", boxShadow: "0 4px 20px rgba(124,58,237,0.4)" }
-                      : { display: "block", width: "100%", textAlign: "center", padding: "12px 0", borderRadius: "12px", fontWeight: 600, fontSize: "0.875rem", textDecoration: "none", color: "rgba(255,255,255,0.55)", border: "1px solid rgba(255,255,255,0.12)" }
+                      : { display: "block", width: "100%", textAlign: "center", padding: "12px 0", borderRadius: "12px", fontWeight: 600, fontSize: "0.875rem", textDecoration: "none", color: "#fff", border: "1px solid rgba(255,255,255,0.18)" }
                   }
                 >
                   {plan.cta}
