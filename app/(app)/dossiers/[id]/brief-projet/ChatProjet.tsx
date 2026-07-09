@@ -134,7 +134,7 @@ export function ChatProjet({ dossierId }: { dossierId: string }) {
               style={{
                 padding: "10px 14px",
                 borderRadius: msg.role === "user" ? "16px 16px 4px 16px" : "16px 16px 16px 4px",
-                background: msg.role === "user" ? V : "var(--theme)" === "dark" ? "rgba(124,58,237,0.15)" : VL,
+                background: msg.role === "user" ? V : VL,
                 color: msg.role === "user" ? "#fff" : "var(--text)",
                 fontSize: "0.88rem",
                 lineHeight: 1.5,
