@@ -57,12 +57,13 @@ export type RapportBourses = RapportPortail;
 export const SCHOLARSHIP_SOURCE_COUNT = SCHOLARSHIP_SOURCES.length;
 
 export async function ingererBourses(offset = 0, limit?: number): Promise<RapportBourses> {
+  const batchSize = limit ?? SCHOLARSHIP_SOURCES.length;
   return scraperPortails(SCHOLARSHIP_SOURCES, {
     type: "BOURSE_ETUDE",
     sourcePrefix: "SCHOLARSHIP",
-    maxLiens: 30,
-    maxEnrich: 150,
+    maxLiens: batchSize <= 5 ? 10 : 30,
+    maxEnrich: batchSize <= 5 ? 30 : 150,
     sourceOffset: offset,
-    sourceLimit: limit ?? SCHOLARSHIP_SOURCES.length,
+    sourceLimit: batchSize,
   });
 }

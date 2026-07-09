@@ -40,12 +40,13 @@ const STAGE_SOURCES: BasePortalSource[] = [
 export const STAGE_SOURCE_COUNT = STAGE_SOURCES.length;
 
 export async function ingererStages(offset = 0, limit?: number): Promise<RapportPortail> {
+  const batchSize = limit ?? STAGE_SOURCES.length;
   return scraperPortails(STAGE_SOURCES, {
     type: "STAGE",
     sourcePrefix: "INTERNSHIP",
-    maxLiens: 30,
-    maxEnrich: 150,
+    maxLiens: batchSize <= 5 ? 10 : 30,
+    maxEnrich: batchSize <= 5 ? 30 : 150,
     sourceOffset: offset,
-    sourceLimit: limit ?? STAGE_SOURCES.length,
+    sourceLimit: batchSize,
   });
 }
