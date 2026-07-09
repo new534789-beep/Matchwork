@@ -14,7 +14,7 @@ import { extraireOffre, iaDisponible, normaliserCanal } from "@/lib/ia/extractio
 // ── Configuration par défaut ────────────────────────────────────────────────
 
 const DEFAULT_MAX_LIENS = 12;
-const DEFAULT_PAUSE_MS = 700;
+const DEFAULT_PAUSE_MS = 400;
 const DEFAULT_MAX_ENRICH = 60;
 
 export const CHEMINS_IGNORES = [
@@ -300,7 +300,7 @@ export async function scraperPortails<S extends BasePortalSource>(
       });
     }
 
-    await dormir(500);
+    await dormir(200);
   }
 
   return rapport;

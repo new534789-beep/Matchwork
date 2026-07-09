@@ -9,7 +9,7 @@ import { ingererAdmissions } from "@/lib/ingestion/admission-scraper";
 import { ingererAppelsProjets } from "@/lib/ingestion/appel-projet-scraper";
 import { validerAutomatiquement } from "@/lib/ingestion/auto-validation";
 
-export const maxDuration = 120;
+export const maxDuration = 300;
 
 /**
  * Dispatcher cron unifié — alterne les tâches d'ingestion par jour de la semaine.
