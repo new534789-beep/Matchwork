@@ -12,26 +12,26 @@ export async function GET() {
 
   const [inscriptions, sessions, interactions] = await Promise.all([
     prisma.$queryRaw<{ jour: string; total: number }[]>`
-      SELECT date("createdAt") as jour, CAST(COUNT(*) AS INTEGER) as total
+      SELECT "createdAt"::date::text as jour, COUNT(*)::int as total
       FROM users
-      WHERE "createdAt" >= ${il30j.toISOString()}
-      GROUP BY date("createdAt")
+      WHERE "createdAt" >= ${il30j}
+      GROUP BY "createdAt"::date
       ORDER BY jour
     `,
     prisma.$queryRaw<{ jour: string; dureeMoyenneMs: number; utilisateursActifs: number }[]>`
-      SELECT date("debutAt") as jour,
-             CAST(AVG("dureeMs") AS INTEGER) as "dureeMoyenneMs",
-             CAST(COUNT(DISTINCT "userId") AS INTEGER) as "utilisateursActifs"
+      SELECT "debutAt"::date::text as jour,
+             AVG("dureeMs")::int as "dureeMoyenneMs",
+             COUNT(DISTINCT "userId")::int as "utilisateursActifs"
       FROM session_activities
-      WHERE "debutAt" >= ${il30j.toISOString()}
-      GROUP BY date("debutAt")
+      WHERE "debutAt" >= ${il30j}
+      GROUP BY "debutAt"::date
       ORDER BY jour
     `,
     prisma.$queryRaw<{ jour: string; total: number }[]>`
-      SELECT date("createdAt") as jour, CAST(COUNT(*) AS INTEGER) as total
+      SELECT "createdAt"::date::text as jour, COUNT(*)::int as total
       FROM interactions
-      WHERE "createdAt" >= ${il30j.toISOString()}
-      GROUP BY date("createdAt")
+      WHERE "createdAt" >= ${il30j}
+      GROUP BY "createdAt"::date
       ORDER BY jour
     `,
   ]);
