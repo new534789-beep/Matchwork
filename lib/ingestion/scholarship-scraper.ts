@@ -58,11 +58,12 @@ export const SCHOLARSHIP_SOURCE_COUNT = SCHOLARSHIP_SOURCES.length;
 
 export async function ingererBourses(offset = 0, limit?: number): Promise<RapportBourses> {
   const batchSize = limit ?? SCHOLARSHIP_SOURCES.length;
+  const isPaginated = batchSize < SCHOLARSHIP_SOURCES.length;
   return scraperPortails(SCHOLARSHIP_SOURCES, {
     type: "BOURSE_ETUDE",
     sourcePrefix: "SCHOLARSHIP",
-    maxLiens: batchSize <= 5 ? 10 : 30,
-    maxEnrich: batchSize <= 5 ? 30 : 150,
+    maxLiens: isPaginated ? 4 : 30,
+    maxEnrich: isPaginated ? 10 : 150,
     sourceOffset: offset,
     sourceLimit: batchSize,
   });
