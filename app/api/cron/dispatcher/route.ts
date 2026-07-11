@@ -7,20 +7,24 @@ import { ingererStages } from "@/lib/ingestion/stage-scraper";
 import { ingererFormations } from "@/lib/ingestion/formation-scraper";
 import { ingererAdmissions } from "@/lib/ingestion/admission-scraper";
 import { ingererAppelsProjets } from "@/lib/ingestion/appel-projet-scraper";
-import { validerAutomatiquement } from "@/lib/ingestion/auto-validation";
+import { enrichirBrouillons } from "@/lib/ingestion/enrichissement";
 
-export const maxDuration = 300;
+export const maxDuration = 60;
 
 /**
- * Dispatcher cron unifié — alterne les tâches d'ingestion par jour de la semaine.
+ * Dispatcher cron unifié — chaque jour ingère un lot de sources RSS (brouillon)
+ * puis enrichit quelques brouillons via IA. Le tout doit tenir en 60s (Hobby).
  *
- *   Lundi    → FluxSource RSS/scrape + expiration
- *   Mardi    → Bourses portails
- *   Mercredi → Emplois ATS
- *   Jeudi    → Stages
- *   Vendredi → Formations
- *   Samedi   → Admissions
- *   Dimanche → Auto-validation + nettoyage
+ *   Lundi    → FluxSource RSS lot 1 (0-15)
+ *   Mardi    → FluxSource RSS lot 2 (15-30) + bourses portails
+ *   Mercredi → FluxSource RSS lot 3 (30-50) + emplois ATS
+ *   Jeudi    → FluxSource RSS lot 4 (50-70) + stages
+ *   Vendredi → FluxSource RSS lot 5 (70-100) + formations
+ *   Samedi   → FluxSource RSS lot 6 (100+) + admissions/appels
+ *   Dimanche → Expiration + nettoyage
+ *
+ * Enrichir + auto-validation se lancent via /api/cron/enrichir et
+ * /api/cron/auto-validation (endpoints séparés, appelés par cron externe).
  */
 export async function GET(req: Request) {
   const secret = process.env.CRON_SECRET;
@@ -54,29 +58,44 @@ export async function GET(req: Request) {
   } else {
     switch (jour) {
       case 1:
-        tache = "fluxsource";
-        rapport = await ingererToutesLesSources();
-        await retirerExpirees();
+        tache = "flux-lot1";
+        rapport = await ingererToutesLesSources({ skip: 0, take: 15 });
         break;
       case 2:
-        tache = "bourses";
-        rapport = await ingererBourses();
+        tache = "flux-lot2+bourses";
+        rapport = {
+          flux: await ingererToutesLesSources({ skip: 15, take: 15 }),
+          bourses: await ingererBourses(),
+        };
         break;
       case 3:
-        tache = "emplois-ats";
-        rapport = await ingererOffresATS();
+        tache = "flux-lot3+emplois";
+        rapport = {
+          flux: await ingererToutesLesSources({ skip: 30, take: 20 }),
+          ats: await ingererOffresATS(),
+        };
         break;
       case 4:
-        tache = "stages";
-        rapport = await ingererStages();
+        tache = "flux-lot4+stages";
+        rapport = {
+          flux: await ingererToutesLesSources({ skip: 50, take: 20 }),
+          stages: await ingererStages(),
+        };
         break;
       case 5:
-        tache = "formations";
-        rapport = await ingererFormations();
+        tache = "flux-lot5+formations";
+        rapport = {
+          flux: await ingererToutesLesSources({ skip: 70, take: 30 }),
+          formations: await ingererFormations(),
+        };
         break;
       case 6:
-        tache = "admissions+appels-projets";
-        rapport = { admissions: await ingererAdmissions(), appelsProjets: await ingererAppelsProjets() };
+        tache = "flux-lot6+admissions+appels";
+        rapport = {
+          flux: await ingererToutesLesSources({ skip: 100, take: 100 }),
+          admissions: await ingererAdmissions(),
+          appelsProjets: await ingererAppelsProjets(),
+        };
         break;
       case 0:
         tache = "nettoyage";
@@ -85,7 +104,10 @@ export async function GET(req: Request) {
     }
   }
 
-  const validation = await validerAutomatiquement();
+  let enrichissement = null;
+  try {
+    enrichissement = await enrichirBrouillons(2);
+  } catch { /* enrichir is best-effort here */ }
 
-  return NextResponse.json({ ok: true, jour, tache, rapport, validation });
+  return NextResponse.json({ ok: true, jour, tache, rapport, enrichissement });
 }
