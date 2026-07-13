@@ -28,8 +28,8 @@ export function labelDoc(t: string): string {
   return LABEL_DOC[t] ?? t.charAt(0).toUpperCase() + t.slice(1).replace(/_/g, " ");
 }
 
-function normalize(s: string): string {
-  return s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
+function normalize(s: unknown): string {
+  return typeof s === "string" ? s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "") : "";
 }
 
 function matchType(nomPiece: string): string | null {
@@ -55,7 +55,7 @@ export default async function DossierPage({ params }: Props) {
 
   const { id } = await params;
 
-  const [dossier, coffreDocs] = await Promise.all([
+  const [dossier, coffreDocs, profil] = await Promise.all([
     prisma.dossier.findUnique({
       where: { id },
       include: {
@@ -70,6 +70,7 @@ export default async function DossierPage({ params }: Props) {
       },
     }),
     prisma.document.findMany({ where: { userId: session.user.id }, select: { type: true } }),
+    prisma.profil.findUnique({ where: { userId: session.user.id }, select: { modeleCv: true } }),
   ]);
 
   if (!dossier || dossier.userId !== session.user.id) notFound();
@@ -127,6 +128,7 @@ export default async function DossierPage({ params }: Props) {
             })),
           }}
           checklist={checklist}
+          modeleCvInitial={profil?.modeleCv === "sidebar" || profil?.modeleCv === "bandeau" ? profil.modeleCv : "classique"}
         />
       </main>
     </>

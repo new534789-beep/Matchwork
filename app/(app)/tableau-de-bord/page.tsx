@@ -12,9 +12,9 @@ function joursRestants(date: Date | null): number | null {
   return Math.ceil((date.getTime() - Date.now()) / 86_400_000);
 }
 
-function norm(s: string): string {
+function norm(s: unknown): string {
   // Retire les accents (plage des diacritiques combinants U+0300–U+036F)
-  return s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
+  return typeof s === "string" ? s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "") : "";
 }
 
 function parseJSON<T>(s: string | null | undefined, fallback: T): T {
@@ -83,13 +83,18 @@ export default async function TableauDeBord() {
   const userId = session.user.id;
   const mois = new Date().toISOString().slice(0, 10);
 
-  const [profil, user, interactions, dossiers, documents, quota, suggestions] = await Promise.all([
+  const [profil, user, interactions, allInteractions, dossiers, documents, quota, suggestions] = await Promise.all([
     prisma.profil.findUnique({ where: { userId } }),
-    prisma.user.findUnique({ where: { id: userId }, select: { email: true, plan: true } }),
+    prisma.user.findUnique({ where: { id: userId }, select: { email: true, plan: true, createdAt: true } }),
     prisma.interaction.findMany({
       where: { userId, decision: "interesse" },
       include: { opportunite: { select: { id: true, intitule: true, organisme: true, dateLimite: true, piecesExigees: true } } },
       orderBy: { createdAt: "desc" },
+    }),
+    prisma.interaction.findMany({
+      where: { userId },
+      select: { decision: true, createdAt: true },
+      orderBy: { createdAt: "asc" },
     }),
     prisma.dossier.findMany({
       where: { userId },
@@ -109,10 +114,7 @@ export default async function TableauDeBord() {
     }),
   ]);
 
-  // L'admin n'est jamais forcé vers Amara : il accède librement à l'app et peut
-  // faire l'onboarding quand il veut (en se rendant sur /onboarding).
   const role = (session.user as { role?: string }).role;
-  if (!profil?.complete && role !== "admin") redirect("/onboarding");
 
   const quotaMax = parseInt(process.env.QUOTA_GRATUIT_JOURNALIER ?? "3") || 3;
   const estGratuit = user?.plan === "gratuit" || user?.plan === "GRATUIT";
@@ -215,6 +217,20 @@ export default async function TableauDeBord() {
 
   const suggestionsData = suggestions.map((s) => ({ id: s.id, intitule: s.intitule, organisme: s.organisme, jours: joursRestants(s.dateLimite) }));
 
+  const totalVues = allInteractions.length;
+  const totalInteresse = allInteractions.filter((i) => i.decision === "interesse").length;
+  const totalIgnore = allInteractions.filter((i) => i.decision === "ignore").length;
+  const totalDossiers = dossiers.length;
+
+  const activite = {
+    totalVues,
+    totalInteresse,
+    totalIgnore,
+    totalDossiers,
+    totalDocuments: nbDocuments,
+    membreDepuis: user?.createdAt?.toISOString() ?? new Date().toISOString(),
+  };
+
   return (
     <>
       <EnteteApp titre="Tableau de bord" />
@@ -246,6 +262,7 @@ export default async function TableauDeBord() {
           suggestions={suggestionsData}
           profilPct={profilPct}
           quota={{ estGratuit, restant: quotaRestant, max: quotaMax, utilisees: generationsUtilisees }}
+          activite={activite}
         />
       </main>
     </>
