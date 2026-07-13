@@ -19,6 +19,8 @@ model User {
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
 
+  codeParrainage String?  @unique
+
   profil       Profil?
   documents    Document[]
   interactions Interaction[]
@@ -27,6 +29,10 @@ model User {
   paiements    Paiement[]
   messages     Message[]
   sessions     SessionActivity[]
+  pushSubs     PushSubscription[]
+  parrainagesEnvoyes Parrainage[] @relation("parrainages_envoyes")
+  parrainagesRecus   Parrainage[] @relation("parrainages_recus")
+  organisme    Organisme?
 
   @@map("users")
 }
@@ -56,6 +62,15 @@ model Profil {
   tonSouhaite   String?
   complete      Boolean  @default(false)
   sessionOnboarding String @default("[]")
+  // Modèle de mise en page choisi pour le PDF du CV : classique | sidebar | bandeau
+  // (voir lib/pdf/cv-templates.ts). Ne change pas le contenu généré par l'IA, seulement
+  // sa présentation visuelle au moment du téléchargement.
+  modeleCv      String   @default("classique")
+  // Brief général de projet (JSON) collecté par Blessing AVANT de débloquer le swipe
+  // dans la catégorie "Appels à projets" — voir /onboarding-projet. Sert de garde-fou :
+  // sans ça, le candidat swipait des appels à projets sans jamais avoir décrit son
+  // projet, donc sans rien de réel pour générer une note conceptuelle pertinente.
+  profilProjet  String?
 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -92,6 +107,13 @@ model Opportunite {
   organisme      String
   intitule       String
   description    String
+  intituleFr     String?
+  descriptionFr  String?
+  // Texte source original (page scrapée / offre collée), AVANT résumé IA. `description`
+  // reste un résumé condensé pour l'affichage (fil de swipe) ; `contenuBrut` est ce qui
+  // doit être utilisé à la génération des documents pour coller aux exigences réelles
+  // de l'offre, au lieu de ne travailler que sur un résumé déjà appauvri.
+  contenuBrut    String?
   langueDetectee String?
   conditions     String?
   piecesExigees  String      @default("[]")
@@ -294,4 +316,53 @@ model SessionActivity {
   @@index([userId])
   @@index([debutAt])
   @@map("session_activities")
+}
+
+// ─── Notifications push (web push) ──────────────────────────────────────────
+
+model PushSubscription {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@map("push_subscriptions")
+}
+
+// ─── Parrainage ─────────────────────────────────────────────────────────────
+
+model Parrainage {
+  id          String   @id @default(cuid())
+  parrainId   String
+  parrain     User     @relation("parrainages_envoyes", fields: [parrainId], references: [id], onDelete: Cascade)
+  filleulId   String?
+  filleul     User?    @relation("parrainages_recus", fields: [filleulId], references: [id], onDelete: SetNull)
+  code        String   @unique
+  statut      String   @default("en_attente") // en_attente | inscrit | actif
+  createdAt   DateTime @default(now())
+
+  @@index([parrainId])
+  @@map("parrainages")
+}
+
+// ─── Portail B2B (organismes qui publient directement) ──────────────────────
+
+model Organisme {
+  id          String   @id @default(cuid())
+  userId      String   @unique
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  nom         String
+  type        String   @default("universite") // universite | ong | entreprise | gouvernement
+  pays        String?
+  siteWeb     String?
+  logo        String?
+  verifie     Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("organismes")
 }
