@@ -8,7 +8,7 @@ const couleurs: Record<CouleurBadge, React.CSSProperties> = {
   vert:   { background: "rgba(34,197,94,0.1)",  color: "#86efac",  border: "1px solid rgba(34,197,94,0.3)" },
   rouge:  { background: "rgba(239,68,68,0.1)",  color: "#fca5a5",  border: "1px solid rgba(239,68,68,0.3)" },
   orange: { background: "rgba(249,115,22,0.1)", color: "#fdba74",  border: "1px solid rgba(249,115,22,0.3)" },
-  gris:   { background: "rgba(255,255,255,0.06)", color: "rgba(255,255,255,0.5)", border: "1px solid rgba(255,255,255,0.1)" },
+  gris:   { background: "var(--bg-card)", color: "var(--text-2)", border: "1px solid var(--border)" },
 };
 
 interface BadgeProps extends HTMLAttributes<HTMLSpanElement> {

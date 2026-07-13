@@ -19,6 +19,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     const initial = saved ?? "dark";
     setTheme(initial);
     document.documentElement.setAttribute("data-theme", initial);
+    document.documentElement.style.colorScheme = initial;
   }, []);
 
   const toggle = () => {
@@ -26,6 +27,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       const next: Theme = prev === "dark" ? "light" : "dark";
       localStorage.setItem("mw-theme", next);
       document.documentElement.setAttribute("data-theme", next);
+      document.documentElement.style.colorScheme = next;
       return next;
     });
   };

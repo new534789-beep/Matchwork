@@ -21,6 +21,12 @@ const SCHOLARSHIP_SOURCES: BasePortalSource[] = [
   { name: "Mastercard Foundation Scholars", country: "international", url: "https://mastercardfdn.org/all/scholars/", identifier: "mastercard-fdn", language: "en" },
   { name: "ARES Bourses Belgique", country: "belgique", url: "https://www.ares-ac.be/fr/cooperation-au-developpement/bourses", identifier: "ares", language: "fr" },
 
+  // ── Afrique de l'Ouest — portails locaux ──
+  { name: "Opportunités Sénégal", country: "senegal", url: "https://www.emploidakar.com/bourses/", identifier: "emploidakar-bourses", language: "fr" },
+  { name: "FONIJ Bénin", country: "benin", url: "https://fonij.bj/appels-a-candidatures/", identifier: "fonij-bourses", language: "fr" },
+  { name: "LeBoursier Afrique", country: "international", url: "https://www.leboursier.org/bourses/", identifier: "leboursier", language: "fr" },
+  { name: "CampusJeunes Afrique", country: "international", url: "https://campusjeunes.net/bourses-detudes/", identifier: "campusjeunes", language: "fr" },
+
   // ── France ──
   { name: "Campus France Bourses", country: "france", url: "https://www.campusfrance.org/fr/bourses-pour-etudiants-etrangers", identifier: "cf-france", language: "fr" },
   { name: "Fondation de France", country: "france", url: "https://www.fondationdefrance.org/fr/appels-a-projets", identifier: "fondation-france", language: "fr" },
@@ -63,7 +69,6 @@ export async function ingererBourses(offset = 0, limit?: number): Promise<Rappor
     type: "BOURSE_ETUDE",
     sourcePrefix: "SCHOLARSHIP",
     maxLiens: isPaginated ? 15 : 30,
-    maxEnrich: 0,
     sourceOffset: offset,
     sourceLimit: batchSize,
   });

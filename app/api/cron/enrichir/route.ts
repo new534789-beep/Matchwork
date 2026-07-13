@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 import { enrichirBrouillons } from "@/lib/ingestion/enrichissement";
-import { validerAutomatiquement } from "@/lib/ingestion/auto-validation";
 
 export const maxDuration = 60;
 
@@ -14,7 +13,6 @@ export async function GET(req: Request) {
   const limite = parseInt(url.searchParams.get("limite") || "2", 10);
 
   const enrichissement = await enrichirBrouillons(limite);
-  const validation = await validerAutomatiquement({ limite: 50 });
 
-  return NextResponse.json({ ok: true, enrichissement, validation });
+  return NextResponse.json({ ok: true, enrichissement });
 }

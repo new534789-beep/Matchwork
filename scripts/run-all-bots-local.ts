@@ -26,10 +26,13 @@ import { ingererStages } from "../lib/ingestion/stage-scraper";
 import { ingererFormations } from "../lib/ingestion/formation-scraper";
 import { ingererAdmissions } from "../lib/ingestion/admission-scraper";
 import { ingererAppelsProjets } from "../lib/ingestion/appel-projet-scraper";
+import { retirerExpirees } from "../lib/ingestion/expiration";
+import { rafraichirOffres } from "../lib/ingestion/refresh";
 
 type Bot = { nom: string; fn: () => Promise<unknown> };
 
 const BOTS: Bot[] = [
+  { nom: "Expiration", fn: async () => ({ expirees: await retirerExpirees() }) },
   { nom: "RSS/FluxSource", fn: ingererToutesLesSources },
   { nom: "Bourses portails", fn: ingererBourses },
   { nom: "Emplois ATS", fn: ingererOffresATS },
@@ -37,6 +40,7 @@ const BOTS: Bot[] = [
   { nom: "Formations", fn: ingererFormations },
   { nom: "Admissions", fn: ingererAdmissions },
   { nom: "Appels à projets", fn: ingererAppelsProjets },
+  { nom: "Refresh offres publiées", fn: () => rafraichirOffres(10) },
 ];
 
 async function main() {

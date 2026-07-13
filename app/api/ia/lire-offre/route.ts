@@ -52,6 +52,7 @@ export async function POST(req: NextRequest) {
         organisme: offre.organisme,
         intitule: offre.intitule,
         description: offre.description ?? contenu.slice(0, 2000),
+        contenuBrut: contenu,
         langueDetectee: offre.langueDetectee ?? "fr",
         conditions: offre.conditions ?? null,
         piecesExigees: JSON.stringify(offre.piecesExigees ?? []),

@@ -12,6 +12,10 @@ const FORMATION_SOURCES: BasePortalSource[] = [
   { name: "ESSEC Summer Programs", country: "france", url: "https://www.essec.edu/en/program/summer-programs/", identifier: "essec-summer", language: "en" },
   { name: "Alliance Française", country: "france", url: "https://www.fondation-alliancefr.org/", identifier: "alliance-fr", language: "fr" },
 
+  // ── Afrique de l'Ouest ──
+  { name: "2iE Burkina", country: "burkina-faso", url: "https://www.2ie-edu.org/formations/", identifier: "2ie-formations", language: "fr" },
+  { name: "ISM Dakar", country: "senegal", url: "https://www.ism.edu.sn/formations/", identifier: "ism-formations", language: "fr" },
+
   // ── International / Francophonie ──
   { name: "AUF Formations", country: "international", url: "https://www.auf.org/les_services/formations/", identifier: "auf-formations", language: "fr" },
 

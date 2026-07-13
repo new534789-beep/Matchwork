@@ -70,7 +70,7 @@ export async function POST(req: NextRequest) {
 
   if (!hasMistralKey()) {
     return NextResponse.json({
-      message: "L'IA n'est pas encore configurée (MISTRAL_API_KEY manquante). Ajoutez votre clé dans .env.local pour activer Amara. En attendant, remplissez votre profil manuellement dans « Mon profil ».",
+      message: "L'IA n'est pas encore configurée (MISTRAL_API_KEY manquante). Ajoutez votre clé dans .env.local pour activer Blessing. En attendant, remplissez votre profil manuellement dans « Mon profil ».",
       sectionEnCours: "termine",
       onboardingTermine: true,
       historiqueMAJ: [],

@@ -24,7 +24,15 @@ type DossierData = {
   docsGeneres: DocGenere[];
 };
 
-type Props = { dossier: DossierData; checklist: ChecklistItem[] };
+type ModeleCv = "classique" | "sidebar" | "bandeau";
+
+const MODELES_CV: { valeur: ModeleCv; label: string; description: string }[] = [
+  { valeur: "classique", label: "Classique", description: "Colonne unique, sobre" },
+  { valeur: "sidebar", label: "Bandeau latéral", description: "Contact à gauche en violet" },
+  { valeur: "bandeau", label: "Bandeau plein", description: "Identité en bloc violet" },
+];
+
+type Props = { dossier: DossierData; checklist: ChecklistItem[]; modeleCvInitial?: ModeleCv };
 
 const V = "#7c3aed";
 const VL = "#a78bfa";
@@ -39,9 +47,27 @@ function autoResize(el: HTMLTextAreaElement | null) {
   el.style.height = el.scrollHeight + "px";
 }
 
-export function DossierClient({ dossier, checklist }: Props) {
+export function DossierClient({ dossier, checklist, modeleCvInitial = "classique" }: Props) {
   const router = useRouter();
   const docs = dossier.docsGeneres;
+  const aUnCv = docs.some((d) => d.type === "cv");
+  const [modeleCv, setModeleCv] = useState<ModeleCv>(modeleCvInitial);
+  const [modeleSaving, setModeleSaving] = useState(false);
+
+  async function choisirModeleCv(m: ModeleCv) {
+    if (m === modeleCv || modeleSaving) return;
+    setModeleCv(m);
+    setModeleSaving(true);
+    try {
+      await fetch("/api/profil", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ modeleCv: m }),
+      });
+    } finally {
+      setModeleSaving(false);
+    }
+  }
 
   const [contenus, setContenus] = useState<Record<string, string>>(
     () => Object.fromEntries(docs.map((d) => [d.id, d.contenu])),
@@ -319,6 +345,33 @@ export function DossierClient({ dossier, checklist }: Props) {
         )}
 
         {erreur && <div style={{ borderRadius: 10, padding: "11px 16px", marginBottom: 14, background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.25)", color: "#fca5a5", fontSize: "0.82rem" }}>{erreur}</div>}
+
+        {/* Choix du modèle de CV (mise en page du PDF, sans changer le contenu) */}
+        {aUnCv && (
+          <div style={{ marginBottom: 14 }}>
+            <p style={{ fontSize: "0.76rem", fontWeight: 600, color: "var(--text-2)", marginBottom: 8 }}>Modèle du CV (PDF)</p>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 8 }}>
+              {MODELES_CV.map((m) => {
+                const actif = modeleCv === m.valeur;
+                return (
+                  <button
+                    key={m.valeur}
+                    onClick={() => choisirModeleCv(m.valeur)}
+                    disabled={modeleSaving}
+                    style={{
+                      padding: "10px 8px", borderRadius: 11, textAlign: "left", cursor: modeleSaving ? "default" : "pointer",
+                      background: actif ? "rgba(124,58,237,0.14)" : "var(--bg-card)",
+                      border: actif ? "1.5px solid rgba(124,58,237,0.5)" : "1px solid var(--border)",
+                    }}
+                  >
+                    <span style={{ display: "block", fontSize: "0.78rem", fontWeight: 700, color: actif ? VL : "var(--text)" }}>{m.label}</span>
+                    <span style={{ display: "block", fontSize: "0.68rem", color: "var(--text-3)", marginTop: 2, lineHeight: 1.3 }}>{m.description}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
 
         {/* Bouton de candidature intelligent */}
         <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 10 }}>

@@ -1,5 +1,5 @@
 export const SYSTEM_GENERATION = `Tu rédiges les documents de candidature demandés par une offre, pour un candidat.
-On te fournit : (A) son PROFIL COMPLET avec coordonnées, (B) le contenu de ses PIÈCES justificatives, (C) l'OFFRE ANALYSÉE — dont la LISTE EXACTE des documents rédactionnels à produire et la langue exigée ; (D) l'HISTORIQUE des tournures déjà utilisées.
+On te fournit : (A) son PROFIL COMPLET avec coordonnées, (B) le contenu de ses PIÈCES justificatives, (C) l'OFFRE ANALYSÉE (résumé + LISTE EXACTE des documents rédactionnels à produire et la langue exigée), (C-bis) le TEXTE SOURCE ORIGINAL de l'offre quand il est disponible ; (D) l'HISTORIQUE des tournures déjà utilisées.
 
 Règles absolues :
 1. Produis UNIQUEMENT les documents listés en (C). N'ajoute PAS de CV ni de lettre si l'offre ne les demande pas.
@@ -10,6 +10,12 @@ Règles absolues :
 6. Adapte le ton au champ « ton » du profil (formel / naturel / dynamique).
 7. Démarque-toi de l'HISTORIQUE (D) : ni les mêmes accroches, ni la même structure.
 8. N'affirme jamais un niveau de langue ou une qualification absente de (A)/(B).
+
+RÈGLE CLÉ — ANALYSE RÉELLE DE L'OFFRE :
+- (C) est un résumé condensé, utile pour le contexte général, mais PAS suffisant à lui seul.
+- Si (C-bis) TEXTE SOURCE ORIGINAL est fourni, c'est ta référence PRINCIPALE pour comprendre les exigences réelles de l'offre : compétences précises demandées, technologies/outils cités, responsabilités exactes, critères d'éligibilité détaillés, mots-clés spécifiques au poste/programme.
+- Reprends et réponds EXPLICITEMENT aux points concrets mentionnés dans (C-bis) (ex : si l'offre cite une compétence, un outil, une mission précise — adresse-la directement si le profil du candidat le permet). N'écris PAS un document générique qui pourrait s'appliquer à n'importe quelle offre similaire.
+- (C-bis) décrit l'OFFRE, jamais le candidat : n'en tire aucune affirmation sur le profil (A) — ça reste interdit par la règle 2.
 
 INTERDICTION ABSOLUE DE CHAMPS VIDES OU PLACEHOLDERS :
 - JAMAIS de "[à compléter]", "[votre nom]", "[date]", "[adresse]", "___", "...", "[organisme]" ou tout autre placeholder.
@@ -81,6 +87,7 @@ type OpportuniteInput = {
   intitule: string;
   organisme: string;
   description: string;
+  contenuBrut?: string | null;
   conditions?: string | null;
   piecesExigees: string;
   langueDetectee?: string | null;
@@ -148,6 +155,9 @@ Description : ${opportunite.description}
 Conditions d'éligibilité : ${opportunite.conditions ?? "Non précisées"}
 Date limite de candidature : ${dateLimiteStr}
 Date du jour (pour l'en-tête) : ${dateJour}
+
+(C-bis) TEXTE SOURCE ORIGINAL DE L'OFFRE (référence principale pour les exigences réelles) :
+${opportunite.contenuBrut?.trim() ? opportunite.contenuBrut.trim().slice(0, 8000) : "Non disponible pour cette offre — base-toi sur la description (C)."}
 
 DOCUMENTS RÉDACTIONNELS À PRODUIRE (produis EXACTEMENT ceux-ci, rien d'autre) :
 ${aProduire}

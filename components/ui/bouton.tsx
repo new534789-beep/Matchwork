@@ -17,7 +17,7 @@ export const Bouton = forwardRef<HTMLButtonElement, BoutonProps>(
 
     const styles: Record<string, React.CSSProperties> = {
       primaire: { background: "linear-gradient(135deg,#7c3aed,#5b21b6)", color: "#fff", boxShadow: "0 0 20px rgba(124,58,237,0.3)" },
-      secondaire: { background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.8)" },
+      secondaire: { background: "var(--bg-card)", border: "1px solid var(--border)", color: "var(--text-2)" },
       fantome: { background: "transparent", color: "#a78bfa" },
       danger: { background: "rgba(239,68,68,0.15)", border: "1px solid rgba(239,68,68,0.3)", color: "#fca5a5" },
     };

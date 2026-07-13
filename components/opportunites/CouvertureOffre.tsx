@@ -129,7 +129,7 @@ export function CouvertureOffre({
       <Megaphone style={{ position: "absolute", bottom: -24, right: -16, transform: "rotate(162deg)", opacity: 0.95 }} />
 
       <div style={{ position: "relative", borderRadius: 22, background: theme.cadre, padding: 6, boxShadow: `0 14px 36px ${theme.ombre}`, width: "62%", maxWidth: 260 }}>
-        <div style={{ background: "#fff", borderRadius: 17, padding: "18px 16px", display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center", gap: 9 }}>
+        <div style={{ background: "#ffffff", colorScheme: "light", borderRadius: 17, padding: "18px 16px", display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center", gap: 9 }}>
           <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke={theme.icone} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
             {cat.icone}
           </svg>

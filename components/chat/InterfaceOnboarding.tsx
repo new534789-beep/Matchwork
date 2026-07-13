@@ -123,7 +123,7 @@ const SECTIONS = [
 
 const MESSAGE_INITIAL: Message = {
   role: "assistant",
-  content: "Bonjour ! Je suis Amara, votre assistante Matchwork.\n\nJe vais construire votre profil avec vous pour vous aider à trouver les bourses qui vous correspondent et générer des dossiers de candidature personnalisés.\n\nCommençons par votre identité officielle : quel est votre prénom et NOM COMPLET, tels qu'ils apparaissent sur votre pièce d'identité ou passeport ?",
+  content: "Bonjour ! Je suis Blessing, votre assistante Matchwork.\n\nJe vais construire votre profil avec vous pour vous aider à trouver les bourses qui vous correspondent et générer des dossiers de candidature personnalisés.\n\nCommençons par votre identité officielle : quel est votre prénom et NOM COMPLET, tels qu'ils apparaissent sur votre pièce d'identité ou passeport ?",
 };
 
 function IconCheck() {
@@ -350,7 +350,7 @@ export function InterfaceOnboarding({ sessionOnboarding }: Props) {
         <div style={{ marginTop: "auto", padding: "14px 20px", borderTop: "1px solid var(--border)" }}>
           <div style={{ padding: "10px 12px", borderRadius: 10, background: "rgba(124,58,237,0.08)", border: "1px solid rgba(124,58,237,0.18)" }}>
             <p style={{ fontSize: "0.72rem", color: "rgba(167,139,250,0.7)", lineHeight: 1.5 }}>
-              Amara construit votre profil en toute confidentialité. Vos données ne sont jamais partagées sans votre accord.
+              Blessing construit votre profil en toute confidentialité. Vos données ne sont jamais partagées sans votre accord.
             </p>
           </div>
         </div>
@@ -383,13 +383,13 @@ export function InterfaceOnboarding({ sessionOnboarding }: Props) {
             </svg>
           </button>
 
-          {/* Avatar Amara */}
+          {/* Avatar Blessing */}
           <div style={{ width: 32, height: 32, borderRadius: "50%", background: "linear-gradient(135deg,#7c3aed,#5b21b6)", border: "2px solid rgba(124,58,237,0.4)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-            <span style={{ fontSize: "0.75rem", fontWeight: 800, color: "#fff" }}>A</span>
+            <span style={{ fontSize: "0.75rem", fontWeight: 800, color: "#fff" }}>B</span>
           </div>
 
           <div style={{ flex: 1, minWidth: 0 }}>
-            <p style={{ fontWeight: 600, fontSize: "0.9rem", color: "var(--text)" }}>Amara</p>
+            <p style={{ fontWeight: 600, fontSize: "0.9rem", color: "var(--text)" }}>Blessing</p>
             <p style={{ fontSize: "0.7rem", color: "var(--text-3)" }}>
               Assistante Matchwork · {SECTIONS.find(s => s.id === sectionActuelle)?.label ?? "Profil"}
             </p>
@@ -415,7 +415,7 @@ export function InterfaceOnboarding({ sessionOnboarding }: Props) {
 
                 {msg.role === "assistant" && (
                   <div style={{ width: 32, height: 32, borderRadius: "50%", background: "linear-gradient(135deg,#7c3aed,#5b21b6)", border: "2px solid rgba(124,58,237,0.35)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginTop: 2 }}>
-                    <span style={{ fontSize: "0.7rem", fontWeight: 800, color: "#fff" }}>A</span>
+                    <span style={{ fontSize: "0.7rem", fontWeight: 800, color: "#fff" }}>B</span>
                   </div>
                 )}
 
@@ -439,7 +439,7 @@ export function InterfaceOnboarding({ sessionOnboarding }: Props) {
             {chargement && (
               <div style={{ display: "flex", gap: 12 }}>
                 <div style={{ width: 32, height: 32, borderRadius: "50%", background: "linear-gradient(135deg,#7c3aed,#5b21b6)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginTop: 2 }}>
-                  <span style={{ fontSize: "0.7rem", fontWeight: 800, color: "#fff" }}>A</span>
+                  <span style={{ fontSize: "0.7rem", fontWeight: 800, color: "#fff" }}>B</span>
                 </div>
                 <div style={{ padding: "14px 18px", borderRadius: "18px 18px 18px 4px", background: "var(--bg-card)", border: "1px solid var(--border)", display: "flex", gap: 5, alignItems: "center" }}>
                   {[0, 150, 300].map((d) => (
@@ -507,7 +507,7 @@ export function InterfaceOnboarding({ sessionOnboarding }: Props) {
                   value={saisie}
                   onChange={(e) => { setSaisie(e.target.value); ajusterTextarea(); }}
                   onKeyDown={handleKeyDown}
-                  placeholder="Répondez à Amara… (Entrée pour envoyer)"
+                  placeholder="Répondez à Blessing… (Entrée pour envoyer)"
                   disabled={chargement}
                   rows={1}
                   style={{

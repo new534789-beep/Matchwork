@@ -21,11 +21,15 @@ export async function POST(req: NextRequest) {
 
   const opportunite = await prisma.opportunite.findUnique({
     where: { id: opportuniteId },
-    select: { description: true, conditions: true, langueDetectee: true, intitule: true },
+    select: { description: true, conditions: true, langueDetectee: true, intitule: true, intituleFr: true, descriptionFr: true },
   });
 
   if (!opportunite) return NextResponse.json({ erreur: "Opportunité introuvable" }, { status: 404 });
-  if (opportunite.langueDetectee === "fr") return NextResponse.json({ traduit: opportunite.description });
+  if (opportunite.langueDetectee === "fr") return NextResponse.json({ traduit: opportunite.description, titre: opportunite.intitule });
+
+  if (opportunite.descriptionFr) {
+    return NextResponse.json({ traduit: opportunite.descriptionFr, titre: opportunite.intituleFr || opportunite.intitule });
+  }
 
   try {
     const texteSource = [
@@ -53,10 +57,15 @@ Le champ "titre" contient la traduction du TITRE, le champ "description" contien
     const raw = (result.choices?.[0]?.message?.content as string) ?? "{}";
     try {
       const parsed = JSON.parse(raw) as { titre?: string; description?: string };
-      return NextResponse.json({
-        traduit: parsed.description || raw,
-        titre: parsed.titre || null,
+      const titreFr = parsed.titre || null;
+      const descFr = parsed.description || raw;
+
+      await prisma.opportunite.update({
+        where: { id: opportuniteId },
+        data: { intituleFr: titreFr, descriptionFr: descFr },
       });
+
+      return NextResponse.json({ traduit: descFr, titre: titreFr });
     } catch {
       return NextResponse.json({ traduit: raw });
     }

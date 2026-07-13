@@ -36,6 +36,17 @@ export async function GET() {
   return NextResponse.json(parseProfil(profil as unknown as Record<string, unknown>));
 }
 
+export async function DELETE() {
+  const session = await auth();
+  if (!session?.user?.id) {
+    return NextResponse.json({ erreur: "Non authentifié" }, { status: 401 });
+  }
+
+  await prisma.user.delete({ where: { id: session.user.id } });
+
+  return NextResponse.json({ ok: true });
+}
+
 const MAX_TEXTE = 5000;
 const texte = (max = MAX_TEXTE) => z.string().max(max);
 
@@ -84,6 +95,7 @@ const schemaMaj = z.object({
   tonSouhaite: texte(50).optional(),
   complete: z.boolean().optional(),
   sessionOnboarding: z.array(schemaMessage).max(500).optional(),
+  modeleCv: z.enum(["classique", "sidebar", "bandeau"]).optional(),
 });
 
 export async function PUT(req: NextRequest) {

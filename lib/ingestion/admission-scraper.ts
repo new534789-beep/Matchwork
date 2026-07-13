@@ -32,6 +32,10 @@ const ADMISSION_SOURCES: BasePortalSource[] = [
   // ── Belgique ──
   { name: "Study in Belgium", country: "belgium", url: "https://www.studyinbelgium.be/en/", identifier: "study-belgium", language: "en" },
 
+  // ── Afrique de l'Ouest ──
+  { name: "CampusJeunes Admissions", country: "international", url: "https://campusjeunes.net/admissions/", identifier: "campusjeunes-admissions", language: "fr" },
+  { name: "UCAD Sénégal", country: "senegal", url: "https://www.ucad.sn/index.php/formations", identifier: "ucad-admissions", language: "fr" },
+
   // ── International (agrégateurs) ──
   { name: "MastersPortal", country: "international", url: "https://www.mastersportal.com/", identifier: "mastersportal", language: "en" },
   { name: "PhDPortal", country: "international", url: "https://www.phdportal.com/", identifier: "phdportal", language: "en" },

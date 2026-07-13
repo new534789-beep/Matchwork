@@ -22,10 +22,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="fr" className={`${geist.variable} h-full`} suppressHydrationWarning>
       <head>
+        <link rel="manifest" href="/manifest.json" />
+        <meta name="theme-color" content="#7c3aed" />
+        <link rel="apple-touch-icon" href="/icons/icon-192.svg" />
         {/* Applique le thème avant le premier rendu pour éviter le flash */}
         <script
           dangerouslySetInnerHTML={{
-            __html: `(function(){try{var t=localStorage.getItem('mw-theme');document.documentElement.setAttribute('data-theme',t||'dark')}catch(e){}})()`,
+            __html: `(function(){try{var t=localStorage.getItem('mw-theme')||'dark';document.documentElement.setAttribute('data-theme',t);document.documentElement.style.colorScheme=t}catch(e){}})()`
+              + `;if('serviceWorker' in navigator){navigator.serviceWorker.register('/sw.js')}`,
           }}
         />
       </head>

@@ -15,7 +15,7 @@ import { extraireOffre, iaDisponible, normaliserCanal } from "@/lib/ia/extractio
 
 const DEFAULT_MAX_LIENS = 12;
 const DEFAULT_PAUSE_MS = 400;
-const DEFAULT_MAX_ENRICH = 60;
+const DEFAULT_MAX_ENRICH = 25;
 
 export const CHEMINS_IGNORES = [
   "/category/", "/categorie/", "/tag/", "/author/", "/auteur/", "/page/",
@@ -23,6 +23,22 @@ export const CHEMINS_IGNORES = [
   "/privacy", "/confidentialite", "/terms", "/mentions", "/login", "/register",
   "/search", "/recherche", "/cart", "/panier", "/subscribe", "/newsletter",
 ];
+
+const TITRES_NON_PERTINENTS = [
+  "chill & pro", "orathon", "miss université", "mauvaises habitudes",
+  "quarts de finale", "grande gagnante", "premier épisode",
+  "coupures d'électricité", "expérience qui confirme",
+  "actualité", "newsletter", "webinaire passé", "recap ",
+  "résultats du match", "classement final", "photo souvenir",
+  "behind the scenes", "throwback", "happy birthday",
+  "joyeux anniversaire", "bon week-end", "bonne fête",
+];
+
+function titreNonPertinent(titre: string): boolean {
+  const t = titre.toLowerCase();
+  if (t.length < 10) return true;
+  return TITRES_NON_PERTINENTS.some((mot) => t.includes(mot));
+}
 
 export const dormir = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
@@ -214,6 +230,8 @@ export async function scraperPortails<S extends BasePortalSource>(
       rapport.offresLues += liens.length;
 
       for (const { lien, titre } of liens) {
+        if (titreNonPertinent(titre)) continue;
+
         const maintenant = new Date();
         const dedupKey = calculerDedupKey(undefined, lien, titre);
 
@@ -226,6 +244,45 @@ export async function scraperPortails<S extends BasePortalSource>(
 
         if (!(await urlAutorisee(lien))) continue;
 
+        let description = "En attente de vérification IA";
+        let dateLimite: Date | null = null;
+        let confianceDateLimite: number | null = null;
+        let sourceDateLimite: string | null = null;
+        let conditions: string | null = null;
+        let piecesExigees = "[]";
+        let exigenceLangue: string | null = null;
+        let canalCandidature: string | null = null;
+        let cibleCandidature: string | null = null;
+        let statut = "brouillon";
+
+        if (budgetEnrich > 0 && iaDisponible()) {
+          const contenu = await recupererContenuPage(lien);
+          if (contenu) {
+            const dl = await extraireDateLimite(titre, contenu, aujourdhui);
+            if (dl && dl.dateLimite) {
+              dateLimite = dl.dateLimite;
+              confianceDateLimite = dl.confiance;
+              sourceDateLimite = dl.source;
+            }
+
+            const offre = await extraireOffre(`${titre}\n\n${contenu}`);
+            if (offre) {
+              if (offre.description && offre.description !== "non précisé") description = offre.description.slice(0, 2000);
+              if (offre.conditions && offre.conditions !== "non précisé") conditions = offre.conditions;
+              if (Array.isArray(offre.piecesExigees) && offre.piecesExigees.length) piecesExigees = JSON.stringify(offre.piecesExigees);
+              if (offre.exigenceLangue && offre.exigenceLangue !== "non précisé") exigenceLangue = offre.exigenceLangue;
+              canalCandidature = normaliserCanal(offre.canalCandidature);
+              cibleCandidature = offre.cibleCandidature ?? null;
+            }
+            budgetEnrich--;
+            await dormir(pauseMs);
+          }
+        }
+
+        if (dateLimite && dateLimite.getTime() < Date.now()) {
+          statut = "rejetee";
+        }
+
         try {
           await prisma.opportunite.create({
             data: {
@@ -233,11 +290,14 @@ export async function scraperPortails<S extends BasePortalSource>(
               source: `${config.sourcePrefix}:${source.identifier}`,
               organisme: source.name,
               intitule: (titre || "Sans titre").slice(0, 240),
-              description: "En attente de vérification IA",
+              description,
               langueDetectee: source.language,
+              conditions, piecesExigees, exigenceLangue,
+              canalCandidature, cibleCandidature,
+              dateLimite, confianceDateLimite, sourceDateLimite,
               lien, sourceUrl: lien, dedupKey, hash: hashLegacy(lien, titre),
               datePublication: null, premiereVue: maintenant, derniereVerif: maintenant,
-              statut: "brouillon", actif: false,
+              statut, actif: false,
             },
           });
           rapport.creees++;

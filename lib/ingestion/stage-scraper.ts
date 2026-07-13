@@ -12,6 +12,12 @@ const STAGE_SOURCES: BasePortalSource[] = [
   { name: "AUF Stages", country: "international", url: "https://www.auf.org/nouvelles/appels-a-candidatures/", identifier: "auf-stages", language: "fr" },
   { name: "CEDEAO / ECOWAS Opportunities", country: "international", url: "https://www.ecowas.int/opportunities/", identifier: "cedeao-stages", language: "en" },
 
+  // ── Afrique de l'Ouest — portails locaux ──
+  { name: "EmploiDakar Stages", country: "senegal", url: "https://www.emploidakar.com/offres-stages/", identifier: "emploidakar-stages", language: "fr" },
+  { name: "Emploi.bj Stages", country: "benin", url: "https://emploi.bj/offres-stage", identifier: "emploibj-stages", language: "fr" },
+  { name: "MyJobMag Internships", country: "west-africa", url: "https://www.myjobmag.com/internships", identifier: "myjobmag-stages", language: "en" },
+  { name: "ANPEJ Sénégal", country: "senegal", url: "https://www.anpej.sn/offres-de-stage", identifier: "anpej-stages", language: "fr" },
+
   // ── Canada ──
   { name: "Mitacs Globalink Research Internship", country: "canada", url: "https://www.mitacs.ca/our-programs/globalink-research-internship-students/", identifier: "mitacs-intern", language: "en" },
 
@@ -46,7 +52,6 @@ export async function ingererStages(offset = 0, limit?: number): Promise<Rapport
     type: "STAGE",
     sourcePrefix: "INTERNSHIP",
     maxLiens: isPaginated ? 15 : 30,
-    maxEnrich: 0,
     sourceOffset: offset,
     sourceLimit: batchSize,
   });

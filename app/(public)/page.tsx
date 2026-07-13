@@ -26,29 +26,30 @@ export default function Landing() {
             <span className="font-bold text-base md:text-lg tracking-tight" style={{ color: "#fff" }}>Matchwork</span>
           </Link>
 
-          <div className="hidden md:flex items-center gap-8">
+          <div className="nav-links-row hidden md:flex items-center gap-8">
             {[
               { l: "Comment ça marche", href: "#comment" },
               { l: "Fonctionnalités", href: "#fonctionnalites" },
               { l: "Tarifs", href: "#tarifs" },
               { l: "FAQ", href: "#faq" },
             ].map((item) => (
-              <a key={item.href} href={item.href} className="nav-link text-sm" style={{ color: "rgba(255,255,255,0.6)", textDecoration: "none" }}>
+              <a key={item.href} href={item.href} className="nav-link text-sm" style={{ color: "rgba(255,255,255,0.6)", textDecoration: "none", whiteSpace: "nowrap" }}>
                 {item.l}
               </a>
             ))}
           </div>
 
           <div className="flex items-center gap-2">
-            <Link href="/connexion" className="hidden md:inline-flex text-sm px-3 py-2 nav-link" style={{ color: "rgba(255,255,255,0.7)", textDecoration: "none" }}>
+            <Link href="/connexion" className="nav-connexion-link hidden md:inline-flex text-sm px-3 py-2 nav-link" style={{ color: "rgba(255,255,255,0.7)", textDecoration: "none", whiteSpace: "nowrap" }}>
               Connexion
             </Link>
             <Link
               href="/inscription"
-              className="hidden md:inline-flex px-4 py-2 text-sm font-semibold rounded-xl hover-glow"
-              style={{ background: "linear-gradient(135deg,#7c3aed,#5b21b6)", color: "#fff", textDecoration: "none", boxShadow: "0 0 24px rgba(124,58,237,0.35)" }}
+              className="nav-cta-btn hidden md:inline-flex px-4 py-2 text-sm font-semibold rounded-xl hover-glow"
+              style={{ background: "linear-gradient(135deg,#7c3aed,#5b21b6)", color: "#fff", textDecoration: "none", boxShadow: "0 0 24px rgba(124,58,237,0.35)", whiteSpace: "nowrap" }}
             >
-              Commencer gratuitement
+              <span className="nav-cta-long">Commencer gratuitement</span>
+              <span className="nav-cta-short">Commencer</span>
             </Link>
             <NavMobile />
           </div>
@@ -189,6 +190,7 @@ export default function Landing() {
 
           {/* Isometric chip arrangement */}
           <div
+            className="iso-grid"
             style={{
               position: "relative",
               width: "520px",
@@ -1086,8 +1088,12 @@ const temoignages = [
   { nom: "Aïcha K.", ville: "Étudiante en master · Cotonou", texte: "J'ai obtenu ma bourse Campus France en 3 semaines. Matchwork a généré ma lettre en moins de 2 minutes, et elle était parfaite.", etoiles: 5, initiales: "AK", couleur: "linear-gradient(135deg,#7c3aed,#a78bfa)" },
   { nom: "Moussa D.", ville: "Ingénieur junior · Dakar", texte: "Grâce au swipe, j'ai découvert des emplois que je n'aurais jamais trouvés seul. Le CV généré m'a décroché 3 entretiens en un mois.", etoiles: 5, initiales: "MD", couleur: "linear-gradient(135deg,#0d3d80,#1a6bc9)" },
   { nom: "Fatou B.", ville: "Artiste visuelle · Abidjan", texte: "La résidence artistique à Paris, c'était mon rêve. Matchwork a tout géré : traduction, dossier, checklist. Je suis partie 6 mois.", etoiles: 5, initiales: "FB", couleur: "linear-gradient(135deg,#be185d,#ec4899)" },
-  { nom: "Ibrahim C.", ville: "Doctorant · Lomé", texte: "La checklist intelligente m'a évité d'oublier 3 documents obligatoires. Sans Matchwork, j'aurais raté la deadline.", etoiles: 5, initiales: "IC", couleur: "linear-gradient(135deg,#0d9488,#2dd4bf)" },
+  { nom: "Ibrahim C.", ville: "Doctorant · Lomé", texte: "La checklist intelligente m'a évité d'oublier 3 documents obligatoires. Sans Matchwork, j'aurais raté la deadline.", etoiles: 4, initiales: "IC", couleur: "linear-gradient(135deg,#0d9488,#2dd4bf)" },
   { nom: "Mariama S.", ville: "Architecte · Porto-Novo", texte: "Le paiement via MTN MoMo c'est une révolution. Enfin une SaaS africaine pensée pour nous, pas pour l'Europe.", etoiles: 5, initiales: "MS", couleur: "linear-gradient(135deg,#d97706,#fbbf24)" },
   { nom: "Kofi A.", ville: "Développeur · Accra", texte: "J'ai postulé à 8 offres en 2 jours. Chaque lettre était unique et ciblée. Un gain de temps incroyable.", etoiles: 5, initiales: "KA", couleur: "linear-gradient(135deg,#1d4ed8,#60a5fa)" },
+  { nom: "Aminata T.", ville: "Sage-femme · Bamako", texte: "Je cherchais une formation en santé publique à l'étranger. L'IA m'a trouvé 12 offres correspondant exactement à mon profil en moins d'une heure.", etoiles: 5, initiales: "AT", couleur: "linear-gradient(135deg,#059669,#34d399)" },
+  { nom: "Yao P.", ville: "Comptable · Ouagadougou", texte: "L'interface est intuitive même pour quelqu'un qui n'est pas très tech. J'ai envoyé mon premier dossier complet le jour même de mon inscription.", etoiles: 4, initiales: "YP", couleur: "linear-gradient(135deg,#7c2d12,#ea580c)" },
+  { nom: "Blessing O.", ville: "Étudiante en droit · Lagos", texte: "En tant qu'anglophone, la traduction automatique des offres francophones m'a permis de postuler à des bourses que je n'aurais jamais vues autrement.", etoiles: 5, initiales: "BO", couleur: "linear-gradient(135deg,#6d28d9,#c084fc)" },
+  { nom: "Seydou N.", ville: "Agronome · Niamey", texte: "3 candidatures le premier jour, une réponse positive en 10 jours. Le dossier généré était plus professionnel que ce que j'aurais pu faire seul.", etoiles: 5, initiales: "SN", couleur: "linear-gradient(135deg,#0369a1,#38bdf8)" },
 ];
 

@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
@@ -9,6 +10,7 @@ type Item = { href: string; label: string; badge?: number; icone: React.ReactNod
 
 export function AdminNav({ email = "", aValiderCount = 0, supportNonLus = 0 }: { email?: string; aValiderCount?: number; supportNonLus?: number }) {
   const pathname = usePathname();
+  const [ouvert, setOuvert] = useState(false);
 
   const items: Item[] = [
     { href: "/admin", label: "Suivi & santé", icone: (<><rect x="3" y="3" width="7" height="7" rx="1" /><rect x="14" y="3" width="7" height="7" rx="1" /><rect x="14" y="14" width="7" height="7" rx="1" /><rect x="3" y="14" width="7" height="7" rx="1" /></>) },
@@ -25,83 +27,155 @@ export function AdminNav({ email = "", aValiderCount = 0, supportNonLus = 0 }: {
   const actif = (href: string) =>
     href === "/admin" ? pathname === "/admin" : pathname === href || pathname.startsWith(href + "/");
 
+  const totalBadges = aValiderCount + supportNonLus;
+
+  const sidebarContent = (
+    <>
+      <div className="flex items-center gap-2.5 px-3.5 py-4" style={{ minHeight: 64 }}>
+        <Image src="/logo.png" alt="Matchwork" width={34} height={34} priority style={{ flexShrink: 0 }} />
+        <div style={{ minWidth: 0 }}>
+          <p className="font-bold text-sm" style={{ color: "var(--text)", lineHeight: 1.1 }}>Matchwork</p>
+          <p style={{ fontSize: "0.64rem", fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase", color: "#a78bfa" }}>Admin</p>
+        </div>
+        <button
+          className="admin-hamburger-close"
+          onClick={() => setOuvert(false)}
+          style={{
+            marginLeft: "auto", background: "transparent", border: "none",
+            color: "var(--text-2)", cursor: "pointer", padding: 4, borderRadius: 8,
+          }}
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round">
+            <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
+        </button>
+      </div>
+
+      <nav className="flex-1 overflow-y-auto px-2.5 py-2 flex flex-col gap-0.5">
+        {items.map((it) => {
+          const a = actif(it.href);
+          return (
+            <Link
+              key={it.href}
+              href={it.href}
+              title={it.label}
+              onClick={() => setOuvert(false)}
+              className="flex items-center gap-3 px-2.5 py-2.5 rounded-xl transition-all sidebar-item"
+              style={{
+                color: a ? "#fff" : "var(--text)",
+                background: a ? "#7c3aed" : undefined,
+                fontWeight: a ? 600 : 500,
+                textDecoration: "none",
+                boxShadow: a ? "0 6px 18px rgba(124,58,237,0.38)" : undefined,
+              }}
+            >
+              <span style={{ flexShrink: 0, display: "flex", color: a ? "#fff" : "#7c3aed" }}>
+                <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">{it.icone}</svg>
+              </span>
+              <span className="text-sm" style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", flex: 1 }}>{it.label}</span>
+              {it.badge ? (
+                <span style={{ fontSize: "0.68rem", fontWeight: 700, minWidth: 18, textAlign: "center", padding: "1px 6px", borderRadius: 999, background: a ? "rgba(255,255,255,0.25)" : "rgba(124,58,237,0.16)", color: a ? "#fff" : "#a78bfa" }}>{it.badge}</span>
+              ) : null}
+            </Link>
+          );
+        })}
+      </nav>
+
+      <div className="px-2.5 py-3" style={{ borderTop: "1px solid var(--border)" }}>
+        <Link href="/tableau-de-bord" className="flex items-center gap-3 px-2.5 py-2.5 rounded-xl transition-colors sidebar-item" style={{ color: "var(--text-2)", textDecoration: "none" }} title="Retour à l'app">
+          <svg className="w-5 h-5" style={{ flexShrink: 0 }} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><line x1="19" y1="12" x2="5" y2="12" /><polyline points="12 19 5 12 12 5" /></svg>
+          <span className="text-sm" style={{ whiteSpace: "nowrap" }}>Retour &agrave; l&apos;app</span>
+        </Link>
+        <div className="flex items-center gap-2.5 mt-2 px-2 py-2 rounded-xl" style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}>
+          <div style={{ width: 32, height: 32, flexShrink: 0, borderRadius: "50%", background: "linear-gradient(135deg,#7c3aed,#5b21b6)", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontWeight: 700, fontSize: "0.8rem" }}>{(email.trim()[0] || "A").toUpperCase()}</div>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <p style={{ fontSize: "0.76rem", fontWeight: 600, color: "var(--text)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{email.split("@")[0] || "Admin"}</p>
+            <p style={{ fontSize: "0.66rem", color: "#a78bfa" }}>Administrateur</p>
+          </div>
+          <button onClick={() => signOut({ callbackUrl: "/" })} style={{ flexShrink: 0, color: "var(--text-3)", background: "transparent", cursor: "pointer", padding: 4, borderRadius: 8, border: "none" }} title="Déconnexion">
+            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" /></svg>
+          </button>
+        </div>
+      </div>
+    </>
+  );
+
   return (
     <>
-      <aside
-        className="fixed top-0 left-0 z-50 h-full flex flex-col"
+      {/* Barre supérieure mobile avec hamburger */}
+      <div
+        className="admin-topbar"
         style={{
-          width: "var(--admin-w, 64px)", background: "var(--nav-bg)",
-          backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)",
-          borderRight: "1px solid var(--border)", transition: "width 0.2s ease",
+          position: "fixed", top: 0, left: 0, right: 0, zIndex: 49,
+          height: 56, display: "none", alignItems: "center", justifyContent: "space-between",
+          padding: "0 16px",
+          background: "var(--nav-bg)", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)",
+          borderBottom: "1px solid var(--border)",
         }}
       >
-        {/* Logo + badge Admin */}
-        <div className="flex items-center gap-2.5 px-3.5 py-4" style={{ minHeight: 64 }}>
-          <Image src="/logo.png" alt="Matchwork" width={34} height={34} priority style={{ flexShrink: 0 }} />
-          <div className="admin-label" style={{ minWidth: 0 }}>
-            <p className="font-bold text-sm" style={{ color: "var(--text)", lineHeight: 1.1 }}>Matchwork</p>
-            <p style={{ fontSize: "0.64rem", fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase", color: "#a78bfa" }}>Admin</p>
-          </div>
+        <button
+          onClick={() => setOuvert(true)}
+          style={{
+            background: "transparent", border: "none", color: "var(--text)",
+            cursor: "pointer", padding: 6, borderRadius: 8, position: "relative",
+          }}
+        >
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round">
+            <line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="18" x2="21" y2="18" />
+          </svg>
+          {totalBadges > 0 && (
+            <span style={{
+              position: "absolute", top: 2, right: 2, width: 8, height: 8,
+              borderRadius: "50%", background: "#7c3aed",
+            }} />
+          )}
+        </button>
+        <div className="flex items-center gap-2">
+          <Image src="/logo.png" alt="Matchwork" width={28} height={28} />
+          <span style={{ fontWeight: 700, fontSize: "0.85rem", color: "var(--text)" }}>Admin</span>
         </div>
+        <div style={{ width: 34 }} />
+      </div>
 
-        {/* Sections */}
-        <nav className="flex-1 overflow-y-auto px-2.5 py-2 flex flex-col gap-0.5">
-          {items.map((it) => {
-            const a = actif(it.href);
-            return (
-              <Link
-                key={it.href}
-                href={it.href}
-                title={it.label}
-                className="flex items-center gap-3 px-2.5 py-2.5 rounded-xl transition-all sidebar-item"
-                style={{
-                  color: a ? "#fff" : "var(--text)",
-                  background: a ? "#7c3aed" : undefined,
-                  fontWeight: a ? 600 : 500,
-                  textDecoration: "none",
-                  boxShadow: a ? "0 6px 18px rgba(124,58,237,0.38)" : undefined,
-                }}
-              >
-                <span style={{ flexShrink: 0, display: "flex", color: a ? "#fff" : "#7c3aed" }}>
-                  <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">{it.icone}</svg>
-                </span>
-                <span className="text-sm admin-label" style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", flex: 1 }}>{it.label}</span>
-                {it.badge ? (
-                  <span className="admin-label" style={{ fontSize: "0.68rem", fontWeight: 700, minWidth: 18, textAlign: "center", padding: "1px 6px", borderRadius: 999, background: a ? "rgba(255,255,255,0.25)" : "rgba(124,58,237,0.16)", color: a ? "#fff" : "#a78bfa" }}>{it.badge}</span>
-                ) : null}
-              </Link>
-            );
-          })}
-        </nav>
+      {/* Overlay mobile */}
+      {ouvert && (
+        <div
+          onClick={() => setOuvert(false)}
+          style={{
+            position: "fixed", inset: 0, zIndex: 59,
+            background: "rgba(0,0,0,0.5)", backdropFilter: "blur(4px)",
+          }}
+          className="admin-overlay"
+        />
+      )}
 
-        {/* Bas : retour app + profil + déconnexion */}
-        <div className="px-2.5 py-3" style={{ borderTop: "1px solid var(--border)" }}>
-          <Link href="/tableau-de-bord" className="flex items-center gap-3 px-2.5 py-2.5 rounded-xl transition-colors sidebar-item" style={{ color: "var(--text-2)", textDecoration: "none" }} title="Retour à l'app">
-            <svg className="w-5 h-5" style={{ flexShrink: 0 }} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><line x1="19" y1="12" x2="5" y2="12" /><polyline points="12 19 5 12 12 5" /></svg>
-            <span className="text-sm admin-label" style={{ whiteSpace: "nowrap" }}>Retour à l&apos;app</span>
-          </Link>
-          <div className="flex items-center gap-2.5 mt-2 px-2 py-2 rounded-xl" style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}>
-            <div style={{ width: 32, height: 32, flexShrink: 0, borderRadius: "50%", background: "linear-gradient(135deg,#7c3aed,#5b21b6)", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontWeight: 700, fontSize: "0.8rem" }}>{(email.trim()[0] || "A").toUpperCase()}</div>
-            <div className="admin-label" style={{ flex: 1, minWidth: 0 }}>
-              <p style={{ fontSize: "0.76rem", fontWeight: 600, color: "var(--text)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{email.split("@")[0] || "Admin"}</p>
-              <p style={{ fontSize: "0.66rem", color: "#a78bfa" }}>Administrateur</p>
-            </div>
-            <button onClick={() => signOut({ callbackUrl: "/" })} className="admin-label" style={{ flexShrink: 0, color: "var(--text-3)", background: "transparent", cursor: "pointer", padding: 4, borderRadius: 8 }} title="Déconnexion">
-              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" /></svg>
-            </button>
-          </div>
-        </div>
+      {/* Sidebar */}
+      <aside
+        className="admin-sidebar"
+        style={{
+          position: "fixed", top: 0, left: 0, zIndex: 60,
+          height: "100%", width: 250,
+          background: "var(--nav-bg)", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)",
+          borderRight: "1px solid var(--border)",
+          display: "flex", flexDirection: "column",
+          transform: ouvert ? "translateX(0)" : undefined,
+          transition: "transform 0.25s ease",
+        }}
+      >
+        {sidebarContent}
       </aside>
 
       <style jsx global>{`
-        :root { --admin-w: 64px; }
-        .admin-label { display: none; }
-        .admin-content-offset { margin-left: 64px; }
-        @media (min-width: 768px) {
-          :root { --admin-w: 250px; }
-          .admin-label { display: block; }
-          .admin-content-offset { margin-left: 250px; }
+        .admin-hamburger-close { display: none; }
+        .admin-content-offset { margin-left: 250px; }
+
+        @media (max-width: 767px) {
+          .admin-topbar { display: flex !important; }
+          .admin-hamburger-close { display: block !important; }
+          .admin-sidebar { transform: translateX(-100%); }
+          .admin-content-offset { margin-left: 0; padding-top: 56px; }
         }
+
         .sidebar-item:hover { background: var(--bg-card-hover); }
       `}</style>
     </>

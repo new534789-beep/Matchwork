@@ -6,7 +6,7 @@
 export async function recupererContenuPage(url: string, maxChars = 12000): Promise<string | null> {
   try {
     const ctrl = new AbortController();
-    const t = setTimeout(() => ctrl.abort(), 12000);
+    const t = setTimeout(() => ctrl.abort(), 5000);
     const res = await fetch(url, {
       signal: ctrl.signal,
       headers: { "User-Agent": "MatchworkBot/1.0 (+https://matchwork.app)" },

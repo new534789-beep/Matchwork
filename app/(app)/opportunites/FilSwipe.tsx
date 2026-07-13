@@ -18,6 +18,7 @@ type Opportunite = {
   conditions: string | null;
   piecesExigees: PieceExigee[];
   source: string;
+  score?: number | null;
 };
 
 const SWIPE_THRESHOLD = 110;
@@ -122,7 +123,17 @@ function IconCheck({ size = 14 }: { size?: number }) {
 
 type Toast = { id: string; intitule: string; statut: "loading" | "ok" | "erreur"; dossierId?: string };
 
-export function FilSwipe({ initial }: { initial: Opportunite[] }) {
+type GateSupplementaire = { lien: string; titre: string; sousTitre: string };
+
+export function FilSwipe({
+  initial,
+  profilComplet = true,
+  gateSupplementaire,
+}: {
+  initial: Opportunite[];
+  profilComplet?: boolean;
+  gateSupplementaire?: GateSupplementaire;
+}) {
   const router = useRouter();
   const [pile, setPile] = useState<Opportunite[]>(initial);
   const [sortante, setSortante] = useState<{ id: string; direction: "gauche" | "droite" } | null>(null);
@@ -185,6 +196,14 @@ export function FilSwipe({ initial }: { initial: Opportunite[] }) {
   const passer = useCallback(
     (direction: "gauche" | "droite") => {
       if (!actuelle) return;
+      if (!profilComplet) {
+        router.push("/onboarding");
+        return;
+      }
+      if (gateSupplementaire) {
+        router.push(gateSupplementaire.lien);
+        return;
+      }
       const decision = direction === "droite" ? "interesse" : "ignore";
       setSortante({ id: actuelle.id, direction });
       enregistrerDecision(actuelle.id, decision);
@@ -198,7 +217,7 @@ export function FilSwipe({ initial }: { initial: Opportunite[] }) {
         setSortante(null);
       }, 340);
     },
-    [actuelle, enregistrerDecision, genererEnArrierePlan]
+    [actuelle, profilComplet, gateSupplementaire, router, enregistrerDecision, genererEnArrierePlan]
   );
 
   // Flèches du clavier (ordinateur) : → « Ça m'intéresse », ← « Passer »
@@ -377,6 +396,21 @@ export function FilSwipe({ initial }: { initial: Opportunite[] }) {
           {/* Couverture (photo de l'offre) */}
           <div style={{ position: "relative" }}>
             <CouvertureOffre type={actuelle.type} organisme={actuelle.organisme} height={184} />
+            {actuelle.score != null && actuelle.score > 0 && (
+              <span style={{
+                position: "absolute", top: 12, left: 12,
+                fontSize: "0.7rem", fontWeight: 700,
+                padding: "4px 9px", borderRadius: "7px",
+                background: actuelle.score >= 70 ? "rgba(124,58,237,0.85)" : actuelle.score >= 40 ? "rgba(217,119,6,0.85)" : "rgba(100,100,100,0.7)",
+                color: "#fff",
+                border: "1px solid rgba(255,255,255,0.25)",
+                display: "flex", alignItems: "center", gap: "4px",
+                backdropFilter: "blur(4px)", WebkitBackdropFilter: "blur(4px)",
+              }}>
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M22 11.08V12a10 10 0 11-5.93-9.14" /><polyline points="22 4 12 14.01 9 11.01" /></svg>
+                {actuelle.score} %
+              </span>
+            )}
             {badgeLangue && (
               <span style={{
                 position: "absolute", top: 12, right: 12,
@@ -483,6 +517,36 @@ export function FilSwipe({ initial }: { initial: Opportunite[] }) {
         </div>
       </div>
 
+      {!profilComplet && (
+        <div
+          onClick={() => router.push("/onboarding")}
+          style={{
+            marginTop: 24, padding: "14px 20px", borderRadius: 16,
+            background: "linear-gradient(135deg,#7c3aed,#5b21b6)",
+            color: "#fff", textAlign: "center", cursor: "pointer",
+            boxShadow: "0 6px 24px rgba(124,58,237,0.35)",
+          }}
+        >
+          <p style={{ fontWeight: 700, fontSize: "0.9rem" }}>Créez votre profil avec Blessing</p>
+          <p style={{ fontSize: "0.75rem", opacity: 0.8, marginTop: 4 }}>Discutez avec notre assistante IA pour débloquer le swipe</p>
+        </div>
+      )}
+
+      {profilComplet && gateSupplementaire && (
+        <div
+          onClick={() => router.push(gateSupplementaire.lien)}
+          style={{
+            marginTop: 24, padding: "14px 20px", borderRadius: 16,
+            background: "linear-gradient(135deg,#7c3aed,#5b21b6)",
+            color: "#fff", textAlign: "center", cursor: "pointer",
+            boxShadow: "0 6px 24px rgba(124,58,237,0.35)",
+          }}
+        >
+          <p style={{ fontWeight: 700, fontSize: "0.9rem" }}>{gateSupplementaire.titre}</p>
+          <p style={{ fontSize: "0.75rem", opacity: 0.8, marginTop: 4 }}>{gateSupplementaire.sousTitre}</p>
+        </div>
+      )}
+
       {/* Boutons swipe */}
       <div className="flex items-center justify-center gap-5 mt-8">
         <button
@@ -502,26 +566,43 @@ export function FilSwipe({ initial }: { initial: Opportunite[] }) {
         </button>
 
         <button
-          onClick={(e) => {
+          onClick={async (e) => {
             e.stopPropagation();
             if (!actuelle) return;
             const url = `${window.location.origin}/opportunites/${actuelle.id}`;
-            const texte = `${actuelle.intitule} — ${actuelle.organisme}\n\n${url}`;
-            window.open(`https://wa.me/?text=${encodeURIComponent(texte)}`, "_blank", "noopener");
+            const texte = `*${actuelle.intitule}*\n${actuelle.organisme}\n\n${actuelle.description}\n\n${url}`;
+            if (navigator.share) {
+              try {
+                const res = await fetch(`/api/og/${actuelle.id}`);
+                const blob = await res.blob();
+                const file = new File([blob], `${actuelle.intitule}.png`, { type: "image/png" });
+                if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                  await navigator.clipboard.writeText(texte);
+                  setToasts((prev) => [...prev, { id: "partage-" + actuelle.id, intitule: "Texte copié ! Collez-le dans votre message.", statut: "ok" as const }]);
+                  setTimeout(() => setToasts((prev) => prev.filter((t) => !t.id.startsWith("partage-"))), 5000);
+                  await navigator.share({ files: [file] });
+                } else {
+                  await navigator.share({ text: texte });
+                }
+              } catch {}
+            } else {
+              window.open(`https://wa.me/?text=${encodeURIComponent(texte)}`, "_blank", "noopener");
+            }
           }}
           style={{
             width: 44, height: 44, borderRadius: "50%",
-            background: "rgba(37,211,102,0.1)", border: "1.5px solid rgba(37,211,102,0.3)",
-            color: "#25d366",
+            background: "rgba(124,58,237,0.1)", border: "1.5px solid rgba(124,58,237,0.3)",
+            color: "#a78bfa",
             display: "flex", alignItems: "center", justifyContent: "center",
             cursor: "pointer", transition: "transform 0.18s ease, background 0.18s ease",
           }}
-          onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = "rgba(37,211,102,0.2)"; (e.currentTarget as HTMLButtonElement).style.transform = "scale(1.08)"; }}
-          onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = "rgba(37,211,102,0.1)"; (e.currentTarget as HTMLButtonElement).style.transform = "scale(1)"; }}
-          aria-label="Partager sur WhatsApp"
+          onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = "rgba(124,58,237,0.2)"; (e.currentTarget as HTMLButtonElement).style.transform = "scale(1.08)"; }}
+          onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = "rgba(124,58,237,0.1)"; (e.currentTarget as HTMLButtonElement).style.transform = "scale(1)"; }}
+          aria-label="Partager"
         >
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
+            <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
           </svg>
         </button>
 
@@ -543,7 +624,7 @@ export function FilSwipe({ initial }: { initial: Opportunite[] }) {
       </div>
       <div className="flex justify-center mt-2" style={{ gap: "28px" }}>
         <span style={{ fontSize: "0.68rem", color: "var(--text-3)", width: 56, textAlign: "center" }}>Passer</span>
-        <span style={{ fontSize: "0.68rem", color: "#25d366", width: 44, textAlign: "center" }}>Partager</span>
+        <span style={{ fontSize: "0.68rem", color: "#a78bfa", width: 44, textAlign: "center" }}>Partager</span>
         <span style={{ fontSize: "0.68rem", color: "var(--text-3)", width: 56, textAlign: "center" }}>Intéressé</span>
       </div>
 

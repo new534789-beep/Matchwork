@@ -307,9 +307,6 @@ async function traiterJob(job: RawJob, rapport: RapportATS, company: Company): P
   canalCandidature = normaliserCanal(offre.canalCandidature);
   cibleCandidature = offre.cibleCandidature ?? null;
 
-  const aGenerables = Array.isArray(offre.piecesExigees) && offre.piecesExigees.some((p) => p.categorie === "generable");
-  if (!aGenerables) return;
-
   try {
     await prisma.opportunite.create({
       data: {
@@ -318,6 +315,7 @@ async function traiterJob(job: RawJob, rapport: RapportATS, company: Company): P
         organisme: company.name,
         intitule,
         description,
+        contenuBrut: contenu.slice(0, 15000),
         langueDetectee,
         conditions,
         piecesExigees,

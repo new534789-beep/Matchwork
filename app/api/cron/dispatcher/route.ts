@@ -8,6 +8,8 @@ import { ingererFormations } from "@/lib/ingestion/formation-scraper";
 import { ingererAdmissions } from "@/lib/ingestion/admission-scraper";
 import { ingererAppelsProjets } from "@/lib/ingestion/appel-projet-scraper";
 import { enrichirBrouillons } from "@/lib/ingestion/enrichissement";
+import { envoyerRapportCron, type RapportBot } from "@/lib/ingestion/rapport-email";
+import { rafraichirOffres } from "@/lib/ingestion/refresh";
 
 export const maxDuration = 60;
 
@@ -104,10 +106,39 @@ export async function GET(req: Request) {
     }
   }
 
+  let expirees = 0;
+  try {
+    expirees = await retirerExpirees();
+  } catch { /* expiration is best-effort */ }
+
   let enrichissement = null;
   try {
     enrichissement = await enrichirBrouillons(2);
   } catch { /* enrichir is best-effort here */ }
 
-  return NextResponse.json({ ok: true, jour, tache, rapport, enrichissement });
+  let refresh = null;
+  try {
+    refresh = await rafraichirOffres(5);
+  } catch { /* refresh is best-effort */ }
+
+  const botsRapport: RapportBot[] = [];
+  function extraireBotStats(nom: string, r: unknown) {
+    if (r && typeof r === "object" && "creees" in r) {
+      const o = r as { creees: number; doublons: number; erreurs: number; details?: { source: string; erreur?: string }[] };
+      const pannes = o.details?.filter((d) => d.erreur).map((d) => d.source) ?? [];
+      botsRapport.push({ nom, creees: o.creees, doublons: o.doublons, erreurs: o.erreurs, sourcesEnPanne: pannes });
+    }
+  }
+  if (rapport && typeof rapport === "object") {
+    for (const [k, v] of Object.entries(rapport as Record<string, unknown>)) {
+      extraireBotStats(k, v);
+    }
+    if ("creees" in (rapport as object)) extraireBotStats(tache, rapport);
+  }
+
+  try {
+    await envoyerRapportCron({ jour, tache, expirees, bots: botsRapport });
+  } catch { /* email is best-effort */ }
+
+  return NextResponse.json({ ok: true, jour, tache, rapport, enrichissement, expirees, refresh });
 }

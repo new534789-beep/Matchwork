@@ -5,9 +5,6 @@
  * Traite N offres par appel pour tenir dans 60s Vercel.
  */
 import { prisma } from "@/lib/prisma";
-import { recupererContenuPage } from "@/lib/ingestion/contenu-page";
-import { extraireDateLimite } from "@/lib/ia/extraction-date-limite";
-import { extraireOffre, iaDisponible, normaliserCanal } from "@/lib/ia/extraction-offre";
 
 export type RapportEnrichissement = {
   traites: number;
@@ -26,6 +23,7 @@ export async function enrichirBrouillons(limite = 3): Promise<RapportEnrichissem
     select: {
       id: true,
       intitule: true,
+      description: true,
       lien: true,
       type: true,
       source: true,
@@ -44,6 +42,10 @@ export async function enrichirBrouillons(limite = 3): Promise<RapportEnrichissem
     details: [],
   };
 
+  const { iaDisponible, extraireOffre, normaliserCanal } = await import("@/lib/ia/extraction-offre");
+  const { extraireDateLimite } = await import("@/lib/ia/extraction-date-limite");
+  const { recupererContenuPage } = await import("@/lib/ingestion/contenu-page");
+
   if (!iaDisponible()) {
     rapport.erreurs = brouillons.length;
     return rapport;
@@ -60,15 +62,21 @@ export async function enrichirBrouillons(limite = 3): Promise<RapportEnrichissem
         continue;
       }
 
-      const contenu = await recupererContenuPage(b.lien);
-      if (!contenu) {
+      const descExistante = b.description && b.description !== "En attente de vérification IA" ? b.description : null;
+      const contenu = descExistante ? null : await recupererContenuPage(b.lien);
+      const texteIA = descExistante || contenu;
+      if (!texteIA) {
         await prisma.opportunite.update({ where: { id: b.id }, data: { statut: "rejetee" } });
         rapport.rejetes++;
-        rapport.details.push({ id: b.id, intitule: b.intitule, resultat: "rejete", raison: "Page inaccessible" });
+        rapport.details.push({ id: b.id, intitule: b.intitule, resultat: "rejete", raison: "Page inaccessible et pas de description" });
         continue;
       }
 
-      const dl = await extraireDateLimite(b.intitule, contenu, aujourdhui);
+      const [dl, offre] = await Promise.all([
+        extraireDateLimite(b.intitule, texteIA, aujourdhui),
+        extraireOffre(`${b.intitule}\n\n${texteIA}`),
+      ]);
+
       const dateLimite = dl?.dateLimite ?? null;
       const confiance = dl?.confiance ?? null;
       const sourceDateLimite = dl?.source ?? null;
@@ -80,7 +88,6 @@ export async function enrichirBrouillons(limite = 3): Promise<RapportEnrichissem
         continue;
       }
 
-      const offre = await extraireOffre(`${b.intitule}\n\n${contenu}`);
       if (!offre) {
         await prisma.opportunite.update({ where: { id: b.id }, data: { statut: "rejetee" } });
         rapport.rejetes++;
@@ -107,6 +114,7 @@ export async function enrichirBrouillons(limite = 3): Promise<RapportEnrichissem
           ...(organisme && { organisme }),
           ...(intitule && { intitule }),
           ...(description && { description }),
+          contenuBrut: texteIA.slice(0, 15000),
           conditions,
           piecesExigees,
           exigenceLangue,

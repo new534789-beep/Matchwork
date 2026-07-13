@@ -315,7 +315,7 @@ body {
   display: flex;
   gap: 20px;
   width: max-content;
-  animation: scrollLeft 44s linear infinite;
+  animation: scrollLeft 60s linear infinite;
 }
 .testimonials-track:hover { animation-play-state: paused; }
 
@@ -331,6 +331,7 @@ body {
 
 /* ── Responsive ── */
 .hero-title-short, .hero-sub-short { display: none; }
+.nav-cta-short { display: none; }
 
 @media (max-width: 767px) {
   .hero-title-long, .hero-sub-long { display: none; }
@@ -363,12 +364,31 @@ body {
   .hero-title-long, .hero-sub-long { display: none; }
   .hero-title-short, .hero-sub-short { display: inline; }
   .hero-section {
-    min-height: 100svh;
-    padding: 120px 40px 80px !important;
+    min-height: auto !important;
+    height: auto !important;
+    padding: 112px 40px 48px !important;
     text-align: center;
   }
-  .hero-section > div:first-child { max-width: 600px !important; }
+  .hero-section > div:first-child { max-width: 600px !important; margin: 0 auto !important; }
+  .hero-section > div:first-child > div { justify-content: center !important; }
   .hero-section h1 { font-size: clamp(2.2rem, 5vw, 3rem) !important; }
+
+  /* Nav trop serrée entre 768-1023px : on resserre les espacements et on raccourcit le CTA. */
+  .nav-links-row { gap: 14px !important; }
+  .nav-links-row .nav-link { font-size: 0.76rem !important; }
+  .nav-connexion-link { padding: 8px 8px !important; font-size: 0.78rem !important; }
+  .nav-cta-btn { padding: 8px 14px !important; }
+  .nav-cta-long { display: none; }
+  .nav-cta-short { display: inline; }
+
+  /* Grille isométrique du hero : à plat (de face) plutôt qu'en perspective 3D, qui
+     rendait le bloc "de profil" et disgracieux une fois empilé sous le texte. */
+  .hero-visual-col { margin-top: 24px; }
+  .iso-grid { transform: none !important; }
+
+  /* Espacement vertical trop généreux entre les sections sur tablette. */
+  .py-28 { padding-top: 64px !important; padding-bottom: 64px !important; }
+
   .pricing-grid { grid-template-columns: 1fr !important; max-width: 520px; margin: 0 auto; }
   .footer-grid { grid-template-columns: 1fr 1fr !important; gap: 40px !important; }
   .footer-brand { grid-column: 1 / -1 !important; }
