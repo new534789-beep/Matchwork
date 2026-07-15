@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
 import { z } from "zod";
 import { rateLimit } from "@/lib/rate-limit";
+import { COOKIE_REF, parserRef } from "@/lib/attribution";
 
 const schema = z.object({
   email: z.string().email("Email invalide"),
@@ -40,17 +41,23 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    const attribution = parserRef(req.cookies.get(COOKIE_REF)?.value);
+
     const hash = await bcrypt.hash(motDePasse, 12);
     const user = await prisma.user.create({
       data: {
         email,
         motDePasse: hash,
         profil: { create: {} },
+        sourceAcquisition: attribution?.source,
+        refAcquisition: attribution?.ref,
       },
       select: { id: true, email: true },
     });
 
-    return NextResponse.json({ succes: true, userId: user.id }, { status: 201 });
+    const reponse = NextResponse.json({ succes: true, userId: user.id }, { status: 201 });
+    reponse.cookies.delete(COOKIE_REF);
+    return reponse;
   } catch (err) {
     console.error("Erreur inscription:", err);
     return NextResponse.json({ erreur: "Erreur serveur" }, { status: 500 });

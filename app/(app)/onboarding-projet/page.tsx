@@ -20,7 +20,7 @@ export default async function OnboardingProjetPage() {
       <EnteteApp titre="Décrivez votre projet" retour="/opportunites/appels-projets" />
       <main className="flex-1 flex flex-col max-w-xl mx-auto w-full" style={{ height: "calc(100dvh - 60px)" }}>
         <div className="px-4 py-3" style={{ borderBottom: "1px solid var(--border)" }}>
-          <p className="text-sm font-semibold" style={{ color: "var(--text)" }}>Blessing</p>
+          <p className="text-sm font-semibold" style={{ color: "var(--text)" }}>Amara</p>
           <p className="text-xs" style={{ color: "var(--text-3)" }}>
             Quelques questions avant de débloquer les appels à projets
           </p>

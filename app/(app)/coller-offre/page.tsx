@@ -13,7 +13,7 @@ export default async function CollerOffrePage() {
       <main className="flex-1 px-4 py-6 max-w-lg mx-auto w-full">
         <p className="text-sm mb-5 leading-relaxed" style={{ color: "var(--text-2)" }}>
           Vous avez trouvé une bourse ailleurs ? Collez le texte de l&apos;annonce :
-          Blessing en extrait l&apos;organisme, les conditions, les pièces exigées et la date
+          Amara en extrait l&apos;organisme, les conditions, les pièces exigées et la date
           limite, puis l&apos;ajoute à vos opportunités.
         </p>
         <CollerOffreForm />

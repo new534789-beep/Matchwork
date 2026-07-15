@@ -16,7 +16,9 @@
     "ingest:expirer": "tsx scripts/ingest-expirer.ts",
     "sources:seed": "tsx scripts/seed-sources.ts",
     "sources:seed-reel": "tsx scripts/seed-sources-reelles.ts",
-    "offres:traduire": "tsx scripts/traduire-offres.ts"
+    "offres:traduire": "tsx scripts/traduire-offres.ts",
+    "offres:backfill-slugs": "tsx scripts/backfill-slugs.ts",
+    "offres:desactiver-hors-zone": "tsx scripts/desactiver-offres-hors-zone.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.36.3",

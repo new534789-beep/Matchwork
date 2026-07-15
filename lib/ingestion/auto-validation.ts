@@ -100,6 +100,25 @@ function descriptionValide(intitule: string, description: string): string | null
   return null;
 }
 
+// ── Filtre anti-navigation : titres de menu/catégorie remontés par un scraper cassé ──
+
+const INTITULES_GENERIQUES = [
+  /^détail$/i, /^detail$/i, /^voir\s*plus$/i, /^en savoir plus$/i, /^lire la suite$/i,
+  /^offres?\s+d'emplois?/i, /^offre\s+d\s?emploi/i, /^chercher un emploi$/i,
+  /^recherche(r)?\s+un\s+emploi$/i, /^espace\s+candidat/i, /^espace\s+employeur/i,
+  /^connexion$/i, /^inscription$/i, /^accueil$/i, /^contact$/i, /^à propos$/i,
+];
+
+function intituleGenerique(intitule: string): string | null {
+  const t = (intitule || "").trim();
+  // Un titre extrêmement court (icône, lien vide) n'est jamais une offre — mais un
+  // vrai intitulé de poste peut être court ("Chauffeur", "AI Engineer"), donc on ne
+  // filtre sur la longueur seule qu'en dessous d'un seuil très bas.
+  if (t.length < 4) return "Titre trop court (probable lien de navigation)";
+  if (INTITULES_GENERIQUES.some((re) => re.test(t))) return "Titre générique de menu/catégorie (pas une offre)";
+  return null;
+}
+
 function estSpam(texte: string): boolean {
   const lower = texte.toLowerCase();
   return MOTS_SPAM.some((mot) => lower.includes(mot));
@@ -111,7 +130,7 @@ function champRempli(val: string | null | undefined): boolean {
 
 type Decision = { action: "publiee" | "rejetee"; raison: string };
 
-async function deciderEmploi(opp: {
+export async function deciderEmploi(opp: {
   type: string;
   intitule: string;
   organisme: string;
@@ -121,6 +140,10 @@ async function deciderEmploi(opp: {
 }): Promise<Decision> {
   if (!champRempli(opp.intitule)) {
     return { action: "rejetee", raison: "Titre manquant" };
+  }
+  const titreErr = intituleGenerique(opp.intitule);
+  if (titreErr) {
+    return { action: "rejetee", raison: titreErr };
   }
   if (!champRempli(opp.organisme)) {
     return { action: "rejetee", raison: "Entreprise manquante" };
@@ -144,7 +167,7 @@ async function deciderEmploi(opp: {
   return { action: "publiee", raison: "Source ATS fiable, champs complets" };
 }
 
-async function deciderBourseOuAutre(opp: {
+export async function deciderBourseOuAutre(opp: {
   type: string;
   intitule: string;
   organisme: string;
@@ -155,6 +178,10 @@ async function deciderBourseOuAutre(opp: {
 }): Promise<Decision> {
   if (!champRempli(opp.intitule)) {
     return { action: "rejetee", raison: "Titre manquant" };
+  }
+  const titreErr = intituleGenerique(opp.intitule);
+  if (titreErr) {
+    return { action: "rejetee", raison: titreErr };
   }
   if (!champRempli(opp.organisme)) {
     return { action: "rejetee", raison: "Organisme manquant" };
@@ -279,9 +306,9 @@ export async function nettoyerOffresIncoherentes(): Promise<{
   const details: RapportValidation["details"] = [];
 
   for (const opp of publiees) {
-    let raison: string | null = null;
+    let raison: string | null = intituleGenerique(opp.intitule);
 
-    if (!opp.source.startsWith("ATS:")) {
+    if (!raison && !opp.source.startsWith("ATS:")) {
       const blog = await estContenuBlog(opp.intitule, opp.description);
       if (blog) raison = blog;
     }

@@ -83,19 +83,22 @@ function IconCalendar({ size = 14 }: { size?: number }) {
   );
 }
 
-function IconX({ size = 20 }: { size?: number }) {
+// Passer : simple trait — neutre, sans connotation d'erreur/rejet.
+function IconPasser({ size = 20 }: { size?: number }) {
   return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round">
-      <line x1="18" y1="6" x2="6" y2="18" />
-      <line x1="6" y1="6" x2="18" y2="18" />
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.4} strokeLinecap="round">
+      <line x1="5" y1="12" x2="19" y2="12" />
     </svg>
   );
 }
 
-function IconHeart({ size = 20 }: { size?: number }) {
+// Candidater : avion en papier — sémantique "envoyer ma candidature", plus
+// professionnelle qu'un cœur pour une plateforme de bourses/emploi.
+function IconCandidater({ size = 20 }: { size?: number }) {
   return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
-      <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" stroke="none">
+      <path d="M22 2 11 13" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" fill="none" />
+      <path d="M22 2 15 22l-4-9-9-4 20-7z" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" fill="none" />
     </svg>
   );
 }
@@ -141,6 +144,7 @@ export function FilSwipe({
   const [traduction, setTraduction] = useState<{ id: string; texte: string; titre?: string } | null>(null);
   const [loadingTraduction, setLoadingTraduction] = useState(false);
   const [toasts, setToasts] = useState<Toast[]>([]);
+  const [demanderProfil, setDemanderProfil] = useState(false);
   const dragging = useRef(false);
   const startX = useRef(0);
   const cardRef = useRef<HTMLDivElement>(null);
@@ -196,8 +200,10 @@ export function FilSwipe({
   const passer = useCallback(
     (direction: "gauche" | "droite") => {
       if (!actuelle) return;
-      if (!profilComplet) {
-        router.push("/onboarding");
+      if (direction === "droite" && !profilComplet) {
+        // Pas de redirection immédiate : popup Matchwork, la carte reste en place.
+        setDemanderProfil(true);
+        setGlissement(0);
         return;
       }
       if (gateSupplementaire) {
@@ -276,9 +282,9 @@ export function FilSwipe({
       <div className="flex flex-col items-center justify-center py-24 text-center px-6">
         <div
           className="w-16 h-16 rounded-2xl flex items-center justify-center mb-5"
-          style={{ background: "rgba(124,58,237,0.12)", border: "1px solid rgba(124,58,237,0.2)" }}
+          style={{ background: "var(--bg)", border: "1px solid var(--border)" }}
         >
-          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
             <path d="M9 12l2 2 4-4" /><circle cx="12" cy="12" r="10" />
           </svg>
         </div>
@@ -371,26 +377,28 @@ export function FilSwipe({
             touchAction: "none",
           }}
         >
-          {/* Badge INTÉRESSÉ */}
+          {/* Badge CANDIDATER */}
           <div style={{
             position: "absolute", top: 24, left: 20, zIndex: 20,
             opacity: swipeRightOpacity,
-            border: "2px solid #22c55e", borderRadius: "8px",
+            border: "2px solid #7c3aed", borderRadius: "8px",
             padding: "4px 12px", pointerEvents: "none",
             transform: "rotate(-8deg)",
+            background: "rgba(124,58,237,0.08)",
           }}>
-            <span style={{ color: "#22c55e", fontWeight: 700, fontSize: "0.85rem", letterSpacing: "0.08em" }}>INTÉRESSÉ</span>
+            <span style={{ color: "#7c3aed", fontWeight: 700, fontSize: "0.85rem", letterSpacing: "0.08em" }}>CANDIDATER</span>
           </div>
 
           {/* Badge PASSER */}
           <div style={{
             position: "absolute", top: 24, right: 20, zIndex: 20,
             opacity: swipeLeftOpacity,
-            border: "2px solid #ef4444", borderRadius: "8px",
+            border: "2px solid var(--border-strong)", borderRadius: "8px",
             padding: "4px 12px", pointerEvents: "none",
             transform: "rotate(8deg)",
+            background: "var(--bg-card)",
           }}>
-            <span style={{ color: "#ef4444", fontWeight: 700, fontSize: "0.85rem", letterSpacing: "0.08em" }}>PASSER</span>
+            <span style={{ color: "var(--text-2)", fontWeight: 700, fontSize: "0.85rem", letterSpacing: "0.08em" }}>PASSER</span>
           </div>
 
           {/* Couverture (photo de l'offre) */}
@@ -455,9 +463,9 @@ export function FilSwipe({
                 style={{
                   alignSelf: "flex-start", fontSize: "0.82rem", fontWeight: 700,
                   padding: "8px 16px", borderRadius: "10px",
-                  background: "linear-gradient(135deg, rgba(124,58,237,0.12), rgba(139,92,246,0.08))",
-                  color: "#7c3aed",
-                  border: "1.5px solid rgba(124,58,237,0.3)",
+                  background: "linear-gradient(135deg,#7c3aed,#5b21b6)",
+                  color: "#fff",
+                  border: "none",
                   cursor: loadingTraduction ? "default" : "pointer",
                   opacity: loadingTraduction ? 0.6 : 1,
                   display: "flex", alignItems: "center", gap: "7px",
@@ -470,10 +478,10 @@ export function FilSwipe({
             )}
             {traduction?.id === actuelle.id && (
               <span style={{
-                fontSize: "0.78rem", color: "#7c3aed", fontWeight: 600,
+                fontSize: "0.78rem", color: "var(--text)", fontWeight: 600,
                 display: "flex", alignItems: "center", gap: "6px",
                 padding: "6px 14px", borderRadius: "10px",
-                background: "rgba(124,58,237,0.08)",
+                background: "var(--bg)", border: "1px solid var(--border)",
               }}>
                 <IconCheck size={14} />
                 Traduit en français
@@ -517,21 +525,6 @@ export function FilSwipe({
         </div>
       </div>
 
-      {!profilComplet && (
-        <div
-          onClick={() => router.push("/onboarding")}
-          style={{
-            marginTop: 24, padding: "14px 20px", borderRadius: 16,
-            background: "linear-gradient(135deg,#7c3aed,#5b21b6)",
-            color: "#fff", textAlign: "center", cursor: "pointer",
-            boxShadow: "0 6px 24px rgba(124,58,237,0.35)",
-          }}
-        >
-          <p style={{ fontWeight: 700, fontSize: "0.9rem" }}>Créez votre profil avec Blessing</p>
-          <p style={{ fontSize: "0.75rem", opacity: 0.8, marginTop: 4 }}>Discutez avec notre assistante IA pour débloquer le swipe</p>
-        </div>
-      )}
-
       {profilComplet && gateSupplementaire && (
         <div
           onClick={() => router.push(gateSupplementaire.lien)}
@@ -553,16 +546,16 @@ export function FilSwipe({
           onClick={() => passer("gauche")}
           style={{
             width: 56, height: 56, borderRadius: "50%",
-            background: "rgba(239,68,68,0.1)", border: "1.5px solid rgba(239,68,68,0.35)",
-            color: "#ef4444",
+            background: "var(--bg-card)", border: "1.5px solid var(--border-strong)",
+            color: "var(--text-2)",
             display: "flex", alignItems: "center", justifyContent: "center",
             cursor: "pointer", transition: "transform 0.18s ease, background 0.18s ease",
           }}
-          onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = "rgba(239,68,68,0.2)"; (e.currentTarget as HTMLButtonElement).style.transform = "scale(1.08)"; }}
-          onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = "rgba(239,68,68,0.1)"; (e.currentTarget as HTMLButtonElement).style.transform = "scale(1)"; }}
-          aria-label="Ignorer"
+          onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = "var(--bg-card-hover)"; (e.currentTarget as HTMLButtonElement).style.transform = "scale(1.08)"; }}
+          onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = "var(--bg-card)"; (e.currentTarget as HTMLButtonElement).style.transform = "scale(1)"; }}
+          aria-label="Passer"
         >
-          <IconX size={22} />
+          <IconPasser size={22} />
         </button>
 
         <button
@@ -590,14 +583,14 @@ export function FilSwipe({
             }
           }}
           style={{
-            width: 44, height: 44, borderRadius: "50%",
-            background: "rgba(124,58,237,0.1)", border: "1.5px solid rgba(124,58,237,0.3)",
-            color: "#a78bfa",
+            width: 40, height: 40, borderRadius: "50%",
+            background: "transparent", border: "1.5px solid var(--border-strong)",
+            color: "#7c3aed",
             display: "flex", alignItems: "center", justifyContent: "center",
-            cursor: "pointer", transition: "transform 0.18s ease, background 0.18s ease",
+            cursor: "pointer", transition: "transform 0.18s ease, border-color 0.18s ease",
           }}
-          onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = "rgba(124,58,237,0.2)"; (e.currentTarget as HTMLButtonElement).style.transform = "scale(1.08)"; }}
-          onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = "rgba(124,58,237,0.1)"; (e.currentTarget as HTMLButtonElement).style.transform = "scale(1)"; }}
+          onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = "#7c3aed"; (e.currentTarget as HTMLButtonElement).style.transform = "scale(1.08)"; }}
+          onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = "var(--border-strong)"; (e.currentTarget as HTMLButtonElement).style.transform = "scale(1)"; }}
           aria-label="Partager"
         >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -610,22 +603,23 @@ export function FilSwipe({
           onClick={() => passer("droite")}
           style={{
             width: 56, height: 56, borderRadius: "50%",
-            background: "rgba(34,197,94,0.1)", border: "1.5px solid rgba(34,197,94,0.35)",
-            color: "#22c55e",
+            background: "linear-gradient(135deg,#7c3aed,#5b21b6)", border: "none",
+            color: "#fff",
             display: "flex", alignItems: "center", justifyContent: "center",
-            cursor: "pointer", transition: "transform 0.18s ease, background 0.18s ease",
+            cursor: "pointer", transition: "transform 0.18s ease, filter 0.18s ease",
+            boxShadow: "0 6px 18px rgba(124,58,237,0.35)",
           }}
-          onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = "rgba(34,197,94,0.2)"; (e.currentTarget as HTMLButtonElement).style.transform = "scale(1.08)"; }}
-          onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = "rgba(34,197,94,0.1)"; (e.currentTarget as HTMLButtonElement).style.transform = "scale(1)"; }}
-          aria-label="Intéressé"
+          onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.filter = "brightness(1.1)"; (e.currentTarget as HTMLButtonElement).style.transform = "scale(1.08)"; }}
+          onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.filter = "none"; (e.currentTarget as HTMLButtonElement).style.transform = "scale(1)"; }}
+          aria-label="Candidater"
         >
-          <IconHeart size={22} />
+          <IconCandidater size={20} />
         </button>
       </div>
       <div className="flex justify-center mt-2" style={{ gap: "28px" }}>
         <span style={{ fontSize: "0.68rem", color: "var(--text-3)", width: 56, textAlign: "center" }}>Passer</span>
-        <span style={{ fontSize: "0.68rem", color: "#a78bfa", width: 44, textAlign: "center" }}>Partager</span>
-        <span style={{ fontSize: "0.68rem", color: "var(--text-3)", width: 56, textAlign: "center" }}>Intéressé</span>
+        <span style={{ fontSize: "0.68rem", color: "var(--text-3)", width: 40, textAlign: "center" }}>Partager</span>
+        <span style={{ fontSize: "0.68rem", color: "var(--text-3)", width: 56, textAlign: "center" }}>Candidater</span>
       </div>
 
       {/* Toasts de génération */}
@@ -650,8 +644,8 @@ export function FilSwipe({
                 <div style={{ width: 20, height: 20, borderRadius: "50%", border: "2px solid rgba(124,58,237,0.3)", borderTopColor: "#a78bfa", animation: "spin 0.8s linear infinite", flexShrink: 0 }} />
               )}
               {t.statut === "ok" && (
-                <div style={{ width: 20, height: 20, borderRadius: "50%", background: "rgba(124,58,237,0.15)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
+                <div style={{ width: 20, height: 20, borderRadius: "50%", background: "var(--bg)", border: "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
                 </div>
               )}
               {t.statut === "erreur" && (
@@ -675,6 +669,68 @@ export function FilSwipe({
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {/* Popup profil incomplet — remplace l'ancienne bannière permanente,
+          n'apparaît qu'au moment où l'action a vraiment du sens (swipe droite). */}
+      {demanderProfil && (
+        <div
+          role="dialog"
+          aria-label="Créer votre profil"
+          onClick={() => setDemanderProfil(false)}
+          style={{
+            position: "fixed", inset: 0, zIndex: 200,
+            background: "rgba(10,6,20,0.55)", backdropFilter: "blur(4px)", WebkitBackdropFilter: "blur(4px)",
+            display: "flex", alignItems: "center", justifyContent: "center", padding: 20,
+          }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              maxWidth: 380, width: "100%", borderRadius: 22, padding: "28px 24px 24px",
+              background: "var(--bg-card)", border: "1px solid var(--border)",
+              boxShadow: "0 30px 70px -15px rgba(31,16,64,0.45)", textAlign: "center",
+            }}
+          >
+            <div style={{
+              width: 56, height: 56, margin: "0 auto 16px", borderRadius: 16,
+              background: "linear-gradient(135deg,#7c3aed,#5b21b6)",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              boxShadow: "0 8px 22px -6px rgba(124,58,237,0.5)",
+            }}>
+              <IconCandidater size={24} />
+            </div>
+            <p style={{ fontWeight: 700, fontSize: "1.05rem", color: "var(--text)", marginBottom: 8 }}>
+              Créez votre profil avec Amara
+            </p>
+            <p style={{ fontSize: "0.85rem", color: "var(--text-2)", lineHeight: 1.6, marginBottom: 22 }}>
+              Amara, notre IA, discute avec vous quelques minutes pour construire votre profil — indispensable pour générer un dossier adapté à cette offre.
+            </p>
+            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+              <button
+                onClick={() => router.push("/onboarding")}
+                style={{
+                  padding: "12px 0", borderRadius: 12, border: "none", cursor: "pointer",
+                  background: "linear-gradient(135deg,#7c3aed,#5b21b6)", color: "#fff",
+                  fontWeight: 600, fontSize: "0.9rem",
+                  boxShadow: "0 6px 18px rgba(124,58,237,0.35)",
+                }}
+              >
+                Créer mon profil avec Amara
+              </button>
+              <button
+                onClick={() => setDemanderProfil(false)}
+                style={{
+                  padding: "11px 0", borderRadius: 12, cursor: "pointer",
+                  background: "transparent", border: "1px solid var(--border)", color: "var(--text-2)",
+                  fontWeight: 600, fontSize: "0.85rem",
+                }}
+              >
+                Plus tard
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

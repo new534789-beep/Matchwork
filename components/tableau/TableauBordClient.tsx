@@ -25,10 +25,12 @@ type Props = {
 const carte: React.CSSProperties = { borderRadius: 18, background: "var(--bg-card)", border: "1px solid var(--border)", padding: 20 };
 const titreSection: React.CSSProperties = { fontSize: "1rem", fontWeight: 700, color: "var(--text)" };
 
+// Fonds neutres différenciés du support (var(--bg) sur une carte var(--bg-card))
+// plutôt qu'un lavis violet en fond — mais l'accent (tag/texte fort) reste violet.
 const COULEURS = {
-  rouge: { bg: "rgba(124,58,237,0.16)", border: "rgba(124,58,237,0.42)", txt: "#a78bfa" },
-  ambre: { bg: "rgba(124,58,237,0.09)", border: "rgba(124,58,237,0.26)", txt: "#a78bfa" },
-  violet: { bg: "rgba(124,58,237,0.05)", border: "rgba(124,58,237,0.18)", txt: "#a78bfa" },
+  rouge: { bg: "var(--bg)", border: "var(--border-strong)", txt: "#7c3aed" },
+  ambre: { bg: "var(--bg)", border: "var(--border)", txt: "#7c3aed" },
+  violet: { bg: "var(--bg)", border: "var(--border)", txt: "#7c3aed" },
 };
 
 // Icônes (violet) des cartes stats, par clé
@@ -42,7 +44,7 @@ const STAT_ICONS: Record<string, React.ReactNode> = {
 function statutMeta(statut: Retenue["statut"]) {
   if (statut === "utilise") return { label: "Utilisé", color: "#fff", bg: "#7c3aed", border: "#7c3aed" };
   if (statut === "soumis") return { label: "Soumis", color: "#fff", bg: "#7c3aed", border: "#7c3aed" };
-  if (statut === "genere") return { label: "Généré", color: "#a78bfa", bg: "rgba(124,58,237,0.14)", border: "rgba(124,58,237,0.32)" };
+  if (statut === "genere") return { label: "Généré", color: "#7c3aed", bg: "var(--bg)", border: "var(--border-strong)" };
   return { label: "À préparer", color: "var(--text-2)", bg: "var(--bg-card)", border: "var(--border)" };
 }
 
@@ -51,8 +53,14 @@ function CarteStat({ stat }: { stat: Stat }) {
     <Link href={stat.href} style={{ textDecoration: "none" }}>
       <div style={{ borderRadius: 18, padding: "16px 18px", height: "100%", background: "var(--bg-card)", border: "1px solid var(--border)" }}>
         <div className="flex items-start justify-between" style={{ marginBottom: 14 }}>
-          <span style={{ width: 36, height: 36, flexShrink: 0, borderRadius: 11, background: "rgba(124,58,237,0.12)", border: "1px solid rgba(124,58,237,0.28)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">{STAT_ICONS[stat.key]}</svg>
+          <span style={{
+            width: 36, height: 36, flexShrink: 0, borderRadius: 11, border: "none", display: "flex", alignItems: "center", justifyContent: "center",
+            background: `linear-gradient(135deg, #f7c7ff, #4819bf)`,
+            boxShadow: "inset 0 1px 0 rgba(255,255,255,0.45), 0 4px 12px -4px rgba(72,25,191,0.5)",
+          }}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              {STAT_ICONS[stat.key]}
+            </svg>
           </span>
           <span style={{ width: 26, height: 26, borderRadius: "50%", flexShrink: 0, border: "1px solid var(--border-strong)", display: "flex", alignItems: "center", justifyContent: "center" }}>
             <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--text-2)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="7" y1="17" x2="17" y2="7" /><polyline points="7 7 17 7 17 17" /></svg>
@@ -142,7 +150,7 @@ export function TableauBordClient({ stats, alertes, retenues, prochaineEcheance,
             <p style={{ ...titreSection, marginBottom: 16 }}>À faire</p>
             {alertes.length === 0 ? (
               <div className="flex flex-col items-center justify-center text-center" style={{ padding: "32px 12px" }}>
-                <div style={{ width: 44, height: 44, borderRadius: "50%", background: "rgba(124,58,237,0.12)", border: "1px solid rgba(124,58,237,0.3)", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 10 }}>
+                <div style={{ width: 44, height: 44, borderRadius: "50%", background: "var(--bg)", border: "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 10 }}>
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
                 </div>
                 <p style={{ fontWeight: 700, color: "#a78bfa", fontSize: "0.9rem" }}>Tout est à jour</p>
@@ -208,7 +216,7 @@ export function TableauBordClient({ stats, alertes, retenues, prochaineEcheance,
             <div className="text-center" style={{ padding: "28px 12px" }}>
               <p style={{ fontWeight: 600, color: "var(--text)", fontSize: "0.9rem", marginBottom: 4 }}>Aucun dossier en cours</p>
               <p style={{ fontSize: "0.8rem", color: "var(--text-3)", marginBottom: 16 }}>Swipez des bourses pour commencer.</p>
-              <Link href="/opportunites" style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "9px 18px", borderRadius: 10, background: "rgba(124,58,237,0.12)", border: "1px solid rgba(124,58,237,0.3)", color: "#a78bfa", fontWeight: 600, fontSize: "0.82rem", textDecoration: "none" }}>Voir les bourses</Link>
+              <Link href="/opportunites" style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "9px 18px", borderRadius: 10, background: "linear-gradient(135deg,#7c3aed,#5b21b6)", color: "#fff", fontWeight: 600, fontSize: "0.82rem", textDecoration: "none" }}>Voir les bourses</Link>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
@@ -238,8 +246,8 @@ export function TableauBordClient({ stats, alertes, retenues, prochaineEcheance,
           <p style={{ ...titreSection, marginBottom: 14 }}>Découvrir</p>
           <Link href="/opportunites" style={{ textDecoration: "none" }}>
             <div className="mb-4" style={{ borderRadius: 12, padding: "16px", background: "var(--bg)", border: "1px solid var(--border)", display: "flex", alignItems: "center", gap: 13 }}>
-              <div style={{ width: 38, height: 38, flexShrink: 0, borderRadius: 10, background: "rgba(124,58,237,0.12)", border: "1px solid rgba(124,58,237,0.25)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg>
+              <div style={{ width: 38, height: 38, flexShrink: 0, borderRadius: 10, background: "var(--bg)", border: "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg>
               </div>
               <div style={{ flex: 1 }}>
                 <p style={{ fontSize: "0.86rem", fontWeight: 700, color: "var(--text)" }}>Parcourir les bourses</p>

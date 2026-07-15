@@ -2,6 +2,34 @@ import Link from "next/link";
 import Image from "next/image";
 import { NavMobile } from "@/components/ui/NavMobile";
 import { SectionTarifs } from "@/components/landing/SectionTarifs";
+import { buildFaqJsonLd } from "@/lib/jsonld";
+
+const FAQ_ITEMS = [
+  {
+    q: "Matchwork est-il vraiment gratuit ?",
+    r: "Oui. Le plan gratuit vous offre 3 dossiers complets par mois, sans carte bancaire ni engagement. Vous ne payez que si vous voulez aller plus loin.",
+  },
+  {
+    q: "L'IA invente-t-elle des informations sur moi ?",
+    r: "Non. Chaque CV et chaque lettre est rédigé uniquement à partir de votre profil réel et des documents que vous fournissez. Rien n'est inventé.",
+  },
+  {
+    q: "Mes lettres se ressemblent-elles d'une candidature à l'autre ?",
+    r: "Jamais. Notre système anti-répétition garantit que chaque dossier est unique et ciblé sur l'opportunité visée — même si vous candidatez à dix bourses le même jour.",
+  },
+  {
+    q: "Comment payer si je n'ai pas de carte bancaire ?",
+    r: "Par Mobile Money : MTN MoMo, Moov et BjPay. Aucune carte internationale n'est requise, et aucune donnée de paiement n'est conservée chez nous.",
+  },
+  {
+    q: "Mes documents sont-ils en sécurité ?",
+    r: "Oui. Vos documents sont stockés dans un coffre-fort chiffré, accessibles à vous seul. Vos données ne sont jamais revendues ni utilisées pour entraîner une IA.",
+  },
+  {
+    q: "Dans quels pays Matchwork fonctionne-t-il ?",
+    r: "Matchwork est pensé pour l'Afrique de l'Ouest, mais fonctionne partout : il suffit d'une opportunité et de votre profil pour générer un dossier.",
+  },
+] as const;
 
 export default function Landing() {
   return (
@@ -646,7 +674,7 @@ export default function Landing() {
 
           <div className="flex flex-col gap-16 max-w-4xl mx-auto">
             {[
-              { n: "01", t: "Créez votre profil avec Blessing", d: "Notre assistante IA vous interviewe naturellement et construit votre profil : formations, expériences, langues — sans formulaire fastidieux.", path: "M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2 M12 7a4 4 0 100-8 4 4 0 000 8z" },
+              { n: "01", t: "Créez votre profil avec Amara", d: "Notre assistante IA vous interviewe naturellement et construit votre profil : formations, expériences, langues — sans formulaire fastidieux.", path: "M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2 M12 7a4 4 0 100-8 4 4 0 000 8z" },
               { n: "02", t: "Swipez les opportunités faites pour vous", d: "Bourses, emplois, concours, résidences — triés selon votre profil. Glissez à droite celles qui vous intéressent.", path: "M2 7h20 M2 7a2 2 0 012-2h16a2 2 0 012 2v10a2 2 0 01-2 2H4a2 2 0 01-2-2z" },
               { n: "03", t: "Générez votre dossier en un clic", d: "CV et lettre de motivation personnalisés, rédigés par l'IA pour chaque opportunité — dans la bonne langue, jamais recopiés.", path: "M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z M14 2v6h6 M9 13l2 2 4-4" },
               { n: "04", t: "Suivez vos candidatures et deadlines", d: "Tableau de bord clair, checklist des pièces exigées et alertes avant chaque date limite. Vous candidatez toujours à temps.", path: "M3 3v18h18 M7 14l4-4 3 3 5-6" },
@@ -668,7 +696,7 @@ export default function Landing() {
                 <div className="flex-1 w-full">
                   {step.n === "01" ? (
                     <div style={{ aspectRatio: "16 / 10", width: "100%", maxWidth: 420, margin: "0 auto", borderRadius: 18, overflow: "hidden", border: "1px solid rgba(124,58,237,0.3)", boxShadow: "0 24px 60px rgba(0,0,0,0.45)" }}>
-                      <Image src="/apercu-amara.png" alt="Création de profil avec Blessing, l'assistante IA" width={900} height={563} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                      <Image src="/apercu-amara.png" alt="Création de profil avec Amara, l'assistante IA" width={900} height={563} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                     </div>
                   ) : (
                     <div style={{
@@ -711,7 +739,7 @@ export default function Landing() {
             {/* Gauche (miroir : icône à droite, texte aligné à droite) */}
             <div className="order-2 lg:order-1 flex flex-col gap-10">
               {[
-                { t: "Blessing, votre assistante IA", d: "Elle vous interviewe et construit votre profil en conversation — sans formulaire à remplir.", path: "M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" },
+                { t: "Amara, votre assistante IA", d: "Elle vous interviewe et construit votre profil en conversation — sans formulaire à remplir.", path: "M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" },
                 { t: "Dossiers personnalisés", d: "CV et lettre générés pour chaque opportunité. Jamais génériques, jamais recopiés.", path: "M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z M14 2v6h6 M16 13H8 M16 17H8" },
               ].map((f) => (
                 <div key={f.t} className="flex gap-4 lg:flex-row-reverse lg:text-right">
@@ -751,10 +779,10 @@ export default function Landing() {
                   {/* En-tête conversation */}
                   <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "15px 16px 13px", borderBottom: "1px solid rgba(255,255,255,0.07)" }}>
                     <div style={{ width: 36, height: 36, borderRadius: "50%", background: "linear-gradient(135deg,#7c3aed,#5b21b6)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                      <span style={{ fontSize: "0.82rem", fontWeight: 800, color: "#fff" }}>B</span>
+                      <span style={{ fontSize: "0.82rem", fontWeight: 800, color: "#fff" }}>A</span>
                     </div>
                     <div style={{ flex: 1 }}>
-                      <p style={{ fontSize: "0.83rem", fontWeight: 700, color: "#fff" }}>Blessing</p>
+                      <p style={{ fontSize: "0.83rem", fontWeight: 700, color: "#fff" }}>Amara</p>
                       <span style={{ display: "inline-flex", alignItems: "center", gap: 5, fontSize: "0.66rem", color: "rgba(255,255,255,0.45)" }}>
                         <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#4ade80" }} />
                         En ligne
@@ -783,7 +811,7 @@ export default function Landing() {
 
                   {/* Barre de saisie */}
                   <div style={{ position: "absolute", bottom: 13, left: 12, right: 12, display: "flex", alignItems: "center", gap: 8, padding: "7px 7px 7px 13px", borderRadius: 999, background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)" }}>
-                    <span style={{ flex: 1, fontSize: "0.75rem", color: "rgba(255,255,255,0.3)" }}>Répondez à Blessing…</span>
+                    <span style={{ flex: 1, fontSize: "0.75rem", color: "rgba(255,255,255,0.3)" }}>Répondez à Amara…</span>
                     <div style={{ width: 29, height: 29, borderRadius: "50%", background: "linear-gradient(135deg,#7c3aed,#5b21b6)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
                       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
                     </div>
@@ -922,6 +950,7 @@ export default function Landing() {
 
       {/* ── FAQ ── */}
       <section id="faq" className="py-28 px-8" style={{ background: "#fff", borderTop: "1px solid rgba(10,10,10,0.08)" }}>
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(buildFaqJsonLd(FAQ_ITEMS as unknown as { q: string; r: string }[])) }} />
         <div className="max-w-3xl mx-auto">
           <p className="text-center text-xs font-semibold tracking-widest uppercase mb-4" style={{ color: "rgba(124,58,237,0.9)" }}>
             FAQ
@@ -931,32 +960,7 @@ export default function Landing() {
           </h2>
 
           <div className="flex flex-col gap-3">
-            {[
-              {
-                q: "Matchwork est-il vraiment gratuit ?",
-                r: "Oui. Le plan gratuit vous offre 3 dossiers complets par mois, sans carte bancaire ni engagement. Vous ne payez que si vous voulez aller plus loin.",
-              },
-              {
-                q: "L'IA invente-t-elle des informations sur moi ?",
-                r: "Non. Chaque CV et chaque lettre est rédigé uniquement à partir de votre profil réel et des documents que vous fournissez. Rien n'est inventé.",
-              },
-              {
-                q: "Mes lettres se ressemblent-elles d'une candidature à l'autre ?",
-                r: "Jamais. Notre système anti-répétition garantit que chaque dossier est unique et ciblé sur l'opportunité visée — même si vous candidatez à dix bourses le même jour.",
-              },
-              {
-                q: "Comment payer si je n'ai pas de carte bancaire ?",
-                r: "Par Mobile Money : MTN MoMo, Moov et BjPay. Aucune carte internationale n'est requise, et aucune donnée de paiement n'est conservée chez nous.",
-              },
-              {
-                q: "Mes documents sont-ils en sécurité ?",
-                r: "Oui. Vos documents sont stockés dans un coffre-fort chiffré, accessibles à vous seul. Vos données ne sont jamais revendues ni utilisées pour entraîner une IA.",
-              },
-              {
-                q: "Dans quels pays Matchwork fonctionne-t-il ?",
-                r: "Matchwork est pensé pour l'Afrique de l'Ouest, mais fonctionne partout : il suffit d'une opportunité et de votre profil pour générer un dossier.",
-              },
-            ].map((f) => (
+            {FAQ_ITEMS.map((f) => (
               <details key={f.q} className="faq-item" style={{ borderRadius: "14px", background: "rgba(10,10,10,0.025)", border: "1px solid rgba(10,10,10,0.08)", overflow: "hidden" }}>
                 <summary className="faq-summary" style={{ padding: "18px 20px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "16px", cursor: "pointer" }}>
                   <span className="font-semibold" style={{ fontSize: "0.95rem", color: "#0a0a0a" }}>{f.q}</span>

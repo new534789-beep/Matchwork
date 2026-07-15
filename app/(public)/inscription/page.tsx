@@ -1,16 +1,26 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { AuthShell } from "@/components/auth/AuthShell";
 import { BoutonGoogle } from "@/components/auth/BoutonGoogle";
+import { COOKIE_REF } from "@/lib/attribution";
 
-export default function Inscription() {
+function FormulaireInscription() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [form, setForm] = useState({ email: "", motDePasse: "", confirmation: "" });
   const [erreur, setErreur] = useState("");
   const [chargement, setChargement] = useState(false);
+
+  // Attribution funnel SEO → inscription : le CTA d'une fiche publique porte
+  // ?ref=offre:<slug> (ou categorie:/pays:) → posé en cookie court, lu une
+  // seule fois à la création du compte (credentials ou Google).
+  useEffect(() => {
+    const ref = searchParams.get("ref");
+    if (ref) document.cookie = `${COOKIE_REF}=${encodeURIComponent(ref)}; path=/; max-age=1800; SameSite=Lax`;
+  }, [searchParams]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -83,6 +93,17 @@ export default function Inscription() {
         </p>
       </form>
     </AuthShell>
+  );
+}
+
+// useSearchParams() doit être sous une frontière <Suspense> pour permettre le
+// prérendu statique de la page (sinon échec de build « missing-suspense-with-csr
+// -bailout »). Même patron que /connexion.
+export default function Inscription() {
+  return (
+    <Suspense>
+      <FormulaireInscription />
+    </Suspense>
   );
 }
 

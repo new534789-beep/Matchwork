@@ -219,8 +219,8 @@ export function DetailClient({
             {estEtranger && (
               <span style={{
                 fontSize: "0.75rem", padding: "4px 10px", borderRadius: "8px",
-                background: "rgba(245,158,11,0.1)", color: "#f59e0b",
-                border: "1px solid rgba(245,158,11,0.2)",
+                background: "var(--bg)", color: "var(--text-2)",
+                border: "1px solid var(--border)",
                 display: "inline-flex", alignItems: "center", gap: "6px",
               }}>
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><line x1="2" y1="12" x2="22" y2="12" /><path d="M12 2a15 15 0 014 10 15 15 0 01-4 10 15 15 0 01-4-10 15 15 0 014-10z" /></svg>
@@ -242,8 +242,8 @@ export function DetailClient({
                 disabled={loadingTraduction}
                 style={{
                   fontSize: "0.75rem", fontWeight: 600, padding: "4px 12px",
-                  borderRadius: "8px", background: "rgba(245,158,11,0.1)",
-                  color: "#f59e0b", border: "1px solid rgba(245,158,11,0.25)",
+                  borderRadius: "8px", background: "linear-gradient(135deg,#7c3aed,#5b21b6)",
+                  color: "#fff", border: "none",
                   cursor: loadingTraduction ? "default" : "pointer",
                   opacity: loadingTraduction ? 0.6 : 1,
                   display: "inline-flex", alignItems: "center", gap: "6px",

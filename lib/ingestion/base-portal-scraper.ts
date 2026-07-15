@@ -233,7 +233,7 @@ export async function scraperPortails<S extends BasePortalSource>(
         if (titreNonPertinent(titre)) continue;
 
         const maintenant = new Date();
-        const dedupKey = calculerDedupKey(undefined, lien, titre);
+        const dedupKey = calculerDedupKey(undefined, lien, titre, source.name);
 
         const existe = await prisma.opportunite.findUnique({ where: { dedupKey }, select: { id: true } });
         if (existe) {

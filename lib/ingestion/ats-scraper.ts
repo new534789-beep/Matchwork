@@ -7,19 +7,20 @@ import { prisma } from "@/lib/prisma";
 import { calculerDedupKey } from "@/lib/ingestion/dedup";
 import { extraireOffre, iaDisponible, normaliserCanal } from "@/lib/ia/extraction-offre";
 import { recupererContenuPage } from "@/lib/ingestion/contenu-page";
+import { offreAtsPertinenteGeographiquement } from "@/lib/ingestion/geo-filtre";
 
 // ── Registre des entreprises ──────────────────────────────────────────────────
 
-type Platform = "greenhouse" | "lever" | "ashby" | "smartrecruiters";
+export type Platform = "greenhouse" | "lever" | "ashby" | "smartrecruiters";
 
-interface Company {
+export interface Company {
   name: string;
   platform: Platform;
   identifier: string;
 }
 
 // Uniquement les entreprises dont l'API a répondu avec des offres (vérifié)
-const COMPANIES: Company[] = [
+export const COMPANIES: Company[] = [
   // ── Greenhouse (vérifié) ──
   { name: "Stripe", platform: "greenhouse", identifier: "stripe" },
   { name: "Airbnb", platform: "greenhouse", identifier: "airbnb" },
@@ -149,7 +150,7 @@ async function fetchAvecRetry(url: string, tentatives = 3): Promise<Response> {
 
 // ── Types internes ────────────────────────────────────────────────────────────
 
-interface RawJob {
+export interface RawJob {
   title: string;
   location: string;
   department: string | null;
@@ -248,7 +249,7 @@ async function fetchSmartRecruitersJobs(identifier: string, company: string): Pr
   return jobs;
 }
 
-const FETCHERS: Record<Platform, (id: string, company: string) => Promise<RawJob[]>> = {
+export const FETCHERS: Record<Platform, (id: string, company: string) => Promise<RawJob[]>> = {
   greenhouse: fetchGreenhouseJobs,
   lever: fetchLeverJobs,
   ashby: fetchAshbyJobs,
@@ -262,12 +263,18 @@ export type RapportATS = {
   offresLues: number;
   creees: number;
   doublons: number;
+  horsZone: number;
   erreurs: number;
   details: { entreprise: string; plateforme: string; offres: number; creees: number; erreur?: string }[];
 };
 
 async function traiterJob(job: RawJob, rapport: RapportATS, company: Company): Promise<void> {
   if (!job.title || !job.url) return;
+
+  if (!offreAtsPertinenteGeographiquement(job.location)) {
+    rapport.horsZone++;
+    return;
+  }
 
   const dedupKey = calculerDedupKey(undefined, job.url, job.title);
   const maintenant = new Date();
@@ -379,6 +386,7 @@ export async function ingererOffresATS(log: (msg: string) => void = console.log)
     offresLues: 0,
     creees: 0,
     doublons: 0,
+    horsZone: 0,
     erreurs: 0,
     details: [],
   };

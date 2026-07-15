@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { redirect, notFound } from "next/navigation";
+import { getSiteUrl } from "@/lib/site-url";
 import { EnteteApp } from "@/components/navigation/EnteteApp";
 import { DetailClient } from "./DetailClient";
 
@@ -15,7 +16,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   });
   if (!opp) return { title: "Offre introuvable" };
 
-  const baseUrl = process.env.AUTH_URL || "http://localhost:3000";
+  const baseUrl = getSiteUrl();
   const title = `${opp.intitule} — ${opp.organisme}`;
   const description = opp.description.slice(0, 200);
 

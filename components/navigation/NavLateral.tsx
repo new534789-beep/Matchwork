@@ -168,7 +168,7 @@ export function NavLateral({ userEmail = "", role }: { userEmail?: string; role?
         }}
       >
         <Link href="/opportunites" className="flex items-center gap-2" style={{ textDecoration: "none" }}>
-          <Image src="/logo.png" alt="Matchwork" width={32} height={32} priority />
+          <Image src="/logo-glossy.png" alt="Matchwork" width={32} height={32} priority />
           <span style={{ fontWeight: 700, fontSize: "1rem", color: "var(--text)" }}>Matchwork</span>
         </Link>
         <button
@@ -229,7 +229,7 @@ export function NavLateral({ userEmail = "", role }: { userEmail?: string; role?
         {/* Logo */}
         <div className="flex items-center gap-2.5 px-3.5 py-4" style={{ minHeight: 64 }}>
           <Link href="/opportunites" className="flex items-center gap-2.5 min-w-0" style={{ textDecoration: "none" }} onClick={() => setOuvert(false)}>
-            <Image src="/logo.png" alt="Matchwork" width={36} height={36} priority style={{ flexShrink: 0 }} />
+            <Image src="/logo-glossy.png" alt="Matchwork" width={36} height={36} priority style={{ flexShrink: 0 }} />
             <span className="font-bold text-base tracking-tight sidebar-label" style={{ color: "var(--text)", whiteSpace: "nowrap", overflow: "hidden" }}>
               Matchwork
             </span>

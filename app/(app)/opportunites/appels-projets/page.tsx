@@ -62,7 +62,7 @@ export default async function FilAppelsProjets() {
             !profil?.profilProjet
               ? {
                   lien: "/onboarding-projet",
-                  titre: "Décrivez votre projet avec Blessing",
+                  titre: "Décrivez votre projet avec Amara",
                   sousTitre: "Répondez à quelques questions pour débloquer le swipe des appels à projets",
                 }
               : undefined

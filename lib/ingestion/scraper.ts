@@ -14,7 +14,27 @@ const CHEMINS_IGNORES = [
   "/feed", "/wp-login", "/wp-admin", "/about", "/a-propos", "/contact",
   "/privacy", "/confidentialite", "/terms", "/mentions", "/login", "/register",
   "/search", "/recherche", "/cart", "/panier", "/subscribe", "/newsletter",
+  "/espace-candidat", "/espace-employeur", "/actualite", "/connexion", "/inscription",
+  "/offres-par-fonction", "/offres-par-secteur", "/conseils",
 ];
+
+// Intitulés génériques de menu/navigation vus dans le texte des liens — jamais
+// le titre d'une annonce individuelle, même si l'URL ressemble à un slug d'article.
+const INTITULES_GENERIQUES = [
+  /^détail$/i, /^detail$/i, /^voir\s*plus$/i, /^en savoir plus$/i, /^lire la suite$/i,
+  /^offres?\s+d'emplois?/i, /^offre\s+d\s?emploi/i, /^chercher un emploi$/i,
+  /^recherche(r)?\s+un\s+emploi$/i, /^espace\s+candidat/i, /^espace\s+employeur/i,
+  /^connexion$/i, /^inscription$/i, /^accueil$/i, /^contact$/i, /^à propos$/i,
+];
+
+/** Un intitulé de lien trop court ou générique n'est pas une annonce individuelle. */
+function titreGenerique(titre: string): boolean {
+  const t = titre.trim();
+  // Un vrai intitulé de poste peut être court ("Chauffeur", "AI Engineer") : on ne
+  // filtre sur la longueur seule qu'en dessous d'un seuil très bas (icône/lien vide).
+  if (t.length < 4) return true;
+  return INTITULES_GENERIQUES.some((re) => re.test(t));
+}
 
 
 function hashLegacy(lien?: string, titre?: string): string {
@@ -70,10 +90,15 @@ function extraireLiens(html: string, baseUrl: string): { lien: string; titre: st
     const ressembleArticle = slug.length >= 8 && (slug.includes("-") || /\d/.test(slug));
     if (!ressembleArticle) return;
 
+    const titre = $(el).text().replace(/\s+/g, " ").trim().slice(0, 240);
+    // Le texte du lien est générique (menu, bouton "Détail"...) : ce n'est pas une
+    // annonce individuelle même si l'URL ressemble à un slug d'article.
+    if (titreGenerique(titre)) return;
+
     const canon = canoniserUrl(u.toString());
     if (!canon || vus.has(canon)) return;
     vus.add(canon);
-    out.push({ lien: u.toString(), titre: $(el).text().replace(/\s+/g, " ").trim().slice(0, 240) });
+    out.push({ lien: u.toString(), titre });
   });
 
   return out.slice(0, MAX_LIENS);
@@ -113,7 +138,7 @@ export async function scraperUneSource(
       description: "En attente de vérification IA",
       lien,
       sourceUrl: lien,
-      dedupKey: calculerDedupKey(undefined, lien, titre),
+      dedupKey: calculerDedupKey(undefined, lien, titre, source.nom),
       hash: hashLegacy(lien, titre),
       datePublication: null,
       premiereVue: maintenant,

@@ -21,6 +21,15 @@ model User {
 
   codeParrainage String?  @unique
 
+  // Attribution d'acquisition — capturée UNE SEULE FOIS à la création du compte
+  // (jamais réécrite ensuite), via le cookie mw_ref posé sur /inscription à
+  // partir du ?ref= des CTA publics. Sert à mesurer le funnel fiche publique
+  // (Google) → clic CTA → inscription, sans outil d'analytics tiers.
+  //   sourceAcquisition : "offre" | "categorie" | "pays" | null (direct/inconnu)
+  //   refAcquisition    : slug de l'offre/catégorie/pays concernée
+  sourceAcquisition String?
+  refAcquisition    String?
+
   profil       Profil?
   documents    Document[]
   interactions Interaction[]
@@ -109,6 +118,20 @@ model Opportunite {
   description    String
   intituleFr     String?
   descriptionFr  String?
+  // Slug SEO public (/offres/[slug]), permanent : jamais réattribué même après
+  // expiration de l'offre, pour ne pas casser les URLs déjà indexées par Google.
+  // Nullable le temps du backfill des lignes existantes ; auto-généré à la
+  // création par l'extension Prisma dans lib/prisma.ts.
+  slug           String?     @unique
+  // Code pays ISO-3166 alpha-2 de la localisation de l'offre (pas la nationalité
+  // du candidat), auto-détecté par mots-clés à la création (voir lib/pays.ts).
+  // Alimente le JSON-LD jobLocation et les pages publiques /offres/pays/[slug].
+  pays           String?
+  // Modalité (presentiel | en_ligne | hybride | teletravail), auto-détectée par
+  // mots-clés à la création (voir lib/modalite.ts). Combinable en query param
+  // (?modalite=) sur les pages catégorie/pays. Souvent null : heuristique
+  // volontairement prudente, mieux vaut absent qu'un faux positif.
+  modalite       String?
   // Texte source original (page scrapée / offre collée), AVANT résumé IA. `description`
   // reste un résumé condensé pour l'affichage (fil de swipe) ; `contenuBrut` est ce qui
   // doit être utilisé à la génération des documents pour coller aux exigences réelles
@@ -153,6 +176,8 @@ model Opportunite {
   dossiers       Dossier[]
 
   @@index([statut])
+  @@index([pays])
+  @@index([modalite])
   @@map("opportunites")
 }
 

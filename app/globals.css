@@ -2,9 +2,8 @@
 
 html, body { overflow-x: hidden; max-width: 100vw; }
 
-/* ── Couleurs CSS variables (dark = défaut, light = override) ── */
+/* ── Couleurs CSS variables (clair = défaut/officiel, sombre = override) ── */
 
-:root,
 [data-theme="dark"] {
   color-scheme: dark;
   --bg: #0a0a0a;
@@ -31,29 +30,79 @@ html, body { overflow-x: hidden; max-width: 100vw; }
   --font-sans: var(--font-geist);
 }
 
+:root,
 [data-theme="light"] {
   color-scheme: light;
-  --bg: #f5f3ff;
-  --bg-card: rgba(255,255,255,0.9);
-  --bg-card-hover: #ffffff;
-  --border: rgba(124,58,237,0.14);
-  --border-strong: rgba(124,58,237,0.28);
+  /* Fond neutre proche blanc (pas de teinte violette) — base "verre dépoli". */
+  --bg: #f6f6f9;
+  --bg-card: rgba(255,255,255,0.86);
+  --bg-card-hover: rgba(255,255,255,0.96);
+  --border: rgba(124,58,237,0.08);
+  --border-strong: rgba(124,58,237,0.2);
   --text: #100a20;
   --text-2: rgba(16,10,32,0.78);
   --text-3: rgba(16,10,32,0.52);
   --text-4: rgba(16,10,32,0.2);
-  --nav-bg: rgba(245,243,255,0.96);
-  --header-bg: rgba(245,243,255,0.94);
-  --input-bg: rgba(255,255,255,0.8);
-  --input-border: rgba(124,58,237,0.2);
+  --nav-bg: rgba(255,255,255,0.75);
+  --header-bg: rgba(255,255,255,0.75);
+  --input-bg: rgba(255,255,255,0.7);
+  --input-border: rgba(124,58,237,0.14);
   --scrollbar: #7c3aed;
   --purple: #7c3aed;
   --purple-light: #6d28d9;
 
-  --background: #f5f3ff;
+  /* Texture "verre" : flou dépoli + ombre diffuse + liseré clair en haut
+     (catch-light du bord) — appliqués globalement, voir plus bas. */
+  --glass-blur: 22px;
+  --glass-shadow:
+    0 1px 1px rgba(124,58,237,0.04),
+    0 16px 40px -12px rgba(31,16,64,0.14),
+    inset 0 1px 0 rgba(255,255,255,0.85);
+  --glass-shadow-hover:
+    0 1px 1px rgba(124,58,237,0.05),
+    0 22px 48px -12px rgba(31,16,64,0.18),
+    inset 0 1px 0 rgba(255,255,255,0.9);
+
+  --background: #f6f6f9;
   --foreground: #1a0840;
   --primary: #7c3aed;
   --primary-foreground: #ffffff;
+  --font-sans: var(--font-geist);
+}
+
+/* Applique la matière verre à toute surface qui utilise --bg-card comme fond
+   (quasi toutes les "cartes" de l'app connectée, en style inline) — évite de
+   toucher chaque composant un par un. Uniquement en thème clair : le mode
+   sombre garde ses surfaces plates existantes pour l'instant.
+   PAS de backdrop-filter ici (volontairement) : des dizaines de petites
+   cartes imbriquées sur une même page rendent le flou beaucoup trop coûteux
+   à compositer (testé : fait geler le rendu). --bg-card est assez opaque
+   (0.86) pour rester lisible sans flou ; le flou reste réservé aux grandes
+   surfaces peu nombreuses (nav, header) qui l'avaient déjà via --nav-bg. */
+[data-theme="light"] [style*="var(--bg-card)"] {
+  box-shadow: var(--glass-shadow);
+  transition: box-shadow 0.2s ease;
+}
+[data-theme="light"] a[style*="var(--bg-card)"]:hover,
+[data-theme="light"] button[style*="var(--bg-card)"]:hover {
+  box-shadow: var(--glass-shadow-hover);
+}
+
+/* Note : pas de règle globale pour les fonds violets translucides
+   (background:rgba(124,58,237,…)) — une 1ère tentative de règle générique ici
+   s'est révélée trop brutale (elle "violettait" des badges qui doivent rester
+   blancs, ex. la liste "À faire"). Chaque cas est corrigé directement dans son
+   composant, au cas par cas (violet plein pour les actions/accents de marque,
+   blanc différencié — `var(--bg)` sur un parent `var(--bg-card)` — pour les
+   informations neutres), pas via un hack CSS global.
+
+   Boutons/CTA en dégradé plein (linear-gradient(135deg,#7c3aed,#5b21b6), ~58
+   usages) : même logique glossy, sans changer la couleur (déjà pleine). */
+[data-theme="light"] [style*="linear-gradient(135deg,#7c3aed,#5b21b6)"] {
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.4),
+    inset 0 -8px 14px -8px rgba(76,29,149,0.55),
+    0 8px 22px -8px rgba(124,58,237,0.5);
 }
 
 @theme inline {

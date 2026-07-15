@@ -1,9 +1,11 @@
 import NextAuth, { type NextAuthConfig } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import Google from "next-auth/providers/google";
+import { cookies } from "next/headers";
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
 import { z } from "zod";
+import { COOKIE_REF, parserRef } from "@/lib/attribution";
 
 const loginSchema = z.object({
   email: z.string().email(),
@@ -43,7 +45,7 @@ if (hasGoogleAuth()) {
     Google({
       clientId: process.env.AUTH_GOOGLE_ID,
       clientSecret: process.env.AUTH_GOOGLE_SECRET,
-      allowDangerousEmailAccountLinking: true,
+      allowDangerousEmailAccountLinking: false,
     })
   );
 }
@@ -60,17 +62,42 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         const email = user.email;
         if (!email) return false;
         try {
-          const dbUser = await prisma.user.upsert({
-            where: { email },
-            update: {},
-            create: { email, motDePasse: "", profil: { create: {} } },
-          });
+          // upsert ne dit pas s'il a créé ou juste relu — on distingue nous-mêmes
+          // pour ne poser l'attribution d'acquisition qu'à la toute première
+          // connexion (jamais réécrite sur les connexions suivantes).
+          const existant = await prisma.user.findUnique({ where: { email } });
+          let dbUser = existant;
+          if (!dbUser) {
+            // Attribution d'acquisition : OPTIONNELLE. La lecture du cookie via
+            // next/headers cookies() peut lever une exception selon le contexte
+            // dans lequel Auth.js invoque ce callback (hors du scope de requête
+            // Next lors du callback OAuth) — c'était la cause du « ACCÈS refusé »
+            // sur la connexion Google. Elle ne doit JAMAIS empêcher la création
+            // du compte ni la connexion : on dégrade proprement en « sans
+            // attribution ».
+            let attribution: { source: string; ref: string } | null = null;
+            try {
+              attribution = parserRef((await cookies()).get(COOKIE_REF)?.value);
+            } catch (e) {
+              console.warn("[auth] cookie d'attribution ignoré:", (e as Error)?.message);
+            }
+            dbUser = await prisma.user.create({
+              data: {
+                email,
+                motDePasse: "",
+                profil: { create: {} },
+                sourceAcquisition: attribution?.source,
+                refAcquisition: attribution?.ref,
+              },
+            });
+          }
           if (dbUser.suspendu) return false;
           user.id = dbUser.id;
           (user as { plan?: string; role?: string }).plan = dbUser.plan;
           (user as { plan?: string; role?: string }).role = dbUser.role;
         } catch (e) {
-          console.error("[auth] signIn callback error:", e);
+          const err = e as Error;
+          console.error("[auth] signIn callback error:", err?.name, err?.message, e);
           return false;
         }
       }

@@ -32,7 +32,7 @@ export function AdminNav({ email = "", aValiderCount = 0, supportNonLus = 0 }: {
   const sidebarContent = (
     <>
       <div className="flex items-center gap-2.5 px-3.5 py-4" style={{ minHeight: 64 }}>
-        <Image src="/logo.png" alt="Matchwork" width={34} height={34} priority style={{ flexShrink: 0 }} />
+        <Image src="/logo-glossy.png" alt="Matchwork" width={34} height={34} priority style={{ flexShrink: 0 }} />
         <div style={{ minWidth: 0 }}>
           <p className="font-bold text-sm" style={{ color: "var(--text)", lineHeight: 1.1 }}>Matchwork</p>
           <p style={{ fontSize: "0.64rem", fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase", color: "#a78bfa" }}>Admin</p>
@@ -131,7 +131,7 @@ export function AdminNav({ email = "", aValiderCount = 0, supportNonLus = 0 }: {
           )}
         </button>
         <div className="flex items-center gap-2">
-          <Image src="/logo.png" alt="Matchwork" width={28} height={28} />
+          <Image src="/logo-glossy.png" alt="Matchwork" width={28} height={28} />
           <span style={{ fontWeight: 700, fontSize: "0.85rem", color: "var(--text)" }}>Admin</span>
         </div>
         <div style={{ width: 34 }} />
