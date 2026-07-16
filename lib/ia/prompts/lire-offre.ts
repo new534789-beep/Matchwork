@@ -12,8 +12,8 @@ RÈGLES ABSOLUES :
 4. Si une date limite n'est pas indiquée, laisse dateLimite à null.
 5. Si les pièces exigées ne sont pas listées ET que le type est EMPLOI ou STAGE, ajoute par défaut un CV (generable) et une lettre de motivation (generable) car ces documents sont toujours nécessaires pour postuler. Si le type est APPEL_PROJET et aucune pièce n'est listée, ajoute par défaut une note conceptuelle (generable, type "note_conceptuelle") et un budget prévisionnel (generable, type "budget_previsionnel"). Pour les bourses, concours ou formations, laisse piecesExigees vide si rien n'est mentionné.
 6. Pour chaque pièce, indique "categorie" :
-   - "generable" = document RÉDIGEABLE (cv, lettre de motivation, lettre de recommandation à rédiger, projet d'études, déclaration personnelle, demande manuscrite, note conceptuelle, budget prévisionnel, cadre logique, plan d'action, présentation d'équipe).
-   - "personnel" = pièce à FOURNIR par le candidat, JAMAIS rédigeable (diplôme, relevé de notes, acte de naissance, pièce d'identité, justificatif de langue).
+   - "generable" = document RÉDIGEABLE PAR LE CANDIDAT LUI-MÊME (cv, lettre de motivation, projet d'études, déclaration personnelle, demande manuscrite, note conceptuelle, budget prévisionnel, cadre logique, plan d'action, présentation d'équipe).
+   - "personnel" = pièce à FOURNIR par le candidat, JAMAIS générée par l'IA (diplôme, relevé de notes, acte de naissance, pièce d'identité, justificatif de langue, LETTRE DE RECOMMANDATION). La lettre de recommandation est toujours "personnel" : elle doit être écrite et signée par un tiers (professeur, employeur), jamais rédigée à la place du candidat.
 7. "canalCandidature" = comment postuler :
    - "email" si une adresse e-mail de candidature est écrite noir sur blanc (cibleCandidature = cette adresse) ;
    - "formulaire" si un lien de formulaire de candidature en ligne (cibleCandidature = l'URL) ;

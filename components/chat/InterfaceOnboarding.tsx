@@ -190,7 +190,7 @@ export function InterfaceOnboarding({ sessionOnboarding }: Props) {
       setMessages((prev) => [...prev, { role: "assistant", content: data.message }]);
       setHistorique(data.historiqueMAJ ?? []);
 
-      if (data.section_en_cours) {
+      if (data.section_en_cours && SECTIONS.some((s) => s.id === data.section_en_cours)) {
         setSectionActuelle(data.section_en_cours);
         setSectionsVues((prev) => new Set([...prev, data.section_en_cours]));
       }
@@ -223,7 +223,7 @@ export function InterfaceOnboarding({ sessionOnboarding }: Props) {
   }
 
   const sectionIndex = SECTIONS.findIndex((s) => s.id === sectionActuelle);
-  const progression = Math.round((sectionsVues.size / SECTIONS.length) * 100);
+  const progression = Math.min(100, Math.round((sectionsVues.size / SECTIONS.length) * 100));
 
   return (
     <div style={{ display: "flex", height: "100vh", overflow: "hidden", background: "var(--bg)" }}>
@@ -271,7 +271,7 @@ export function InterfaceOnboarding({ sessionOnboarding }: Props) {
         style={{
           width: 260,
           flexShrink: 0,
-          background: "#14141e",
+          background: "var(--bg-card)",
           borderRight: "1px solid var(--border)",
           display: "flex",
           flexDirection: "column",
@@ -332,7 +332,7 @@ export function InterfaceOnboarding({ sessionOnboarding }: Props) {
                   <span style={{
                     fontSize: "0.8rem",
                     fontWeight: active ? 600 : 400,
-                    color: active ? "#e9d5ff" : terminee ? "var(--text-2)" : "var(--text-3)",
+                    color: active ? "#5b21b6" : terminee ? "var(--text-2)" : "var(--text-3)",
                     flex: 1,
                   }}>
                     {s.label}
@@ -349,7 +349,7 @@ export function InterfaceOnboarding({ sessionOnboarding }: Props) {
         {/* Bas sidebar */}
         <div style={{ marginTop: "auto", padding: "14px 20px", borderTop: "1px solid var(--border)" }}>
           <div style={{ padding: "10px 12px", borderRadius: 10, background: "rgba(124,58,237,0.08)", border: "1px solid rgba(124,58,237,0.18)" }}>
-            <p style={{ fontSize: "0.72rem", color: "rgba(167,139,250,0.7)", lineHeight: 1.5 }}>
+            <p style={{ fontSize: "0.72rem", color: "var(--text-2)", lineHeight: 1.5 }}>
               Amara construit votre profil en toute confidentialité. Vos données ne sont jamais partagées sans votre accord.
             </p>
           </div>
@@ -449,35 +449,6 @@ export function InterfaceOnboarding({ sessionOnboarding }: Props) {
               </div>
             )}
 
-            {/* Profil terminé */}
-            {termine && (
-              <div style={{ display: "flex", justifyContent: "center", marginTop: 8 }}>
-                <div style={{ padding: "20px 24px", borderRadius: 18, background: "rgba(34,197,94,0.08)", border: "1px solid rgba(34,197,94,0.25)", textAlign: "center", maxWidth: 360 }}>
-                  <div style={{ display: "flex", justifyContent: "center", marginBottom: 10 }}>
-                    <div style={{ width: 44, height: 44, borderRadius: "50%", background: "rgba(34,197,94,0.15)", border: "1px solid rgba(34,197,94,0.3)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#86efac" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                        <polyline points="20 6 9 17 4 12" />
-                      </svg>
-                    </div>
-                  </div>
-                  <p style={{ fontWeight: 700, fontSize: "0.95rem", color: "#86efac", marginBottom: 4 }}>Profil complété !</p>
-                  <p style={{ fontSize: "0.82rem", color: "rgba(134,239,172,0.65)", marginBottom: 16 }}>
-                    Déposez maintenant vos pièces dans le coffre-fort pour finaliser votre dossier.
-                  </p>
-                  <button
-                    onClick={() => router.push("/coffre-fort")}
-                    style={{ padding: "10px 24px", borderRadius: 12, background: "linear-gradient(135deg,#7c3aed,#5b21b6)", color: "#fff", fontWeight: 600, fontSize: "0.875rem", cursor: "pointer", border: "none" }}
-                  >
-                    Accéder au coffre-fort
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ display: "inline", marginLeft: 6, verticalAlign: "middle" }}>
-                      <line x1="5" y1="12" x2="19" y2="12" />
-                      <polyline points="12 5 19 12 12 19" />
-                    </svg>
-                  </button>
-                </div>
-              </div>
-            )}
-
             <div ref={finRef} />
           </div>
         </div>
@@ -558,6 +529,67 @@ export function InterfaceOnboarding({ sessionOnboarding }: Props) {
           </div>
         )}
       </div>
+
+      {/* Popup de fin d'onboarding — remplace l'ancien encart vert inline */}
+      {termine && (
+        <div
+          role="dialog"
+          aria-label="Profil complété"
+          style={{
+            position: "fixed", inset: 0, zIndex: 200,
+            background: "rgba(10,6,20,0.55)", backdropFilter: "blur(4px)", WebkitBackdropFilter: "blur(4px)",
+            display: "flex", alignItems: "center", justifyContent: "center", padding: 20,
+          }}
+        >
+          <div
+            style={{
+              maxWidth: 380, width: "100%", borderRadius: 22, padding: "28px 24px 24px",
+              background: "var(--bg-card)", border: "1px solid var(--border)",
+              boxShadow: "0 30px 70px -15px rgba(31,16,64,0.45)", textAlign: "center",
+            }}
+          >
+            <div style={{
+              width: 56, height: 56, margin: "0 auto 16px", borderRadius: 16,
+              background: "linear-gradient(135deg,#7c3aed,#5b21b6)",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              boxShadow: "0 8px 22px -6px rgba(124,58,237,0.5)",
+            }}>
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="20 6 9 17 4 12" />
+              </svg>
+            </div>
+            <p style={{ fontWeight: 700, fontSize: "1.05rem", color: "var(--text)", marginBottom: 8 }}>
+              Félicitations, votre profil est complet !
+            </p>
+            <p style={{ fontSize: "0.85rem", color: "var(--text-2)", lineHeight: 1.6, marginBottom: 22 }}>
+              Amara a tout ce qu'il faut pour vous proposer des offres pertinentes et générer des dossiers de candidature personnalisés.
+            </p>
+            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+              <button
+                onClick={() => router.push("/coffre-fort")}
+                style={{
+                  width: "100%", padding: "12px 0", borderRadius: 12, border: "none", cursor: "pointer",
+                  background: "linear-gradient(135deg,#7c3aed,#5b21b6)", color: "#fff",
+                  fontWeight: 600, fontSize: "0.9rem",
+                  boxShadow: "0 6px 18px rgba(124,58,237,0.35)",
+                }}
+              >
+                Téléverser mes documents
+              </button>
+              <button
+                onClick={() => router.push("/tableau-de-bord")}
+                style={{
+                  width: "100%", padding: "11px 0", borderRadius: 12, cursor: "pointer",
+                  background: "transparent", border: "1px solid var(--border)", color: "var(--text-2)",
+                  fontWeight: 600, fontSize: "0.85rem",
+                }}
+              >
+                Aller au tableau de bord
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

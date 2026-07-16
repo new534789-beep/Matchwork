@@ -35,7 +35,6 @@ const MODELES_CV: { valeur: ModeleCv; label: string; description: string }[] = [
 type Props = { dossier: DossierData; checklist: ChecklistItem[]; modeleCvInitial?: ModeleCv };
 
 const V = "#7c3aed";
-const VL = "#a78bfa";
 
 function estEmail(v: string | null | undefined): v is string {
   return !!v && /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v.trim());
@@ -79,7 +78,25 @@ export function DossierClient({ dossier, checklist, modeleCvInitial = "classique
   const [erreur, setErreur] = useState<string | null>(null);
   const [statut, setStatut] = useState(dossier.statut);
   const [actionEnCours, setActionEnCours] = useState(false);
+  const [uploadInfo, setUploadInfo] = useState<Record<number, { uploading: boolean; erreur?: string; ok?: boolean }>>({});
+  const fileRefs = useRef<Record<number, HTMLInputElement | null>>({});
   const areaRef = useRef<HTMLTextAreaElement>(null);
+
+  async function televerserPiece(i: number, typeDoc: string, fichier: File) {
+    setUploadInfo((p) => ({ ...p, [i]: { uploading: true } }));
+    const formData = new FormData();
+    formData.append("fichier", fichier);
+    formData.append("type", typeDoc);
+    try {
+      const res = await fetch("/api/documents", { method: "POST", body: formData });
+      const data = await res.json() as { erreur?: string };
+      if (!res.ok) { setUploadInfo((p) => ({ ...p, [i]: { uploading: false, erreur: data.erreur ?? "Erreur lors du dépôt." } })); return; }
+      setUploadInfo((p) => ({ ...p, [i]: { uploading: false, ok: true } }));
+      router.refresh();
+    } catch {
+      setUploadInfo((p) => ({ ...p, [i]: { uploading: false, erreur: "Impossible de déposer le fichier." } }));
+    }
+  }
 
   useEffect(() => { setContenus(Object.fromEntries(docs.map((d) => [d.id, d.contenu]))); }, [docs]);
   useEffect(() => { autoResize(areaRef.current); }, [actifId, contenus]);
@@ -236,11 +253,10 @@ export function DossierClient({ dossier, checklist, modeleCvInitial = "classique
         {dateLimite && (
           <div style={{
             borderRadius: 12, padding: "11px 16px", marginBottom: 14, display: "flex", alignItems: "center", gap: 10,
-            background: enRetard ? "rgba(239,68,68,0.1)" : "rgba(124,58,237,0.1)",
-            border: `1px solid ${enRetard ? "rgba(239,68,68,0.3)" : "rgba(124,58,237,0.28)"}`,
+            background: enRetard ? "#ef4444" : "linear-gradient(135deg,#7c3aed,#5b21b6)",
           }}>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={enRetard ? "#ef4444" : VL} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>
-            <span style={{ fontSize: "0.82rem", fontWeight: 600, color: enRetard ? "#fca5a5" : VL }}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>
+            <span style={{ fontSize: "0.82rem", fontWeight: 600, color: "#fff" }}>
               {enRetard ? `Date limite dépassée (${dateLimite.toLocaleDateString("fr-FR")})`
                 : joursRestants === 0 ? "Date limite aujourd'hui !"
                 : `${joursRestants} jour${joursRestants! > 1 ? "s" : ""} avant la date limite — ${dateLimite.toLocaleDateString("fr-FR")}`}
@@ -250,10 +266,10 @@ export function DossierClient({ dossier, checklist, modeleCvInitial = "classique
         )}
 
         {/* En-tête */}
-        <div style={{ borderRadius: 16, padding: "18px 20px", marginBottom: 14, background: "linear-gradient(135deg,rgba(124,58,237,0.12),rgba(91,33,182,0.08))", border: "1px solid rgba(124,58,237,0.25)" }}>
-          <p style={{ fontSize: "0.7rem", color: "var(--text-2)", marginBottom: 3 }}>{opp.organisme}</p>
-          <h1 style={{ fontSize: "0.95rem", fontWeight: 700, color: "var(--text)", lineHeight: 1.3, marginBottom: 5 }}>{opp.intitule}</h1>
-          <p style={{ fontSize: "0.7rem", color: "var(--text-3)" }}>Généré le {dateGen}{verrouille ? " · utilisé" : ""}</p>
+        <div style={{ borderRadius: 16, padding: "18px 20px", marginBottom: 14, background: "linear-gradient(135deg,#7c3aed,#5b21b6)", boxShadow: "0 8px 22px -6px rgba(124,58,237,0.4)" }}>
+          <p style={{ fontSize: "0.7rem", color: "rgba(255,255,255,0.75)", marginBottom: 3 }}>{opp.organisme}</p>
+          <h1 style={{ fontSize: "0.95rem", fontWeight: 700, color: "#fff", lineHeight: 1.3, marginBottom: 5 }}>{opp.intitule}</h1>
+          <p style={{ fontSize: "0.7rem", color: "rgba(255,255,255,0.65)" }}>Généré le {dateGen}{verrouille ? " · utilisé" : ""}</p>
         </div>
 
         {/* Checklist de conformité */}
@@ -261,7 +277,7 @@ export function DossierClient({ dossier, checklist, modeleCvInitial = "classique
           <div style={{ borderRadius: 14, overflow: "hidden", marginBottom: 14, background: "var(--bg-card)", border: "1px solid var(--border)" }}>
             <div style={{ padding: "12px 18px", borderBottom: "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
               <span style={{ fontSize: "0.7rem", fontWeight: 700, letterSpacing: "0.07em", textTransform: "uppercase", color: "var(--text-3)" }}>Checklist de conformité</span>
-              <span style={{ fontSize: "0.72rem", fontWeight: 700, padding: "2px 10px", borderRadius: 6, background: "rgba(124,58,237,0.12)", color: VL, border: "1px solid rgba(124,58,237,0.25)" }}>{prets}/{checklist.length} prêts</span>
+              <span style={{ fontSize: "0.72rem", fontWeight: 700, padding: "2px 10px", borderRadius: 6, background: V, color: "#fff" }}>{prets}/{checklist.length} prêts</span>
             </div>
             <ul style={{ padding: "12px 18px", display: "flex", flexDirection: "column", gap: 9 }}>
               {checklist.map((item, i) => {
@@ -269,14 +285,14 @@ export function DossierClient({ dossier, checklist, modeleCvInitial = "classique
                 const tag = item.statut === "genere" ? "généré par l'IA" : item.statut === "presente" ? "dans le coffre" : item.statut === "a_generer" ? "génération en cours" : "à fournir";
                 return (
                   <li key={i} style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                    <div style={{ width: 20, height: 20, borderRadius: "50%", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", background: ok ? "rgba(124,58,237,0.15)" : "var(--bg)", border: `1px solid ${ok ? "rgba(124,58,237,0.4)" : "var(--border-strong, var(--border))"}`, color: ok ? VL : "var(--text-3)" }}>
+                    <div style={{ width: 20, height: 20, borderRadius: "50%", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", background: ok ? V : "var(--bg)", border: `1px solid ${ok ? V : "var(--border-strong, var(--border))"}`, color: ok ? "#fff" : "var(--text-3)" }}>
                       {ok ? <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
                         : <span style={{ width: 5, height: 5, borderRadius: "50%", background: "currentColor" }} />}
                     </div>
                     <span style={{ fontSize: "0.85rem", flex: 1, color: ok ? "var(--text)" : "var(--text-3)" }}>
                       {item.nom}{!item.obligatoire && <span style={{ marginLeft: 6, fontSize: "0.68rem", color: "var(--text-3)" }}>optionnel</span>}
                     </span>
-                    <span style={{ fontSize: "0.66rem", fontWeight: 600, color: ok ? VL : "var(--text-3)" }}>{tag}</span>
+                    <span style={{ fontSize: "0.66rem", fontWeight: 600, color: ok ? V : "var(--text-3)" }}>{tag}</span>
                   </li>
                 );
               })}
@@ -284,22 +300,44 @@ export function DossierClient({ dossier, checklist, modeleCvInitial = "classique
           </div>
         )}
 
-        {/* Compléter mes pièces personnelles */}
+        {/* Compléter mes pièces personnelles — dépôt direct, une zone par document */}
         {piecesManquantes.length > 0 && (
           <div style={{ borderRadius: 14, padding: "14px 18px", marginBottom: 14, background: "var(--bg-card)", border: "1px solid var(--border)" }}>
             <p style={{ fontSize: "0.82rem", fontWeight: 700, color: "var(--text)", marginBottom: 4 }}>Compléter mes pièces personnelles</p>
-            <p style={{ fontSize: "0.75rem", color: "var(--text-3)", marginBottom: 10 }}>Ces pièces ne se génèrent pas : ajoute-les à ton coffre-fort.</p>
-            <ul style={{ display: "flex", flexDirection: "column", gap: 6, marginBottom: 10 }}>
-              {piecesManquantes.map((p, i) => (
-                <li key={i} style={{ fontSize: "0.82rem", color: "var(--text-2)", display: "flex", alignItems: "center", gap: 8 }}>
-                  <span style={{ width: 5, height: 5, borderRadius: "50%", background: "var(--text-3)", flexShrink: 0 }} />
-                  {p.nom}
-                </li>
-              ))}
-            </ul>
-            <Link href="/coffre-fort" style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "8px 14px", borderRadius: 10, background: "rgba(124,58,237,0.12)", border: "1px solid rgba(124,58,237,0.3)", color: VL, fontSize: "0.8rem", fontWeight: 600, textDecoration: "none" }}>
-              Ouvrir mon coffre-fort
-            </Link>
+            <p style={{ fontSize: "0.75rem", color: "var(--text-3)", marginBottom: 12 }}>Ces pièces ne se génèrent pas : déposez-les directement ici.</p>
+            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+              {piecesManquantes.map((p) => {
+                const i = checklist.indexOf(p);
+                const info = uploadInfo[i];
+                return (
+                  <div key={i} style={{ borderRadius: 12, padding: "12px 14px", background: "var(--bg)", border: "1px solid var(--border)" }}>
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10 }}>
+                      <span style={{ fontSize: "0.82rem", fontWeight: 600, color: "var(--text)" }}>{p.nom}</span>
+                      <button
+                        onClick={() => fileRefs.current[i]?.click()}
+                        disabled={info?.uploading}
+                        style={{
+                          flexShrink: 0, padding: "7px 14px", borderRadius: 9, border: "none", cursor: info?.uploading ? "default" : "pointer",
+                          background: V, color: "#fff", fontSize: "0.76rem", fontWeight: 600, opacity: info?.uploading ? 0.7 : 1,
+                        }}
+                      >
+                        {info?.uploading ? "Dépôt…" : "Choisir un fichier"}
+                      </button>
+                      <input
+                        ref={(el) => { fileRefs.current[i] = el; }}
+                        type="file"
+                        accept=".pdf,.jpg,.jpeg,.png,.webp"
+                        className="hidden"
+                        onChange={(e) => { const f = e.target.files?.[0]; if (f) void televerserPiece(i, p.typeDoc ?? "AUTRE", f); e.target.value = ""; }}
+                      />
+                    </div>
+                    <p style={{ fontSize: "0.68rem", color: "var(--text-3)", marginTop: 4 }}>PDF, JPEG ou PNG · Max 10 Mo</p>
+                    {info?.erreur && <p style={{ fontSize: "0.72rem", color: "#ef4444", marginTop: 6, fontWeight: 600 }}>{info.erreur}</p>}
+                    {info?.ok && <p style={{ fontSize: "0.72rem", color: "#22c55e", marginTop: 6, fontWeight: 600 }}>Déposé — extraction en cours…</p>}
+                  </div>
+                );
+              })}
+            </div>
           </div>
         )}
 
@@ -310,8 +348,8 @@ export function DossierClient({ dossier, checklist, modeleCvInitial = "classique
               {docs.map((d) => (
                 <button key={d.id} onClick={() => setActifId(d.id)} style={{
                   flex: "1 0 auto", padding: "12px 16px", fontSize: "0.8rem", fontWeight: 600, whiteSpace: "nowrap",
-                  background: actifId === d.id ? "rgba(124,58,237,0.1)" : "transparent",
-                  color: actifId === d.id ? VL : "var(--text-3)", border: "none",
+                  background: actifId === d.id ? V : "transparent",
+                  color: actifId === d.id ? "#fff" : "var(--text-3)", border: "none",
                   borderBottom: actifId === d.id ? `2px solid ${V}` : "2px solid transparent", cursor: "pointer",
                 }}>{d.label}</button>
               ))}
@@ -331,7 +369,7 @@ export function DossierClient({ dossier, checklist, modeleCvInitial = "classique
               <div style={{ display: "flex", gap: 8 }}>
                 <button onClick={() => navigator.clipboard.writeText(contenuActif)} style={{ padding: "7px 14px", borderRadius: 9, fontSize: "0.78rem", fontWeight: 600, background: "var(--bg)", border: "1px solid var(--border)", color: "var(--text-2)", cursor: "pointer" }}>Copier</button>
                 {!verrouille && (
-                  <button onClick={sauvegarder} disabled={saving} style={{ padding: "7px 18px", borderRadius: 9, fontSize: "0.78rem", fontWeight: 600, background: "rgba(124,58,237,0.2)", border: "1px solid rgba(124,58,237,0.4)", color: VL, cursor: saving ? "default" : "pointer", opacity: saving ? 0.6 : 1 }}>
+                  <button onClick={sauvegarder} disabled={saving} style={{ padding: "7px 18px", borderRadius: 9, fontSize: "0.78rem", fontWeight: 600, background: V, border: "none", color: "#fff", cursor: saving ? "default" : "pointer", opacity: saving ? 0.6 : 1 }}>
                     {saving ? "Enregistrement…" : savedOk ? "Sauvegardé ✓" : "Sauvegarder"}
                   </button>
                 )}
@@ -344,7 +382,7 @@ export function DossierClient({ dossier, checklist, modeleCvInitial = "classique
           </div>
         )}
 
-        {erreur && <div style={{ borderRadius: 10, padding: "11px 16px", marginBottom: 14, background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.25)", color: "#fca5a5", fontSize: "0.82rem" }}>{erreur}</div>}
+        {erreur && <div style={{ borderRadius: 10, padding: "11px 16px", marginBottom: 14, background: "#ef4444", color: "#fff", fontSize: "0.82rem", fontWeight: 600 }}>{erreur}</div>}
 
         {/* Choix du modèle de CV (mise en page du PDF, sans changer le contenu) */}
         {aUnCv && (
@@ -360,12 +398,12 @@ export function DossierClient({ dossier, checklist, modeleCvInitial = "classique
                     disabled={modeleSaving}
                     style={{
                       padding: "10px 8px", borderRadius: 11, textAlign: "left", cursor: modeleSaving ? "default" : "pointer",
-                      background: actif ? "rgba(124,58,237,0.14)" : "var(--bg-card)",
-                      border: actif ? "1.5px solid rgba(124,58,237,0.5)" : "1px solid var(--border)",
+                      background: actif ? V : "var(--bg-card)",
+                      border: actif ? `1.5px solid ${V}` : "1px solid var(--border)",
                     }}
                   >
-                    <span style={{ display: "block", fontSize: "0.78rem", fontWeight: 700, color: actif ? VL : "var(--text)" }}>{m.label}</span>
-                    <span style={{ display: "block", fontSize: "0.68rem", color: "var(--text-3)", marginTop: 2, lineHeight: 1.3 }}>{m.description}</span>
+                    <span style={{ display: "block", fontSize: "0.78rem", fontWeight: 700, color: actif ? "#fff" : "var(--text)" }}>{m.label}</span>
+                    <span style={{ display: "block", fontSize: "0.68rem", color: actif ? "rgba(255,255,255,0.75)" : "var(--text-3)", marginTop: 2, lineHeight: 1.3 }}>{m.description}</span>
                   </button>
                 );
               })}

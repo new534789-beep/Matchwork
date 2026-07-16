@@ -7,13 +7,13 @@ import { DossierClient } from "./DossierClient";
 type Props = { params: Promise<{ id: string }> };
 
 // Mots-clés pour matcher une pièce personnelle exigée à un type de document du coffre-fort.
+// Les clés doivent correspondre EXACTEMENT aux types acceptés par POST /api/documents
+// (TYPES_DOC_VALIDES dans app/api/documents/route.ts), sinon le dépôt échoue.
 const TYPES_MATCHING: Record<string, string[]> = {
   DIPLOME: ["diplôme", "diplome", "licence", "master", "doctorat", "bac", "certificat", "attestation"],
   RELEVE_NOTES: ["relevé", "releve", "notes", "bulletin", "transcrit", "transcript", "académique", "academique"],
-  CV: ["cv", "curriculum", "vitae", "resume", "résumé"],
-  LETTRE_RECOMMANDATION: ["recommandation", "référence", "reference", "tuteur", "directeur"],
-  PASSEPORT: ["passeport", "passport", "identité", "identite", "carte nationale", "cni", "pièce d'identité"],
-  PHOTO: ["photo", "photographie", "portrait"],
+  LETTRE_RECO: ["recommandation", "référence", "reference", "tuteur", "directeur"],
+  PIECE_IDENTITE: ["passeport", "passport", "identité", "identite", "carte nationale", "cni", "pièce d'identité"],
   ACTE_NAISSANCE: ["naissance", "acte de naissance", "extrait de naissance"],
   JUSTIFICATIF_LANGUE: ["langue", "delf", "dalf", "ielts", "toefl", "tcf"],
 };
@@ -45,6 +45,8 @@ export type ChecklistItem = {
   obligatoire: boolean;
   categorie: "generable" | "personnel";
   statut: "genere" | "a_generer" | "presente" | "manquante";
+  /** Type à utiliser pour le dépôt (POST /api/documents) — uniquement pour categorie "personnel". */
+  typeDoc?: string;
 };
 
 type PieceReq = { nom: string; obligatoire?: boolean; categorie?: string; type?: string };
@@ -101,7 +103,7 @@ export default async function DossierPage({ params }: Props) {
   for (const p of pieces.filter((x) => x.categorie !== "generable")) {
     const type = matchType(p.nom);
     const trouve = type ? coffretypes.has(type) : false;
-    checklist.push({ nom: p.nom, obligatoire: p.obligatoire ?? true, categorie: "personnel", statut: trouve ? "presente" : "manquante" });
+    checklist.push({ nom: p.nom, obligatoire: p.obligatoire ?? true, categorie: "personnel", statut: trouve ? "presente" : "manquante", typeDoc: type ?? "AUTRE" });
   }
 
   return (

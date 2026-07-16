@@ -58,7 +58,7 @@ export async function POST(_req: Request, { params }: Props) {
   try {
     const pieces = JSON.parse(dossier.opportunite.piecesExigees) as PieceReq[];
     documentsAGenerer = (Array.isArray(pieces) ? pieces : [])
-      .filter((p) => p && p.categorie === "generable")
+      .filter((p) => p && p.categorie === "generable" && p.type !== "lettre_reco")
       .map((p) => ({ type: (p.type || "lettre").toString(), nom: (p.nom || p.type || "Document").toString() }));
   } catch {
     documentsAGenerer = [];

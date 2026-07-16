@@ -120,7 +120,7 @@ export async function POST(req: Request) {
     try { piecesArray = JSON.parse(opportunite.piecesExigees) as PieceReq[]; } catch { piecesArray = []; }
 
     let documentsAGenerer: { type: string; nom: string }[] = (Array.isArray(piecesArray) ? piecesArray : [])
-      .filter((p) => p && p.categorie === "generable")
+      .filter((p) => p && p.categorie === "generable" && p.type !== "lettre_reco")
       .map((p) => ({ type: (p.type || "lettre").toString(), nom: (p.nom || p.type || "Document").toString() }));
     if (documentsAGenerer.length === 0) {
       if (opportunite.type === "APPEL_PROJET") {
