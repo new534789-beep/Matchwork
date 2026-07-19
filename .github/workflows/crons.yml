@@ -1,0 +1,39 @@
+name: Crons Matchwork
+
+on:
+  schedule:
+    # Dispatcher (ingestion RSS) — 1x/jour à 6h UTC
+    - cron: "0 6 * * *"
+    # Enrichissement IA — toutes les 2h
+    - cron: "0 0,2,4,6,8,10,12,14,16,18,20,22 * * *"
+    # Auto-validation — toutes les 4h (décalé de 1h)
+    - cron: "0 1,5,9,13,17,21 * * *"
+  workflow_dispatch:
+
+jobs:
+  dispatcher:
+    if: github.event_name == 'workflow_dispatch' || github.event.schedule == '0 6 * * *'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Appeler /api/cron/dispatcher
+        run: |
+          curl -sf -X GET "https://matchworks.app/api/cron/dispatcher" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}"
+
+  enrichir:
+    if: github.event_name == 'workflow_dispatch' || github.event.schedule == '0 0,2,4,6,8,10,12,14,16,18,20,22 * * *'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Appeler /api/cron/enrichir
+        run: |
+          curl -sf -X GET "https://matchworks.app/api/cron/enrichir?limite=25" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}"
+
+  auto-validation:
+    if: github.event_name == 'workflow_dispatch' || github.event.schedule == '0 1,5,9,13,17,21 * * *'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Appeler /api/cron/auto-validation
+        run: |
+          curl -sf -X GET "https://matchworks.app/api/cron/auto-validation?limite=60" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}"
