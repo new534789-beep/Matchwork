@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist } from "next/font/google";
 import { ThemeProvider } from "@/lib/theme/ThemeContext";
+import { GenerationProvider } from "@/lib/generation/GenerationContext";
 import { getSiteUrl } from "@/lib/site-url";
 import "./globals.css";
 
@@ -34,11 +35,11 @@ const ORGANIZATION_JSONLD = {
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: "Matchwork — Bourses, emplois et dossiers de candidature en Afrique de l'Ouest",
+    default: "Matchwork — Bourses et emplois en Afrique de l'Ouest",
     template: "%s | Matchwork",
   },
   description:
-    "Trouvez des bourses d'études, offres d'emploi et opportunités adaptées à votre profil, et générez votre dossier de candidature (CV, lettre) avec l'IA. Pour l'Afrique de l'Ouest.",
+    "Trouvez bourses, emplois et stages adaptés à votre profil, et générez votre CV et lettre de motivation avec l'IA. Pour l'Afrique de l'Ouest.",
   applicationName: "Matchwork",
   keywords: [
     "bourses d'études", "bourses Afrique de l'Ouest", "offres d'emploi",
@@ -86,7 +87,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body className="font-sans antialiased min-h-full flex flex-col">
         <ThemeProvider>
-          {children}
+          <GenerationProvider>
+            {children}
+          </GenerationProvider>
         </ThemeProvider>
       </body>
     </html>

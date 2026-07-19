@@ -12,6 +12,7 @@
 import { prisma } from "@/lib/prisma";
 import { STATUTS_EN_FILE } from "@/lib/opportunites";
 import { detecterBlog } from "@/lib/ia/detection-blog";
+import { notifierOpportunitePubliee } from "@/lib/blog/notifier-make";
 
 export type RapportValidation = {
   traitees: number;
@@ -231,6 +232,8 @@ export async function validerAutomatiquement(options?: { limite?: number }): Pro
       source: true,
       dateLimite: true,
       confianceDateLimite: true,
+      pays: true,
+      slug: true,
     },
   });
 
@@ -259,8 +262,10 @@ export async function validerAutomatiquement(options?: { limite?: number }): Pro
         },
       });
 
-      if (decision.action === "publiee") rapport.publiees++;
-      else rapport.rejetees++;
+      if (decision.action === "publiee") {
+        rapport.publiees++;
+        notifierOpportunitePubliee(opp);
+      } else rapport.rejetees++;
 
       rapport.details.push({
         id: opp.id,
@@ -307,11 +312,6 @@ export async function nettoyerOffresIncoherentes(): Promise<{
 
   for (const opp of publiees) {
     let raison: string | null = intituleGenerique(opp.intitule);
-
-    if (!raison && !opp.source.startsWith("ATS:")) {
-      const blog = await estContenuBlog(opp.intitule, opp.description);
-      if (blog) raison = blog;
-    }
 
     if (!raison) {
       const coherence = verifierCoherence(opp.type, opp.intitule, opp.description);

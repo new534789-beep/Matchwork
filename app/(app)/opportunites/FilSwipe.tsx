@@ -3,6 +3,7 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { CouvertureOffre } from "@/components/opportunites/CouvertureOffre";
+import { useGeneration } from "@/lib/generation/GenerationContext";
 
 type PieceExigee = { nom: string; obligatoire: boolean };
 
@@ -124,6 +125,23 @@ function IconCheck({ size = 14 }: { size?: number }) {
   );
 }
 
+function IconRecherche({ size = 16 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="11" cy="11" r="7" />
+      <line x1="21" y1="21" x2="16.65" y2="16.65" />
+    </svg>
+  );
+}
+
+function IconEffacer({ size = 14 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.2} strokeLinecap="round">
+      <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+    </svg>
+  );
+}
+
 type Toast = { id: string; intitule: string; statut: "loading" | "ok" | "erreur"; dossierId?: string };
 
 type GateSupplementaire = { lien: string; titre: string; sousTitre: string };
@@ -138,6 +156,7 @@ export function FilSwipe({
   gateSupplementaire?: GateSupplementaire;
 }) {
   const router = useRouter();
+  const { demarrer, terminer } = useGeneration();
   const [pile, setPile] = useState<Opportunite[]>(initial);
   const [sortante, setSortante] = useState<{ id: string; direction: "gauche" | "droite" } | null>(null);
   const [glissement, setGlissement] = useState(0);
@@ -145,22 +164,34 @@ export function FilSwipe({
   const [loadingTraduction, setLoadingTraduction] = useState(false);
   const [toasts, setToasts] = useState<Toast[]>([]);
   const [demanderProfil, setDemanderProfil] = useState(false);
+  const [incompatibilite, setIncompatibilite] = useState<{ intitule: string; raison: string } | null>(null);
+  const [verificationEnCours, setVerificationEnCours] = useState(false);
+  const [recherche, setRecherche] = useState("");
   const dragging = useRef(false);
   const startX = useRef(0);
   const cardRef = useRef<HTMLDivElement>(null);
 
-  const actuelle = pile[0] ?? null;
+  const termeRecherche = recherche.trim().toLowerCase();
+  const pileFiltree = termeRecherche
+    ? pile.filter((o) =>
+        `${o.intitule} ${o.organisme} ${o.description}`.toLowerCase().includes(termeRecherche)
+      )
+    : pile;
+
+  const actuelle = pileFiltree[0] ?? null;
 
   const enregistrerDecision = useCallback(async (id: string, decision: "interesse" | "ignore") => {
-    await fetch(`/api/opportunites/${id}/interaction`, {
+    const res = await fetch(`/api/opportunites/${id}/interaction`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ decision }),
     });
+    return res.json() as Promise<{ incompatible?: boolean; raison?: string }>;
   }, []);
 
   const genererEnArrierePlan = useCallback(async (opportunite: Opportunite) => {
     if (opportunite.type === "APPEL_PROJET") {
+      demarrer();
       try {
         const res = await fetch("/api/dossiers/generer", {
           method: "POST",
@@ -172,11 +203,13 @@ export function FilSwipe({
           router.push(`/dossiers/${data.dossierId}/brief-projet`);
         }
       } catch { /* ignore */ }
+      finally { terminer(); }
       return;
     }
 
     const toastId = opportunite.id;
     setToasts((prev) => [...prev, { id: toastId, intitule: opportunite.intitule, statut: "loading" }]);
+    demarrer();
     try {
       const res = await fetch("/api/dossiers/generer", {
         method: "POST",
@@ -193,12 +226,14 @@ export function FilSwipe({
       }
     } catch {
       setToasts((prev) => prev.map((t) => t.id === toastId ? { ...t, statut: "erreur" as const } : t));
+    } finally {
+      terminer();
     }
     setTimeout(() => setToasts((prev) => prev.filter((t) => t.id !== toastId)), 6000);
-  }, [router]);
+  }, [router, demarrer, terminer]);
 
   const passer = useCallback(
-    (direction: "gauche" | "droite") => {
+    async (direction: "gauche" | "droite") => {
       if (!actuelle) return;
       if (direction === "droite" && !profilComplet) {
         // Pas de redirection immédiate : popup Matchwork, la carte reste en place.
@@ -210,16 +245,37 @@ export function FilSwipe({
         router.push(gateSupplementaire.lien);
         return;
       }
+
       const decision = direction === "droite" ? "interesse" : "ignore";
-      setSortante({ id: actuelle.id, direction });
-      enregistrerDecision(actuelle.id, decision);
+
+      // Sur « intéressé » : on vérifie la compatibilité profil/offre AVANT de
+      // faire voler la carte — si décalage évident, on bloque et on explique,
+      // la carte reste en place (comme pour le profil incomplet).
       if (direction === "droite") {
+        setVerificationEnCours(true);
+        let resultat: { incompatible?: boolean; raison?: string };
+        try {
+          resultat = await enregistrerDecision(actuelle.id, decision);
+        } catch {
+          resultat = {};
+        }
+        setVerificationEnCours(false);
+        if (resultat.incompatible) {
+          setIncompatibilite({ intitule: actuelle.intitule, raison: resultat.raison ?? "Cette offre ne semble pas correspondre à votre profil." });
+          setGlissement(0);
+          return;
+        }
         genererEnArrierePlan(actuelle);
+      } else {
+        enregistrerDecision(actuelle.id, decision);
       }
+
+      const idSortant = actuelle.id;
+      setSortante({ id: idSortant, direction });
       setGlissement(0);
       setTraduction(null);
       setTimeout(() => {
-        setPile((prev) => prev.slice(1));
+        setPile((prev) => prev.filter((o) => o.id !== idSortant));
         setSortante(null);
       }, 340);
     },
@@ -277,21 +333,69 @@ export function FilSwipe({
     }
   };
 
-  if (!actuelle) {
-    return (
-      <div className="flex flex-col items-center justify-center py-24 text-center px-6">
-        <div
-          className="w-16 h-16 rounded-2xl flex items-center justify-center mb-5"
-          style={{ background: "var(--bg)", border: "1px solid var(--border)" }}
+  const barreRecherche = (
+    <div className="w-full max-w-xl mx-auto mb-4" style={{ position: "relative" }}>
+      <span style={{ position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)", color: "var(--text-3)", display: "flex", pointerEvents: "none" }}>
+        <IconRecherche size={16} />
+      </span>
+      <input
+        type="text"
+        value={recherche}
+        onChange={(e) => setRecherche(e.target.value)}
+        placeholder="Rechercher une offre, un organisme..."
+        style={{
+          width: "100%", padding: "11px 40px 11px 40px", borderRadius: 14,
+          background: "var(--bg-card)", border: "1px solid var(--border)",
+          color: "var(--text)", fontSize: "0.88rem", outline: "none",
+        }}
+      />
+      {recherche && (
+        <button
+          onClick={() => setRecherche("")}
+          aria-label="Effacer la recherche"
+          style={{
+            position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)",
+            width: 26, height: 26, borderRadius: "50%", border: "none", cursor: "pointer",
+            background: "var(--bg)", color: "var(--text-3)",
+            display: "flex", alignItems: "center", justifyContent: "center",
+          }}
         >
-          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M9 12l2 2 4-4" /><circle cx="12" cy="12" r="10" />
-          </svg>
+          <IconEffacer size={12} />
+        </button>
+      )}
+    </div>
+  );
+
+  if (!actuelle) {
+    const rechercheSansResultat = termeRecherche.length > 0 && pile.length > 0;
+    return (
+      <div className="w-full max-w-xl mx-auto">
+        {barreRecherche}
+        <div className="flex flex-col items-center justify-center py-24 text-center px-6">
+          <div
+            className="w-16 h-16 rounded-2xl flex items-center justify-center mb-5"
+            style={{ background: "var(--bg)", border: "1px solid var(--border)" }}
+          >
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M9 12l2 2 4-4" /><circle cx="12" cy="12" r="10" />
+            </svg>
+          </div>
+          {rechercheSansResultat ? (
+            <>
+              <p className="font-semibold mb-2" style={{ color: "var(--text)" }}>Aucune offre ne correspond</p>
+              <p className="text-sm" style={{ color: "var(--text-3)" }}>
+                Essayez un autre mot-clé, ou effacez la recherche.
+              </p>
+            </>
+          ) : (
+            <>
+              <p className="font-semibold mb-2" style={{ color: "var(--text)" }}>Vous avez tout vu !</p>
+              <p className="text-sm" style={{ color: "var(--text-3)" }}>
+                Revenez bientôt pour de nouvelles offres,<br />ou collez une offre manuellement.
+              </p>
+            </>
+          )}
         </div>
-        <p className="font-semibold mb-2" style={{ color: "var(--text)" }}>Vous avez tout vu !</p>
-        <p className="text-sm" style={{ color: "var(--text-3)" }}>
-          Revenez bientôt pour de nouvelles offres,<br />ou collez une offre manuellement.
-        </p>
       </div>
     );
   }
@@ -320,14 +424,17 @@ export function FilSwipe({
 
   return (
     <div className="w-full max-w-xl mx-auto select-none">
+      {barreRecherche}
       <p className="text-xs text-center mb-4" style={{ color: "var(--text-3)" }}>
-        {pile.length} {pile.length === 1 ? "offre restante" : "offres restantes"}
+        {termeRecherche
+          ? `${pileFiltree.length} ${pileFiltree.length === 1 ? "résultat" : "résultats"}`
+          : `${pile.length} ${pile.length === 1 ? "offre restante" : "offres restantes"}`}
       </p>
 
       {/* Pile de cartes */}
       <div style={{ position: "relative", height: "520px" }}>
         {/* Carte 3ème niveau */}
-        {pile[2] && (
+        {pileFiltree[2] && (
           <div
             style={{
               position: "absolute", inset: 0, borderRadius: "20px",
@@ -340,7 +447,7 @@ export function FilSwipe({
         )}
 
         {/* Carte en dessous — remonte quand sortante est active */}
-        {pile[1] && (
+        {pileFiltree[1] && (
           <div
             className={sortante ? "swipe-card-enter" : undefined}
             style={{
@@ -731,6 +838,66 @@ export function FilSwipe({
               </button>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Popup d'incompatibilité profil/offre — bloque la candidature quand le
+          décalage est évident (ex. profil génie civil sur une offre de peintre),
+          détecté au moment du swipe droite avant toute génération de dossier. */}
+      {incompatibilite && (
+        <div
+          role="dialog"
+          aria-label="Offre non adaptée à votre profil"
+          onClick={() => setIncompatibilite(null)}
+          style={{
+            position: "fixed", inset: 0, zIndex: 200,
+            background: "rgba(10,6,20,0.55)", backdropFilter: "blur(4px)", WebkitBackdropFilter: "blur(4px)",
+            display: "flex", alignItems: "center", justifyContent: "center", padding: 20,
+          }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              maxWidth: 380, width: "100%", borderRadius: 22, padding: "28px 24px 24px",
+              background: "var(--bg-card)", border: "1px solid var(--border)",
+              boxShadow: "0 30px 70px -15px rgba(31,16,64,0.45)", textAlign: "center",
+            }}
+          >
+            <div style={{
+              width: 56, height: 56, margin: "0 auto 16px", borderRadius: 16,
+              background: "rgba(239,68,68,0.12)",
+              display: "flex", alignItems: "center", justifyContent: "center",
+            }}>
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#ef4444" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" />
+              </svg>
+            </div>
+            <p style={{ fontWeight: 700, fontSize: "1.05rem", color: "var(--text)", marginBottom: 8 }}>
+              Cette offre ne correspond pas à votre profil
+            </p>
+            <p style={{ fontSize: "0.85rem", color: "var(--text-2)", lineHeight: 1.6, marginBottom: 22 }}>
+              {incompatibilite.raison}
+            </p>
+            <button
+              onClick={() => setIncompatibilite(null)}
+              style={{
+                width: "100%", padding: "12px 0", borderRadius: 12, border: "none", cursor: "pointer",
+                background: "linear-gradient(135deg,#7c3aed,#5b21b6)", color: "#fff",
+                fontWeight: 600, fontSize: "0.9rem",
+                boxShadow: "0 6px 18px rgba(124,58,237,0.35)",
+              }}
+            >
+              Compris, continuer à parcourir
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Voile discret pendant la vérification de compatibilité (rapide, IA légère) */}
+      {verificationEnCours && (
+        <div style={{ position: "fixed", bottom: 20, left: "50%", transform: "translateX(-50%)", zIndex: 150, padding: "8px 16px", borderRadius: 12, background: "var(--bg-card)", border: "1px solid var(--border)", boxShadow: "0 8px 24px rgba(0,0,0,0.2)", display: "flex", alignItems: "center", gap: 8 }}>
+          <div style={{ width: 14, height: 14, borderRadius: "50%", border: "2px solid rgba(124,58,237,0.3)", borderTopColor: "#a78bfa", animation: "spin 0.8s linear infinite" }} />
+          <span style={{ fontSize: "0.78rem", color: "var(--text-2)", fontWeight: 600 }}>Vérification…</span>
         </div>
       )}
     </div>

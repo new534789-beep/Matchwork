@@ -22,6 +22,12 @@ export const CHEMINS_IGNORES = [
   "/feed", "/wp-login", "/wp-admin", "/about", "/a-propos", "/contact",
   "/privacy", "/confidentialite", "/terms", "/mentions", "/login", "/register",
   "/search", "/recherche", "/cart", "/panier", "/subscribe", "/newsletter",
+  // Pages institutionnelles/vitrine — décrivent l'organisme, pas une offre précise
+  // à candidater (ex. "what-we-do", bio d'un employé, page stratégie/recherche).
+  "/what-we-do", "/who-we-are", "/qui-sommes-nous", "/notre-strategie",
+  "/our-strategy", "/our-research", "/where-we-work", "/impact-stories",
+  "/people/", "/team/", "/equipe/", "/faq", "/frequently-asked-questions",
+  "/careers", "/jobs", "/stellenangebote",
 ];
 
 const TITRES_NON_PERTINENTS = [
