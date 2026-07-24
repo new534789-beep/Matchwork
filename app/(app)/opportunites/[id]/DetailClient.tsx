@@ -62,6 +62,7 @@ export function DetailClient({
   );
 
   const [toastPartage, setToastPartage] = useState(false);
+  const [incompatibilite, setIncompatibilite] = useState<string | null>(null);
 
   const estEtranger = opportunite.langueDetectee && opportunite.langueDetectee !== "fr";
 
@@ -69,11 +70,16 @@ export function DetailClient({
     if (decision === "interesse" || loadingDecision) return;
     setLoadingDecision(true);
     try {
-      await fetch(`/api/opportunites/${opportunite.id}/interaction`, {
+      const resInteraction = await fetch(`/api/opportunites/${opportunite.id}/interaction`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ decision: "interesse" }),
       });
+      const dataInteraction = await resInteraction.json() as { incompatible?: boolean; raison?: string };
+      if (dataInteraction.incompatible) {
+        setIncompatibilite(dataInteraction.raison ?? "Cette offre ne semble pas correspondre à votre profil.");
+        return;
+      }
       setDecision("interesse");
       setGeneration("loading");
       setErreurGen(null);
@@ -508,6 +514,56 @@ export function DetailClient({
           maxWidth: 340,
         }}>
           Texte copié ! Collez-le dans votre message.
+        </div>
+      )}
+
+      {/* Popup d'incompatibilité profil/offre — même contrôle que sur le fil de swipe */}
+      {incompatibilite && (
+        <div
+          role="dialog"
+          aria-label="Offre non adaptée à votre profil"
+          onClick={() => setIncompatibilite(null)}
+          style={{
+            position: "fixed", inset: 0, zIndex: 200,
+            background: "rgba(10,6,20,0.55)", backdropFilter: "blur(4px)", WebkitBackdropFilter: "blur(4px)",
+            display: "flex", alignItems: "center", justifyContent: "center", padding: 20,
+          }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              maxWidth: 380, width: "100%", borderRadius: 22, padding: "28px 24px 24px",
+              background: "var(--bg-card)", border: "1px solid var(--border)",
+              boxShadow: "0 30px 70px -15px rgba(31,16,64,0.45)", textAlign: "center",
+            }}
+          >
+            <div style={{
+              width: 56, height: 56, margin: "0 auto 16px", borderRadius: 16,
+              background: "rgba(239,68,68,0.12)",
+              display: "flex", alignItems: "center", justifyContent: "center",
+            }}>
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#ef4444" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" />
+              </svg>
+            </div>
+            <p style={{ fontWeight: 700, fontSize: "1.05rem", color: "var(--text)", marginBottom: 8 }}>
+              Cette offre ne correspond pas à votre profil
+            </p>
+            <p style={{ fontSize: "0.85rem", color: "var(--text-2)", lineHeight: 1.6, marginBottom: 22 }}>
+              {incompatibilite}
+            </p>
+            <button
+              onClick={() => setIncompatibilite(null)}
+              style={{
+                width: "100%", padding: "12px 0", borderRadius: 12, border: "none", cursor: "pointer",
+                background: "linear-gradient(135deg,#7c3aed,#5b21b6)", color: "#fff",
+                fontWeight: 600, fontSize: "0.9rem",
+                boxShadow: "0 6px 18px rgba(124,58,237,0.35)",
+              }}
+            >
+              Compris
+            </button>
+          </div>
         </div>
       )}
 

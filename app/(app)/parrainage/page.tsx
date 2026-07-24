@@ -11,6 +11,8 @@ export default function Parrainage() {
   const [code, setCode] = useState("");
   const [stats, setStats] = useState<Stats>({ total: 0, inscrits: 0, actifs: 0 });
   const [parrainages, setParrainages] = useState<ParrainageItem[]>([]);
+  const [generationsBonus, setGenerationsBonus] = useState(0);
+  const [bonusParFilleul, setBonusParFilleul] = useState(3);
   const [loading, setLoading] = useState(true);
   const [copie, setCopie] = useState(false);
   const [codeInput, setCodeInput] = useState("");
@@ -23,6 +25,8 @@ export default function Parrainage() {
         setCode(data.code || "");
         setStats(data.stats || { total: 0, inscrits: 0, actifs: 0 });
         setParrainages(data.parrainages || []);
+        setGenerationsBonus(data.generationsBonus ?? 0);
+        setBonusParFilleul(data.bonusParFilleul ?? 3);
       })
       .finally(() => setLoading(false));
   }, []);
@@ -34,7 +38,7 @@ export default function Parrainage() {
   };
 
   const partager = async () => {
-    const texte = `Rejoins Matchwork et trouve des bourses adaptées à ton profil ! Utilise mon code ${code} pour t'inscrire : https://matchwork-seven.vercel.app/inscription?ref=${code}`;
+    const texte = `Rejoins Matchwork et trouve des bourses adaptées à ton profil ! Utilise mon code ${code} pour t'inscrire, ça me donne ${bonusParFilleul} générations bonus : https://matchwork-seven.vercel.app/inscription?ref=${code}`;
     if (navigator.share) {
       await navigator.share({ title: "Matchwork — Parrainage", text: texte });
     } else {
@@ -83,7 +87,7 @@ export default function Parrainage() {
         <div className="mb-6">
           <h1 className="text-xl font-bold" style={{ color: "var(--text)" }}>Invitez vos amis</h1>
           <p className="text-sm mt-1" style={{ color: "var(--text-2)" }}>
-            Partagez votre code et gagnez des avantages quand vos filleuls s&apos;inscrivent.
+            Partagez votre code : chaque ami inscrit vous offre {bonusParFilleul} générations de dossiers bonus, utilisables même une fois votre quota gratuit du jour épuisé.
           </p>
         </div>
 
@@ -123,6 +127,14 @@ export default function Parrainage() {
           {/* Statistiques */}
           <Carte>
             <h2 className="font-semibold text-sm mb-4" style={{ color: "var(--text)" }}>Mes filleuls</h2>
+            <div style={{
+              display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10,
+              padding: "12px 14px", borderRadius: 12, marginBottom: 14,
+              background: "rgba(124,58,237,0.08)", border: "1px solid rgba(124,58,237,0.2)",
+            }}>
+              <span style={{ fontSize: "0.8rem", fontWeight: 600, color: "var(--text)" }}>Générations bonus disponibles</span>
+              <span style={{ fontSize: "1.2rem", fontWeight: 800, color: "#7c3aed" }}>{generationsBonus}</span>
+            </div>
             <div className="grid grid-cols-3 gap-3">
               {[
                 { label: "Invités", valeur: stats.total, couleur: "#7c3aed" },

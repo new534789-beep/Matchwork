@@ -57,7 +57,7 @@ export default async function DossierPage({ params }: Props) {
 
   const { id } = await params;
 
-  const [dossier, coffreDocs, profil] = await Promise.all([
+  const [dossier, coffreDocs, user] = await Promise.all([
     prisma.dossier.findUnique({
       where: { id },
       include: {
@@ -69,10 +69,11 @@ export default async function DossierPage({ params }: Props) {
           },
         },
         docsGeneres: true,
+        etapesPostObtention: { orderBy: { ordre: "asc" } },
       },
     }),
     prisma.document.findMany({ where: { userId: session.user.id }, select: { type: true } }),
-    prisma.profil.findUnique({ where: { userId: session.user.id }, select: { modeleCv: true } }),
+    prisma.user.findUnique({ where: { id: session.user.id }, select: { plan: true } }),
   ]);
 
   if (!dossier || dossier.userId !== session.user.id) notFound();
@@ -115,6 +116,9 @@ export default async function DossierPage({ params }: Props) {
             id: dossier.id,
             statut: dossier.statut,
             createdAt: dossier.createdAt.toISOString(),
+            updatedAt: dossier.updatedAt.toISOString(),
+            relanceEnvoyeeLe: dossier.relanceEnvoyeeLe?.toISOString() ?? null,
+            planPro: user?.plan === "pro" || user?.plan === "pro_plus",
             opportunite: {
               id: dossier.opportunite.id,
               intitule: dossier.opportunite.intitule,
@@ -128,9 +132,11 @@ export default async function DossierPage({ params }: Props) {
             docsGeneres: dossier.docsGeneres.map((d) => ({
               id: d.id, type: d.type, label: labelDoc(d.type), contenu: d.contenu, langue: d.langue,
             })),
+            etapesPostObtention: dossier.etapesPostObtention.map((e) => ({
+              id: e.id, texte: e.texte, lienGuide: e.lienGuide, fait: e.fait,
+            })),
           }}
           checklist={checklist}
-          modeleCvInitial={profil?.modeleCv === "sidebar" || profil?.modeleCv === "bandeau" ? profil.modeleCv : "classique"}
         />
       </main>
     </>

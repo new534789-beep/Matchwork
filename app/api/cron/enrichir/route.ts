@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { enrichirBrouillons } from "@/lib/ingestion/enrichissement";
 
-export const maxDuration = 60;
+export const maxDuration = 120;
 
 export async function GET(req: Request) {
   const secret = process.env.CRON_SECRET;

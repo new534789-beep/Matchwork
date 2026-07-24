@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { getProfilActif } from "@/lib/profil/actif";
 import { z } from "zod";
 
 // SQLite stocke les tableaux JSON comme des strings — helpers de sérialisation
@@ -25,9 +26,7 @@ export async function GET() {
     return NextResponse.json({ erreur: "Non authentifié" }, { status: 401 });
   }
 
-  const profil = await prisma.profil.findUnique({
-    where: { userId: session.user.id },
-  });
+  const profil = await getProfilActif(session.user.id);
 
   if (!profil) {
     return NextResponse.json({ erreur: "Profil introuvable" }, { status: 404 });
@@ -117,11 +116,10 @@ export async function PUT(req: NextRequest) {
       if (data[key] !== undefined) data[key] = serializeJson(data[key]);
     }
 
-    const profil = await prisma.profil.upsert({
-      where: { userId: session.user.id },
-      update: data,
-      create: { userId: session.user.id, ...data },
-    });
+    const actif = await getProfilActif(session.user.id);
+    const profil = actif
+      ? await prisma.profil.update({ where: { id: actif.id }, data })
+      : await prisma.profil.create({ data: { userId: session.user.id, ...data } });
 
     return NextResponse.json(parseProfil(profil as unknown as Record<string, unknown>));
   } catch (err) {

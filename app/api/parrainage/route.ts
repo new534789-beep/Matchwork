@@ -7,6 +7,11 @@ function genererCode(): string {
   return "MW-" + randomBytes(3).toString("hex").toUpperCase();
 }
 
+// Récompense de parrainage : générations bonus créditées au parrain, une
+// seule fois par filleul (empêché de se dupliquer par la contrainte
+// "dejaParraine" ci-dessous — un filleul ne peut utiliser qu'un seul code).
+const BONUS_PAR_FILLEUL = 3;
+
 export async function GET() {
   const session = await auth();
   if (!session?.user?.id) {
@@ -15,7 +20,7 @@ export async function GET() {
 
   let user = await prisma.user.findUnique({
     where: { id: session.user.id },
-    select: { codeParrainage: true },
+    select: { codeParrainage: true, generationsBonus: true },
   });
 
   if (!user?.codeParrainage) {
@@ -23,7 +28,7 @@ export async function GET() {
     user = await prisma.user.update({
       where: { id: session.user.id },
       data: { codeParrainage: code },
-      select: { codeParrainage: true },
+      select: { codeParrainage: true, generationsBonus: true },
     });
   }
 
@@ -43,6 +48,8 @@ export async function GET() {
     code: user!.codeParrainage,
     parrainages,
     stats,
+    generationsBonus: user!.generationsBonus,
+    bonusParFilleul: BONUS_PAR_FILLEUL,
   });
 }
 
@@ -77,14 +84,20 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ erreur: "Vous avez déjà utilisé un code de parrainage" }, { status: 400 });
   }
 
-  await prisma.parrainage.create({
-    data: {
-      parrainId: parrain.id,
-      filleulId: session.user.id,
-      code: code.toUpperCase().trim(),
-      statut: "inscrit",
-    },
-  });
+  await prisma.$transaction([
+    prisma.parrainage.create({
+      data: {
+        parrainId: parrain.id,
+        filleulId: session.user.id,
+        code: code.toUpperCase().trim(),
+        statut: "inscrit",
+      },
+    }),
+    prisma.user.update({
+      where: { id: parrain.id },
+      data: { generationsBonus: { increment: BONUS_PAR_FILLEUL } },
+    }),
+  ]);
 
-  return NextResponse.json({ ok: true, message: "Parrainage enregistré" });
+  return NextResponse.json({ ok: true, message: `Parrainage enregistré — votre parrain a reçu ${BONUS_PAR_FILLEUL} générations bonus.` });
 }

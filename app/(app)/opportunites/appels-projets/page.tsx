@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { EnteteApp } from "@/components/navigation/EnteteApp";
 import { FilSwipe } from "../FilSwipe";
 import { calculerScore } from "@/lib/matching/score";
+import { getProfilActifSelect } from "@/lib/profil/actif";
 
 export default async function FilAppelsProjets() {
   const session = await auth();
@@ -27,9 +28,8 @@ export default async function FilAppelsProjets() {
         exigenceLangue: true, dateLimite: true, lien: true, source: true,
       },
     }),
-    prisma.profil.findUnique({
-      where: { userId: session.user.id },
-      select: { complete: true, profilProjet: true, formations: true, experiences: true, competences: true, langues: true, objectifs: true, nationalite: true },
+    getProfilActifSelect(session.user.id, {
+      complete: true, profilProjet: true, formations: true, experiences: true, competences: true, langues: true, objectifs: true, nationalite: true,
     }),
   ]);
 

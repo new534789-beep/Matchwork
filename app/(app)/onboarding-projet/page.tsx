@@ -1,17 +1,14 @@
 import { auth } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import { EnteteApp } from "@/components/navigation/EnteteApp";
 import { ChatProjetGeneral } from "./ChatProjetGeneral";
+import { getProfilActifSelect } from "@/lib/profil/actif";
 
 export default async function OnboardingProjetPage() {
   const session = await auth();
   if (!session?.user?.id) redirect("/connexion");
 
-  const profil = await prisma.profil.findUnique({
-    where: { userId: session.user.id },
-    select: { profilProjet: true },
-  });
+  const profil = await getProfilActifSelect(session.user.id, { profilProjet: true });
 
   if (profil?.profilProjet) redirect("/opportunites/appels-projets");
 

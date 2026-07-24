@@ -17,8 +17,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${base}/`, lastModified: maintenant, changeFrequency: "weekly", priority: 1 },
     { url: `${base}/offres`, lastModified: maintenant, changeFrequency: "daily", priority: 0.9 },
     { url: `${base}/guides`, lastModified: maintenant, changeFrequency: "weekly", priority: 0.7 },
+    { url: `${base}/blog`, lastModified: maintenant, changeFrequency: "daily", priority: 0.7 },
     { url: `${base}/inscription`, lastModified: maintenant, changeFrequency: "monthly", priority: 0.7 },
     { url: `${base}/connexion`, lastModified: maintenant, changeFrequency: "monthly", priority: 0.4 },
+    { url: `${base}/legal/confidentialite`, lastModified: maintenant, changeFrequency: "yearly", priority: 0.2 },
+    { url: `${base}/legal/cookies`, lastModified: maintenant, changeFrequency: "yearly", priority: 0.2 },
   ];
 
   // Pages catégories publiques.
@@ -65,5 +68,24 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // En cas d'indisponibilité DB, on renvoie au moins les pages statiques.
   }
 
-  return [...statiques, ...categories, ...pays, ...guides, ...offres];
+  // Articles de blog publiés.
+  let articles: MetadataRoute.Sitemap = [];
+  try {
+    const rows = await prisma.article.findMany({
+      where: { statut: "publie" },
+      select: { slug: true, updatedAt: true },
+      orderBy: { updatedAt: "desc" },
+      take: 45000,
+    });
+    articles = rows.map((a) => ({
+      url: `${base}/blog/${a.slug}`,
+      lastModified: a.updatedAt,
+      changeFrequency: "weekly",
+      priority: 0.6,
+    }));
+  } catch {
+    // En cas d'indisponibilité DB, on renvoie au moins les pages statiques.
+  }
+
+  return [...statiques, ...categories, ...pays, ...guides, ...offres, ...articles];
 }

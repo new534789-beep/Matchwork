@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getAdminSession, journaliserActionAdmin } from "@/lib/admin";
 import { prisma } from "@/lib/prisma";
 import { TYPES_OPP } from "@/lib/opportunites";
+import { notifierOpportunitePubliee } from "@/lib/blog/notifier-make";
 
 // Ajout manuel d'une opportunité vérifiée → publiée directement (ne passe pas par la file).
 export async function POST(req: Request) {
@@ -39,6 +40,7 @@ export async function POST(req: Request) {
   });
 
   await journaliserActionAdmin(session.user!.id as string, "opportunite.creation", opp.id, { type, organisme, intitule });
+  notifierOpportunitePubliee(opp);
 
   return NextResponse.json({ ok: true, id: opp.id });
 }

@@ -14,6 +14,19 @@ async function getParser() {
 
 const MAX_ITEMS_PAR_SOURCE = 200;
 const MAX_ENRICH_PAR_PASSAGE = 700;
+const CONCURRENCE_SOURCES = 6;
+
+/** Exécute `tache` sur chaque élément avec au plus `limite` exécutions en vol. */
+async function pourChaqueAvecConcurrence<T>(items: T[], limite: number, tache: (item: T) => Promise<void>): Promise<void> {
+  let curseur = 0;
+  async function travailleur() {
+    while (curseur < items.length) {
+      const item = items[curseur++];
+      await tache(item);
+    }
+  }
+  await Promise.all(Array.from({ length: Math.min(limite, items.length) }, travailleur));
+}
 
 export type RapportIngestion = {
   sources: number;
@@ -61,13 +74,15 @@ export async function ingererToutesLesSources(opts?: { skip?: number; take?: num
   const budget = { enrich: MAX_ENRICH_PAR_PASSAGE };
   const aujourdhui = aujourdhuiISO();
 
-  for (const source of sources) {
+  // Sources traitées en parallèle (borné) : des fetchs réseau séquentiels sur
+  // un lot de sources font largement dépasser le budget de 60s du cron.
+  await pourChaqueAvecConcurrence(sources, CONCURRENCE_SOURCES, async (source) => {
     // Sources de type « scrape » (sites sans flux) : moteur de scraping dédié,
     // même pipeline d'extraction/triage, même file de validation.
     if (source.type === "scrape") {
       const { scraperUneSource } = await import("@/lib/ingestion/scraper");
       await scraperUneSource(source, { rapport, budget, aujourdhui });
-      continue;
+      return;
     }
 
     let creeesSource = 0;
@@ -126,7 +141,7 @@ export async function ingererToutesLesSources(opts?: { skip?: number; take?: num
         .catch(() => {});
       rapport.details.push({ source: source.nom, etat: "panne", creees: creeesSource, erreur: msg });
     }
-  }
+  });
 
   return rapport;
 }

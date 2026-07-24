@@ -1,8 +1,10 @@
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
+import { SelecteurProfils } from "@/components/profil/SelecteurProfils";
 import { EnteteApp } from "@/components/navigation/EnteteApp";
 import { FormulaireProfil } from "@/components/profil/FormulaireProfil";
+import { getProfilActif } from "@/lib/profil/actif";
 
 function parseProfil(profil: Record<string, unknown> | null) {
   if (!profil) return null;
@@ -20,9 +22,10 @@ export default async function Profil() {
   const session = await auth();
   if (!session?.user?.id) redirect("/connexion");
 
-  const profilBrut = await prisma.profil.findUnique({
-    where: { userId: session.user.id },
-  });
+  const [profilBrut, user] = await Promise.all([
+    getProfilActif(session.user.id),
+    prisma.user.findUnique({ where: { id: session.user.id }, select: { plan: true } }),
+  ]);
 
   const profil = parseProfil(profilBrut as unknown as Record<string, unknown> | null);
 
@@ -30,7 +33,8 @@ export default async function Profil() {
     <>
       <EnteteApp titre="Mon profil" />
       <main className="flex-1 px-4 sm:px-6 py-6 max-w-5xl mx-auto w-full">
-        <FormulaireProfil profilInitial={profil as never} />
+        {(user?.plan === "pro" || user?.plan === "pro_plus") && <SelecteurProfils />}
+        <FormulaireProfil key={profilBrut?.id} profilInitial={profil as never} />
       </main>
     </>
   );

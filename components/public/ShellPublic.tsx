@@ -31,6 +31,9 @@ export function ShellPublic({ children }: { children: React.ReactNode }) {
             <Link href="/guides" className="lien-public" style={{ fontSize: "0.85rem", color: "var(--text-2)", textDecoration: "none" }}>
               Guides
             </Link>
+            <Link href="/blog" className="lien-public" style={{ fontSize: "0.85rem", color: "var(--text-2)", textDecoration: "none" }}>
+              Blog
+            </Link>
             <Link
               href="/inscription"
               style={{ fontSize: "0.85rem", fontWeight: 600, padding: "8px 16px", borderRadius: 10, background: "linear-gradient(135deg,#7c3aed,#5b21b6)", color: "#fff", textDecoration: "none" }}
@@ -53,8 +56,59 @@ export function ShellPublic({ children }: { children: React.ReactNode }) {
             <Link href="/offres/categorie/emplois" className="lien-public" style={{ fontSize: "0.82rem", color: "var(--text-2)", textDecoration: "none" }}>Emplois</Link>
             <Link href="/offres/categorie/stages" className="lien-public" style={{ fontSize: "0.82rem", color: "var(--text-2)", textDecoration: "none" }}>Stages</Link>
             <Link href="/guides" className="lien-public" style={{ fontSize: "0.82rem", color: "var(--text-2)", textDecoration: "none" }}>Guides</Link>
+            <Link href="/blog" className="lien-public" style={{ fontSize: "0.82rem", color: "var(--text-2)", textDecoration: "none" }}>Blog</Link>
             <Link href="/inscription" className="lien-public" style={{ fontSize: "0.82rem", color: "var(--text-2)", textDecoration: "none" }}>Créer un compte</Link>
+            <Link href="/legal/confidentialite" className="lien-public" style={{ fontSize: "0.82rem", color: "var(--text-2)", textDecoration: "none" }}>Confidentialité</Link>
+            <Link href="/legal/cookies" className="lien-public" style={{ fontSize: "0.82rem", color: "var(--text-2)", textDecoration: "none" }}>Cookies</Link>
           </nav>
+        </div>
+
+        {/* Carte Product Hunt — soutient le lancement, à retirer si besoin après. */}
+        <div style={{ maxWidth: 1080, margin: "0 auto", padding: "0 20px 32px" }}>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 12,
+              padding: 16,
+              maxWidth: 460,
+              borderRadius: 12,
+              border: "1px solid var(--border)",
+              background: "var(--bg)",
+            }}
+          >
+            <img
+              src="https://ph-files.imgix.net/b99f4a0e-dcf2-4f41-9b40-462e34defc27.png?auto=compress,format&codec=mozjpeg&cs=strip&fit=crop&h=80&w=80"
+              alt="Matchwork sur Product Hunt"
+              width={48}
+              height={48}
+              style={{ borderRadius: 8, objectFit: "cover", flexShrink: 0 }}
+            />
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <p style={{ margin: 0, fontSize: "0.88rem", fontWeight: 700, color: "var(--text)" }}>Matchwork</p>
+              <p style={{ margin: "2px 0 0", fontSize: "0.78rem", color: "var(--text-3)", lineHeight: 1.4 }}>
+                Bourses, emplois et dossiers de candidature générés par IA
+              </p>
+            </div>
+            <a
+              href="https://www.producthunt.com/products/matchwork?embed=true&utm_source=embed&utm_medium=post_embed"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                flexShrink: 0,
+                fontSize: "0.78rem",
+                fontWeight: 700,
+                padding: "8px 12px",
+                borderRadius: 8,
+                background: "#FF6154",
+                color: "#fff",
+                textDecoration: "none",
+                whiteSpace: "nowrap",
+              }}
+            >
+              Voir sur Product Hunt →
+            </a>
+          </div>
         </div>
       </footer>
     </div>

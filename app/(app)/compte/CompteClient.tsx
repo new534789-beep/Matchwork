@@ -21,9 +21,9 @@ type Props = {
 };
 
 const PLANS = [
-  { id: "gratuit",  nom: "Gratuit",  prix: 0,    features: ["3 dossiers / mois", "Profil IA de base", "Coffre-fort documents"] },
-  { id: "pro",      nom: "Pro",      prix: 1700,  features: ["Dossiers illimités", "Traduction IA intégrée", "Alertes deadline", "Support prioritaire"] },
-  { id: "premium",  nom: "Premium",  prix: 2900,  features: ["Tout le Pro", "Génération prioritaire", "Support WhatsApp 24/7", "Historique illimité"] },
+  { id: "gratuit",  nom: "Gratuit",  prix: 0,    features: ["3 dossiers / jour", "Traduction automatique des offres", "Profil IA de base", "Coffre-fort documents"] },
+  { id: "pro",      nom: "Pro",      prix: 2900,  features: ["Dossiers illimités", "Jusqu'à 5 profils (par secteur)", "Alertes deadline intelligentes", "Relance de candidature automatique", "Support prioritaire"] },
+  { id: "pro_plus", nom: "Pro+",     prix: 5900,  features: ["Tout le Pro", "Génération accélérée (traitement prioritaire)", "Support WhatsApp 24/7"] },
 ] as const;
 
 function statutBadge(statut: string) {
@@ -106,7 +106,7 @@ export function CompteClient({ email, plan, quotaMax, generationsUtilisees, quot
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {PLANS.map((p) => {
-              const actuel = p.id === "gratuit";
+              const actuel = p.id === plan;
               const selectionne = planChoisi === p.id;
               return (
                 <div

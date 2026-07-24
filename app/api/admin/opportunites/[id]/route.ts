@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getAdminSession, journaliserActionAdmin } from "@/lib/admin";
 import { prisma } from "@/lib/prisma";
 import { TYPES_OPP } from "@/lib/opportunites";
+import { notifierOpportunitePubliee } from "@/lib/blog/notifier-make";
 
 // Éditer une opportunité, ou la retirer / remettre en ligne (champ `actif` + `statut`).
 export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -30,9 +31,19 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     return NextResponse.json({ erreur: "Rien à mettre à jour." }, { status: 400 });
   }
 
+  // Repère une transition VERS "publiee" (pas déjà publiée avant) pour ne
+  // déclencher l'article de blog qu'une seule fois, pas à chaque édition
+  // ultérieure d'une offre déjà en ligne.
+  let devientPubliee = false;
+  if (data.statut === "publiee") {
+    const avant = await prisma.opportunite.findUnique({ where: { id }, select: { statut: true } });
+    devientPubliee = !!avant && avant.statut !== "publiee";
+  }
+
   const opp = await prisma.opportunite.update({ where: { id }, data }).catch(() => null);
   if (!opp) return NextResponse.json({ erreur: "Opportunité introuvable" }, { status: 404 });
   await journaliserActionAdmin(session.user!.id as string, "opportunite.maj", id, data);
+  if (devientPubliee) notifierOpportunitePubliee(opp);
   return NextResponse.json({ ok: true });
 }
 

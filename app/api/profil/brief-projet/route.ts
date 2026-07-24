@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { getProfilActif } from "@/lib/profil/actif";
 import { hasMistralKey, getMistralClient, MODELS } from "@/lib/ia/mistral";
 import { SYSTEM_BRIEF_PROJET_GENERAL } from "@/lib/ia/prompts/brief-projet-general";
 
@@ -48,10 +49,13 @@ export async function POST(req: Request) {
         if (parsed.termine && parsed.brief) {
           termine = true;
           brief = parsed.brief;
-          await prisma.profil.update({
-            where: { userId: session.user.id },
-            data: { profilProjet: JSON.stringify(brief) },
-          });
+          const actif = await getProfilActif(session.user.id);
+          if (actif) {
+            await prisma.profil.update({
+              where: { id: actif.id },
+              data: { profilProjet: JSON.stringify(brief) },
+            });
+          }
         }
       } catch {
         // JSON malformé — on continue la conversation

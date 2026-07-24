@@ -4,8 +4,8 @@ import { prisma } from "@/lib/prisma";
 import { creerTransaction, genererUrlPaiement } from "@/lib/paiement/fedapay";
 
 const PLANS: Record<string, { montant: number; label: string }> = {
-  pro:     { montant: 1700, label: "Abonnement Matchwork Pro" },
-  premium: { montant: 2900, label: "Abonnement Matchwork Premium" },
+  pro:      { montant: 2900, label: "Abonnement Matchwork Pro" },
+  pro_plus: { montant: 5900, label: "Abonnement Matchwork Pro+" },
 };
 
 export async function POST(req: Request) {

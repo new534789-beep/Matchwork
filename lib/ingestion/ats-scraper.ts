@@ -117,6 +117,14 @@ export const COMPANIES: Company[] = [
   { name: "Continental", platform: "smartrecruiters", identifier: "Continental" },
   { name: "Thales", platform: "smartrecruiters", identifier: "Thales" },
   { name: "Visa", platform: "smartrecruiters", identifier: "Visa" },
+  { name: "Vendease", platform: "smartrecruiters", identifier: "vendease" },
+  { name: "PalmPay", platform: "smartrecruiters", identifier: "palmpay" },
+  // ── Entreprises avec présence réelle en Afrique de l'Ouest (vérifié) ──
+  // Contrairement au reste du registre (entreprises US/EMEA globales dont
+  // la quasi-totalité des offres est hors zone), celles-ci publient des
+  // postes basés au Nigeria, Ghana ou Sénégal sur leur board public.
+  { name: "Jumia", platform: "greenhouse", identifier: "jumia" },
+  { name: "Moniepoint", platform: "greenhouse", identifier: "moniepoint" },
 ];
 
 // ── Concurrence ──────────────────────────────────────────────────────────────

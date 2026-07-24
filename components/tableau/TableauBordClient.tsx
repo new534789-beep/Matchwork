@@ -39,6 +39,7 @@ const STAT_ICONS: Record<string, React.ReactNode> = {
   deadline: (<><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></>),
   quota: (<><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" /></>),
   profil: (<><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" /><circle cx="12" cy="7" r="4" /></>),
+  reussite: (<><path d="M20 6L9 17l-5-5" /></>),
 };
 
 function statutMeta(statut: Retenue["statut"]) {
@@ -106,8 +107,8 @@ export function TableauBordClient({ stats, alertes, retenues, prochaineEcheance,
 
   return (
     <>
-      {/* 4 cartes stats — neutres, icône violette */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
+      {/* Cartes stats — neutres, icône violette. 4 pour tous, 5e (taux de réussite) réservée Pro/Pro+. */}
+      <div className="grid grid-cols-2 gap-4 mb-5" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))" }}>
         {stats.map((s) => <CarteStat key={s.key} stat={s} />)}
       </div>
 

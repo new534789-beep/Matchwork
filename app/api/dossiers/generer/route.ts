@@ -5,10 +5,21 @@ import { hasMistralKey, getMistralClient, MODELS } from "@/lib/ia/mistral";
 import { SYSTEM_GENERATION, buildGenerationMessage } from "@/lib/ia/prompts/generation";
 import { getQuotaGratuit } from "@/lib/parametres";
 import { rateLimit } from "@/lib/rate-limit";
+import { nettoyerMarkdown } from "@/lib/ia/nettoyer-markdown";
+import { getProfilActif } from "@/lib/profil/actif";
 
 function estPlanGratuit(plan: string) {
   return plan === "gratuit" || plan === "GRATUIT";
 }
+
+// Cadence de génération (anti-abus technique, distincte du quota mensuel/journalier) :
+// Pro+ traite les dossiers en priorité (« génération accélérée », promesse du plan à
+// 5900 XOF) via une limite par minute nettement plus haute que gratuit/Pro.
+const CADENCE_PAR_MINUTE: Record<string, number> = {
+  gratuit: 5,
+  pro: 5,
+  pro_plus: 20,
+};
 
 export async function POST(req: Request) {
   const session = await auth();
@@ -17,7 +28,11 @@ export async function POST(req: Request) {
   }
   const userId = session.user.id;
 
-  const rl = await rateLimit(`generer:${userId}`, 5, 60 * 1000);
+  const userPourGeneration = await prisma.user.findUnique({ where: { id: userId }, select: { plan: true, generationsBonus: true } });
+  const planPourCadence = userPourGeneration?.plan ?? "gratuit";
+  const generationsBonus = userPourGeneration?.generationsBonus ?? 0;
+  const cadence = CADENCE_PAR_MINUTE[planPourCadence] ?? CADENCE_PAR_MINUTE.gratuit;
+  const rl = await rateLimit(`generer:${userId}`, cadence, 60 * 1000);
   if (!rl.ok) {
     return NextResponse.json(
       { erreur: "Trop de requêtes. Attendez une minute." },
@@ -52,9 +67,8 @@ export async function POST(req: Request) {
     return NextResponse.json({ erreur: "Opportunité introuvable" }, { status: 400 });
   }
 
-  const [user, profil, opportunite] = await Promise.all([
-    prisma.user.findUnique({ where: { id: userId }, select: { plan: true } }),
-    prisma.profil.findUnique({ where: { userId } }),
+  const [profil, opportunite] = await Promise.all([
+    getProfilActif(userId),
     prisma.opportunite.findUnique({ where: { id: oppId } }),
   ]);
 
@@ -84,16 +98,23 @@ export async function POST(req: Request) {
     : await prisma.dossier.create({ data: { userId, opportuniteId: oppId, statut: "a_preparer" } }).then((d) => ({ id: d.id, briefProjet: null as string | null }));
 
   const jour = new Date().toISOString().slice(0, 10);
-  const gratuit = estPlanGratuit(user?.plan ?? "gratuit");
+  const gratuit = estPlanGratuit(planPourCadence);
+  // Quota journalier dépassé mais générations bonus (parrainage) disponibles :
+  // consommées à la place, sans toucher au compteur journalier.
+  let utiliseBonus = false;
 
   if (gratuit) {
     const quotaMax = await getQuotaGratuit();
     const quota = await prisma.quotaUsage.findUnique({ where: { userId_mois: { userId, mois: jour } } });
     if ((quota?.generationsUtilisees ?? 0) >= quotaMax) {
-      return NextResponse.json(
-        { dossierId: dossier.id, statut: "a_preparer", quotaAtteint: true, cta: "/compte" },
-        { status: 200 }
-      );
+      if (generationsBonus > 0) {
+        utiliseBonus = true;
+      } else {
+        return NextResponse.json(
+          { dossierId: dossier.id, statut: "a_preparer", quotaAtteint: true, cta: "/compte" },
+          { status: 200 }
+        );
+      }
     }
   }
 
@@ -135,7 +156,7 @@ export async function POST(req: Request) {
 
     const client = getMistralClient();
     const result = await client.chat.complete({
-      model: MODELS.small,
+      model: MODELS.large,
       messages: [
         { role: "system", content: SYSTEM_GENERATION },
         { role: "user", content: buildGenerationMessage(profil, coffre, opportunite, historiqueAccroches, documentsAGenerer, dossier.briefProjet) },
@@ -158,7 +179,7 @@ export async function POST(req: Request) {
           data: {
             dossierId: dossier.id,
             type: (d.type || "autre").toString().slice(0, 40),
-            contenu: d.contenu as string,
+            contenu: nettoyerMarkdown(d.contenu as string),
             langue,
             accroches,
           },
@@ -167,7 +188,9 @@ export async function POST(req: Request) {
       prisma.dossier.update({ where: { id: dossier.id }, data: { statut: "genere" } }),
     ]);
 
-    if (gratuit) {
+    if (gratuit && utiliseBonus) {
+      await prisma.user.update({ where: { id: userId }, data: { generationsBonus: { decrement: 1 } } });
+    } else if (gratuit) {
       await prisma.quotaUsage.upsert({
         where: { userId_mois: { userId, mois: jour } },
         update: { generationsUtilisees: { increment: 1 } },

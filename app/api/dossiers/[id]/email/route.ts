@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { genererDossierPdf } from "@/lib/pdf/generer-dossier";
+import { getProfilActif } from "@/lib/profil/actif";
 
 type Props = { params: Promise<{ id: string }> };
 
@@ -8,16 +10,14 @@ function estEmail(v: string | null | undefined): v is string {
   return !!v && /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v.trim());
 }
 
-function nomFichier(base: string): string {
-  return base.normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-zA-Z0-9]+/g, "_").replace(/^_+|_+$/g, "").slice(0, 40) || "document";
-}
-
 /**
  * Envoie le dossier par e-mail via Resend.
  *   mode "self"        → au candidat lui-même (bouton « Recevoir par e-mail »).
  *   mode "candidature" → à l'adresse EXPLICITE de l'offre (canal=email). Jamais devinée.
  * Expéditeur = adresse technique ; « Répondre à » = l'e-mail du candidat ;
- * documents générés en pièces jointes.
+ * pièce jointe = le MÊME PDF mis en page que celui du bouton « Télécharger »
+ * (voir lib/pdf/generer-dossier.ts) — jamais le texte brut : un recruteur ne
+ * doit jamais recevoir un rendu différent de ce que le candidat a vu.
  */
 export async function POST(req: Request, { params }: Props) {
   const session = await auth();
@@ -30,13 +30,16 @@ export async function POST(req: Request, { params }: Props) {
   const { mode } = (await req.json().catch(() => ({}))) as { mode?: string };
   const estCandidature = mode === "candidature";
 
-  const dossier = await prisma.dossier.findUnique({
-    where: { id },
-    include: {
-      opportunite: { select: { intitule: true, organisme: true, canalCandidature: true, cibleCandidature: true } },
-      docsGeneres: { select: { type: true, contenu: true } },
-    },
-  });
+  const [dossier, profil] = await Promise.all([
+    prisma.dossier.findUnique({
+      where: { id },
+      include: {
+        opportunite: { select: { intitule: true, organisme: true, canalCandidature: true, cibleCandidature: true } },
+        docsGeneres: { select: { type: true, contenu: true } },
+      },
+    }),
+    getProfilActif(session.user.id),
+  ]);
   if (!dossier || dossier.userId !== session.user.id) {
     return NextResponse.json({ erreur: "Dossier introuvable" }, { status: 404 });
   }
@@ -62,10 +65,15 @@ export async function POST(req: Request, { params }: Props) {
   }
   const from = process.env.EMAIL_EXPEDITEUR || "onboarding@resend.dev";
 
-  const attachments = dossier.docsGeneres.map((d) => ({
-    filename: `${nomFichier(d.type)}.txt`,
-    content: Buffer.from(d.contenu, "utf8").toString("base64"),
-  }));
+  const pdfBytes = await genererDossierPdf(dossier, {
+    nom: profil?.nomComplet ?? profil?.signature ?? "Candidat",
+    signature: profil?.signature ?? profil?.nomComplet ?? "",
+    adresse: profil?.adresse ?? null,
+    telephone: profil?.telephone ?? null,
+    email: profil?.email ?? null,
+  });
+  const nomFichierPdf = `Matchwork-${dossier.opportunite.organisme.replace(/[^a-zA-Z0-9]/g, "_")}.pdf`;
+  const attachments = [{ filename: nomFichierPdf, content: Buffer.from(pdfBytes).toString("base64") }];
 
   const sujet = estCandidature
     ? `Candidature — ${dossier.opportunite.intitule}`

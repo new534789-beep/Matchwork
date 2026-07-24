@@ -1,5 +1,5 @@
 import { PrismaClient } from "@prisma/client";
-import { genererSlugOpportunite } from "./slug";
+import { genererSlugOpportunite, genererSlugArticle } from "./slug";
 import { detecterPays } from "./pays";
 import { detecterModalite } from "./modalite";
 
@@ -34,6 +34,15 @@ function completerChampsAutoDetectes(d: DonneesOpportunite) {
   }
 }
 
+type DonneesArticle = { slug?: string | null; titre?: unknown };
+
+// Le slug d'un article n'est jamais fourni par l'appelant (Make ou l'admin) :
+// toujours régénéré côté serveur à partir du titre, pour rester la seule
+// source de vérité sur les URLs publiques.
+function completerSlugArticle(d: DonneesArticle) {
+  d.slug = genererSlugArticle(String(d.titre ?? ""));
+}
+
 // Auto-génère le slug SEO public et détecte le pays d'une Opportunite à la
 // création, quel que soit le point d'entrée (admin, ingestion RSS, scraping,
 // "coller une offre", seeds) — évite de dupliquer la logique dans chaque site
@@ -48,6 +57,17 @@ const withSlug = base.$extends({
       async createMany({ args, query }) {
         const data = Array.isArray(args.data) ? args.data : [args.data];
         for (const d of data) completerChampsAutoDetectes(d);
+        return query(args);
+      },
+    },
+    article: {
+      async create({ args, query }) {
+        completerSlugArticle(args.data);
+        return query(args);
+      },
+      async createMany({ args, query }) {
+        const data = Array.isArray(args.data) ? args.data : [args.data];
+        for (const d of data) completerSlugArticle(d);
         return query(args);
       },
     },

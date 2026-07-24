@@ -86,7 +86,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
               data: {
                 email,
                 motDePasse: "",
-                profil: { create: {} },
+                profils: { create: {} },
                 sourceAcquisition: attribution?.source,
                 refAcquisition: attribution?.ref,
               },

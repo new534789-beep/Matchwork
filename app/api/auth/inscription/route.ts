@@ -48,7 +48,7 @@ export async function POST(req: NextRequest) {
       data: {
         email,
         motDePasse: hash,
-        profil: { create: {} },
+        profils: { create: {} },
         sourceAcquisition: attribution?.source,
         refAcquisition: attribution?.ref,
       },

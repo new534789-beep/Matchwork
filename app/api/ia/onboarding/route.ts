@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { hasMistralKey, getMistralClient, MODELS } from "@/lib/ia/mistral";
 import { SYSTEM_PROMPT_ONBOARDING } from "@/lib/ia/prompts/onboarding";
 import { rateLimit } from "@/lib/rate-limit";
+import { getProfilActif } from "@/lib/profil/actif";
 
 // Champs réellement stockables dans le modèle Profil (protège contre les clés
 // inattendues renvoyées par l'IA — une clé inconnue ferait planter Prisma).
@@ -83,7 +84,7 @@ export async function POST(req: NextRequest) {
       historique: { role: "user" | "assistant"; content: string }[];
     };
 
-    const profil = await prisma.profil.findUnique({ where: { userId: session.user.id } });
+    const profil = await getProfilActif(session.user.id);
     const profilData = profil ? parseProfil(profil as unknown as Record<string, unknown>) : {};
 
     const systemAvecContexte = `${SYSTEM_PROMPT_ONBOARDING}
@@ -145,14 +146,14 @@ Ne répète pas des questions sur des sections déjà renseignées. Continue là
         }
       }
       if (parsed.onboarding_termine) maj.complete = true;
-      await prisma.profil.upsert({
-        where: { userId: session.user.id },
-        update: maj,
-        create: { userId: session.user.id, ...maj },
-      });
-    } else if (parsed.onboarding_termine) {
+      if (profil) {
+        await prisma.profil.update({ where: { id: profil.id }, data: maj });
+      } else {
+        await prisma.profil.create({ data: { userId: session.user.id, ...maj } });
+      }
+    } else if (parsed.onboarding_termine && profil) {
       await prisma.profil.update({
-        where: { userId: session.user.id },
+        where: { id: profil.id },
         data: { complete: true },
       });
     }

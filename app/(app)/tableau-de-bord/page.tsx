@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { EnteteApp } from "@/components/navigation/EnteteApp";
 import { TableauBordClient } from "@/components/tableau/TableauBordClient";
+import { getProfilActif } from "@/lib/profil/actif";
 
 // ─────────────────────────── Helpers ───────────────────────────
 
@@ -84,7 +85,7 @@ export default async function TableauDeBord() {
   const mois = new Date().toISOString().slice(0, 10);
 
   const [profil, user, interactions, allInteractions, dossiers, documents, quota, suggestions] = await Promise.all([
-    prisma.profil.findUnique({ where: { userId } }),
+    getProfilActif(userId),
     prisma.user.findUnique({ where: { id: userId }, select: { email: true, plan: true, createdAt: true } }),
     prisma.interaction.findMany({
       where: { userId, decision: "interesse" },
@@ -140,7 +141,7 @@ export default async function TableauDeBord() {
 
   const retenues: Retenue[] = [...oppsMap.values()].map((opp) => {
     const d = dossierParOpp.get(opp.id);
-    const statut: Retenue["statut"] = d?.statut === "utilise" ? "utilise" : d?.statut === "soumis" ? "soumis" : d ? "genere" : "a_preparer";
+    const statut: Retenue["statut"] = d?.statut === "utilise" || d?.statut === "obtenu" ? "utilise" : d?.statut === "soumis" ? "soumis" : d ? "genere" : "a_preparer";
     const dossierGenere = statut === "genere" || statut === "soumis";
     const pieces = parseJSON<Piece[]>(opp.piecesExigees, []);
     return {
@@ -153,6 +154,11 @@ export default async function TableauDeBord() {
   });
 
   retenues.sort((a, b) => (a.jours ?? 9999) - (b.jours ?? 9999));
+
+  const planPro = user?.plan === "pro" || user?.plan === "pro_plus";
+  const dossiersEnvoyes = dossiers.filter((d) => d.statut === "utilise" || d.statut === "obtenu").length;
+  const dossiersObtenus = dossiers.filter((d) => d.statut === "obtenu").length;
+  const tauxReussite = dossiersEnvoyes > 0 ? Math.round((dossiersObtenus / dossiersEnvoyes) * 100) : null;
 
   const dossiersEnCours = retenues.filter((r) => r.statut !== "soumis" && r.statut !== "utilise").length;
   const prochaineDeadline = retenues.filter((r) => r.jours !== null && r.jours >= 0).sort((a, b) => a.jours! - b.jours!)[0]?.jours ?? null;
@@ -192,6 +198,15 @@ export default async function TableauDeBord() {
     { key: "quota", label: estGratuit ? "Quota restant" : "Abonnement", valeur: estGratuit ? `${quotaRestant}/${quotaMax}` : "∞", sous: estGratuit ? "générations ce mois" : "Plan payant actif", href: "/compte" },
     { key: "profil", label: "Profil complété", valeur: `${profilPct} %`, sous: profilPct === 100 ? "Profil complet" : "À finaliser", href: "/profil" },
   ];
+  if (planPro) {
+    stats.push({
+      key: "reussite",
+      label: "Taux de réussite",
+      valeur: tauxReussite === null ? "—" : `${tauxReussite} %`,
+      sous: dossiersEnvoyes > 0 ? `${dossiersObtenus}/${dossiersEnvoyes} candidatures obtenues` : "Aucune candidature envoyée",
+      href: "/candidatures",
+    });
+  }
 
   const retenuesData = retenues.slice(0, 8).map((r) => ({
     id: r.opp.id,

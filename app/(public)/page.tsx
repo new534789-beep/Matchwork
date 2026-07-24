@@ -1,8 +1,14 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
 import { NavMobile } from "@/components/ui/NavMobile";
 import { SectionTarifs } from "@/components/landing/SectionTarifs";
 import { buildFaqJsonLd } from "@/lib/jsonld";
+import { getSiteUrl } from "@/lib/site-url";
+
+export const metadata: Metadata = {
+  alternates: { canonical: getSiteUrl() },
+};
 
 const FAQ_ITEMS = [
   {

@@ -3,6 +3,8 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { hasMistralKey, getMistralClient, MODELS } from "@/lib/ia/mistral";
 import { SYSTEM_GENERATION, buildGenerationMessage } from "@/lib/ia/prompts/generation";
+import { nettoyerMarkdown } from "@/lib/ia/nettoyer-markdown";
+import { getProfilActif } from "@/lib/profil/actif";
 
 type Props = { params: Promise<{ id: string }> };
 
@@ -30,7 +32,7 @@ export async function POST(_req: Request, { params }: Props) {
   }
 
   const [profil, coffre, docsAnciens] = await Promise.all([
-    prisma.profil.findUnique({ where: { userId } }),
+    getProfilActif(userId),
     prisma.document.findMany({
       where: { userId },
       select: { type: true, infosExtraites: true },
@@ -71,7 +73,7 @@ export async function POST(_req: Request, { params }: Props) {
   try {
     const client = getMistralClient();
     const result = await client.chat.complete({
-      model: MODELS.small,
+      model: MODELS.large,
       messages: [
         { role: "system", content: SYSTEM_GENERATION },
         { role: "user", content: buildGenerationMessage(profil, coffre, dossier.opportunite, historiqueAccroches, documentsAGenerer) },
@@ -83,7 +85,7 @@ export async function POST(_req: Request, { params }: Props) {
     const parsed = JSON.parse(raw) as { documents?: { type?: string; contenu?: string }[]; accrochesCles?: string[] };
     docs = (Array.isArray(parsed.documents) ? parsed.documents : [])
       .filter((d) => d && typeof d.contenu === "string" && d.contenu.trim().length > 0)
-      .map((d) => ({ type: (d.type || "autre").toString().slice(0, 40), contenu: d.contenu as string }));
+      .map((d) => ({ type: (d.type || "autre").toString().slice(0, 40), contenu: nettoyerMarkdown(d.contenu as string) }));
     if (docs.length === 0) throw new Error("Réponse Mistral incomplète");
     accrochesCles = Array.isArray(parsed.accrochesCles) ? parsed.accrochesCles : [];
   } catch (err: unknown) {

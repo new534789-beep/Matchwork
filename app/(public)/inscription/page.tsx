@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { AuthShell } from "@/components/auth/AuthShell";
 import { BoutonGoogle } from "@/components/auth/BoutonGoogle";
 import { COOKIE_REF } from "@/lib/attribution";
+import { choixConsentementActuel } from "@/lib/cookie-consent";
 
 function FormulaireInscription() {
   const router = useRouter();
@@ -19,7 +20,11 @@ function FormulaireInscription() {
   // seule fois à la création du compte (credentials ou Google).
   useEffect(() => {
     const ref = searchParams.get("ref");
-    if (ref) document.cookie = `${COOKIE_REF}=${encodeURIComponent(ref)}; path=/; max-age=1800; SameSite=Lax`;
+    // Ne pose jamais ce cookie marketing si l'utilisateur a explicitement
+    // refusé les cookies non-essentiels (voir bannière de consentement).
+    if (ref && choixConsentementActuel() !== "refuse") {
+      document.cookie = `${COOKIE_REF}=${encodeURIComponent(ref)}; path=/; max-age=1800; SameSite=Lax`;
+    }
   }, [searchParams]);
 
   async function handleSubmit(e: React.FormEvent) {

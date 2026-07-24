@@ -3,18 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { EnteteApp } from "@/components/navigation/EnteteApp";
-
-function statutLabel(s: string) {
-  if (s === "genere" || s === "GENERE") return "Généré";
-  if (s === "utilise" || s === "soumis" || s === "SOUMIS") return "Utilisé";
-  return "En préparation";
-}
-
-function statutCouleur(s: string) {
-  if (s === "genere" || s === "GENERE") return { bg: "rgba(124,58,237,0.12)", border: "rgba(124,58,237,0.3)", color: "#a78bfa" };
-  if (s === "utilise" || s === "soumis" || s === "SOUMIS") return { bg: "#7c3aed", border: "#7c3aed", color: "#fff" };
-  return { bg: "var(--bg-card)", border: "var(--border)", color: "var(--text-3)" };
-}
+import { ProgressionMini } from "@/components/dossiers/ProgressionMini";
 
 function deadlineBadge(dateLimite: Date | null) {
   if (!dateLimite) return null;
@@ -30,14 +19,19 @@ export default async function Candidatures() {
   const session = await auth();
   if (!session?.user?.id) redirect("/connexion");
 
-  const dossiers = await prisma.dossier.findMany({
-    where: { userId: session.user.id },
-    include: {
-      opportunite: {
-        select: { intitule: true, organisme: true, dateLimite: true },
+  const [dossiers, user] = await Promise.all([
+    prisma.dossier.findMany({
+      where: { userId: session.user.id },
+      include: {
+        opportunite: {
+          select: { intitule: true, organisme: true, dateLimite: true },
+        },
+        _count: { select: { docsGeneres: true } },
       },
-    },
-  });
+    }),
+    prisma.user.findUnique({ where: { id: session.user.id }, select: { plan: true } }),
+  ]);
+  const planPro = user?.plan === "pro" || user?.plan === "pro_plus";
 
   // Tri : deadline la plus proche d'abord, null en dernier
   dossiers.sort((a, b) => {
@@ -83,7 +77,6 @@ export default async function Candidatures() {
         ) : (
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(290px, 1fr))", gap: 12 }}>
             {dossiers.map((d) => {
-              const c = statutCouleur(d.statut);
               const badge = deadlineBadge(d.opportunite.dateLimite);
               return (
                 <Link key={d.id} href={`/dossiers/${d.id}`} style={{ textDecoration: "none" }}>
@@ -114,13 +107,14 @@ export default async function Candidatures() {
                       </p>
                     </div>
                     <div style={{ flexShrink: 0, display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 5 }}>
-                      <span style={{
-                        fontSize: "0.7rem", fontWeight: 600,
-                        padding: "3px 9px", borderRadius: 6,
-                        background: c.bg, border: `1px solid ${c.border}`, color: c.color,
-                      }}>
-                        {statutLabel(d.statut)}
-                      </span>
+                      <ProgressionMini
+                        statut={d.statut}
+                        docsCount={d._count.docsGeneres}
+                        createdAt={d.createdAt.toISOString()}
+                        updatedAt={d.updatedAt.toISOString()}
+                        relanceEnvoyeeLe={d.relanceEnvoyeeLe?.toISOString() ?? null}
+                        planPro={planPro}
+                      />
                       {badge && (
                         <span style={{
                           fontSize: "0.68rem", fontWeight: 700,

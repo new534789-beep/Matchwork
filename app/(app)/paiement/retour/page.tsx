@@ -60,7 +60,7 @@ export default async function RetourPaiement({ searchParams }: Props) {
     }
   }
 
-  const nomPlan = plan === "premium" ? "Premium" : "Pro";
+  const nomPlan = plan === "pro_plus" ? "Pro+" : "Pro";
 
   return (
     <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "var(--bg)", padding: 24 }}>

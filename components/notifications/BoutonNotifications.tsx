@@ -5,12 +5,16 @@ import { useState, useEffect } from "react";
 export function BoutonNotifications() {
   const [permission, setPermission] = useState<NotificationPermission>("default");
   const [loading, setLoading] = useState(false);
+  const [supporte, setSupporte] = useState(false);
 
   useEffect(() => {
-    if ("Notification" in window) setPermission(Notification.permission);
+    if ("Notification" in window && "serviceWorker" in navigator) {
+      setSupporte(true);
+      setPermission(Notification.permission);
+    }
   }, []);
 
-  if (!("Notification" in window) || !("serviceWorker" in navigator)) return null;
+  if (!supporte) return null;
 
   const sAbonner = async () => {
     setLoading(true);

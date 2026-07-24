@@ -21,6 +21,11 @@ model User {
   updatedAt    DateTime  @updatedAt
 
   codeParrainage String?  @unique
+  // Parrainage : générations bonus offertes au parrain (indépendantes du quota
+  // journalier gratuit), créditées une fois par filleul inscrit — consommées
+  // en priorité une fois le quota du jour épuisé. Voir app/api/parrainage et
+  // app/api/dossiers/generer.
+  generationsBonus Int    @default(0)
 
   // Attribution d'acquisition — capturée UNE SEULE FOIS à la création du compte
   // (jamais réécrite ensuite), via le cookie mw_ref posé sur /inscription à
@@ -31,7 +36,7 @@ model User {
   sourceAcquisition String?
   refAcquisition    String?
 
-  profil       Profil?
+  profils      Profil[]
   documents    Document[]
   interactions Interaction[]
   dossiers     Dossier[]
@@ -40,6 +45,7 @@ model User {
   messages     Message[]
   sessions     SessionActivity[]
   pushSubs     PushSubscription[]
+  alertesEnvoyees AlerteEnvoyee[]
   parrainagesEnvoyes Parrainage[] @relation("parrainages_envoyes")
   parrainagesRecus   Parrainage[] @relation("parrainages_recus")
   organisme    Organisme?
@@ -51,8 +57,17 @@ model User {
 
 model Profil {
   id          String   @id @default(cuid())
-  userId      String   @unique
+  userId      String
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Multi-profils (Pro) : un utilisateur peut avoir plusieurs profils complets
+  // (ex. "Génie civil", "Comptabilité"), chacun avec ses propres formations/
+  // expériences/compétences. `actif` marque celui utilisé par défaut pour le
+  // fil, le contrôle de compatibilité et la génération de dossier — au plus un
+  // profil actif par utilisateur, garanti en code (voir lib/profil/actif.ts),
+  // pas en contrainte DB (Postgres ne fait pas d'unique partiel via Prisma).
+  nom         String   @default("Profil principal")
+  actif       Boolean  @default(true)
 
   nomComplet    String?
   dateNaissance String?
@@ -85,6 +100,7 @@ model Profil {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
+  @@index([userId])
   @@map("profils")
 }
 
@@ -175,11 +191,45 @@ model Opportunite {
 
   interactions   Interaction[]
   dossiers       Dossier[]
+  article        Article?
+  alertesEnvoyees AlerteEnvoyee[]
 
   @@index([statut])
   @@index([pays])
   @@index([modalite])
   @@map("opportunites")
+}
+
+// ─── Blog : articles générés automatiquement (scénario Make) à la publication
+// d'une offre, ou ajoutés à la main depuis le back-office. ────────────────────
+
+model Article {
+  id              String       @id @default(cuid())
+  // Slug SEO public (/blog/[slug]), généré côté serveur à la création
+  // (jamais fourni par l'appelant) — voir lib/slug.ts genererSlugArticle.
+  slug            String       @unique
+  titre           String
+  extrait         String
+  contenu         String       // Markdown
+  imageCouverture String?
+  categorie       String?      // conseils | actualite | bourse | ...
+  motsCles        String       @default("[]") // JSON array de strings
+  statut          String       @default("publie") // publie | archive
+  seoTitre        String?
+  seoDescription  String?
+
+  // Offre source (optionnelle) ayant déclenché la génération de l'article.
+  // Unique : au plus un article par offre, pour ne pas dupliquer en cas de
+  // double déclenchement du webhook Make.
+  opportuniteId   String?      @unique
+  opportunite     Opportunite? @relation(fields: [opportuniteId], references: [id], onDelete: SetNull)
+
+  publieLe        DateTime     @default(now())
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  @@index([statut])
+  @@map("articles")
 }
 
 // ─── Sources de flux (RSS/XML) — back-office admin ───────────────────────────
@@ -256,12 +306,43 @@ model Dossier {
   statut        String        @default("A_PREPARER")
   checklist     String?
   briefProjet   String?
+  // Relance automatique (Pro) : posé une seule fois quand le rappel de relance
+  // a été envoyé, pour ne jamais renotifier deux fois le même dossier.
+  relanceEnvoyeeLe DateTime?
+  // Checklist post-obtention : `dateObtention` posée quand l'utilisateur
+  // marque l'offre comme obtenue (déclenche la génération de la checklist,
+  // voir lib/checklist-post-obtention.ts) ; `checklistRelanceEnvoyeeLe` évite
+  // de renotifier deux fois le rappel « il vous reste des étapes ».
+  dateObtention DateTime?
+  checklistRelanceEnvoyeeLe DateTime?
+  etapesPostObtention EtapePostObtention[]
   docsGeneres   DocumentGenere[]
 
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
 
   @@map("dossiers")
+}
+
+// Checklist post-obtention (Pro) : étapes générées automatiquement selon le
+// type d'offre (visa, documents administratifs, logement...) quand le
+// candidat marque un dossier comme « obtenu ». Voir lib/checklist-post-obtention.ts.
+model EtapePostObtention {
+  id        String  @id @default(cuid())
+  dossierId String
+  dossier   Dossier @relation(fields: [dossierId], references: [id], onDelete: Cascade)
+
+  texte     String
+  // Slug d'un guide Matchwork existant (lib/guides.ts) à afficher en lien,
+  // null si l'étape n'a pas de guide correspondant.
+  lienGuide String?
+  fait      Boolean @default(false)
+  ordre     Int     @default(0)
+
+  createdAt DateTime @default(now())
+
+  @@index([dossierId])
+  @@map("etapes_post_obtention")
 }
 
 model DocumentGenere {
@@ -357,6 +438,22 @@ model PushSubscription {
 
   @@index([userId])
   @@map("push_subscriptions")
+}
+
+// Déduplication des alertes intelligentes (push Pro sur offre à fort score) —
+// évite de renotifier un même utilisateur pour une même offre à chaque
+// passage du cron.
+model AlerteEnvoyee {
+  id            String      @id @default(cuid())
+  userId        String
+  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  opportuniteId String
+  opportunite   Opportunite @relation(fields: [opportuniteId], references: [id], onDelete: Cascade)
+  createdAt     DateTime    @default(now())
+
+  @@unique([userId, opportuniteId])
+  @@index([userId])
+  @@map("alertes_envoyees")
 }
 
 // ─── Parrainage ─────────────────────────────────────────────────────────────

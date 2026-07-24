@@ -38,7 +38,7 @@ export default async function AdminSuivi() {
   ] = await Promise.all([
     prisma.user.count(),
     prisma.user.count({ where: { createdAt: { gte: debutMois } } }),
-    prisma.dossier.count({ where: { statut: { in: ["genere", "utilise", "soumis"] } } }),
+    prisma.dossier.count({ where: { statut: { in: ["genere", "utilise", "soumis", "obtenu"] } } }),
     prisma.opportunite.count({ where: { statut: "publiee", actif: true } }),
     prisma.documentGenere.count({ where: { type: "cv", createdAt: { gte: debutMois } } }),
     prisma.opportunite.count({ where: { statut: { in: ["a_valider", "revue_manuelle"] } } }),

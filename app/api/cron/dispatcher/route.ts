@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
 import { ingererToutesLesSources } from "@/lib/ingestion/recuperateur";
 import { retirerExpirees } from "@/lib/ingestion/expiration";
 import { ingererBourses } from "@/lib/ingestion/scholarship-scraper";
@@ -14,19 +15,37 @@ import { rafraichirOffres } from "@/lib/ingestion/refresh";
 export const maxDuration = 60;
 
 /**
+ * Calcule le lot RSS (skip/take) du jour à partir du nombre RÉEL de sources
+ * actives, plutôt que des bornes fixes qui deviennent incomplètes à mesure que
+ * le catalogue de sources grossit. Répartit les sources sur 6 lots (lun-sam) ;
+ * `jourIndex` va de 0 (lundi) à 5 (samedi). Garantit que TOUTE source active
+ * est visitée au moins une fois par semaine, quel que soit `totalActives`.
+ */
+async function calculerLotDuJour(jourIndex: number): Promise<{ skip: number; take: number }> {
+  const totalActives = await prisma.fluxSource.count({ where: { actif: true } });
+  const taille = Math.max(1, Math.ceil(totalActives / 6));
+  return { skip: jourIndex * taille, take: taille };
+}
+
+/**
  * Dispatcher cron unifié — chaque jour ingère un lot de sources RSS (brouillon)
  * puis enrichit quelques brouillons via IA. Le tout doit tenir en 60s (Hobby).
  *
- *   Lundi    → FluxSource RSS lot 1 (0-15)
- *   Mardi    → FluxSource RSS lot 2 (15-30) + bourses portails
- *   Mercredi → FluxSource RSS lot 3 (30-50) + emplois ATS
- *   Jeudi    → FluxSource RSS lot 4 (50-70) + stages
- *   Vendredi → FluxSource RSS lot 5 (70-100) + formations
- *   Samedi   → FluxSource RSS lot 6 (100+) + admissions/appels
+ *   Lundi    → FluxSource RSS lot 1/6
+ *   Mardi    → FluxSource RSS lot 2/6 + bourses portails
+ *   Mercredi → FluxSource RSS lot 3/6 + emplois ATS
+ *   Jeudi    → FluxSource RSS lot 4/6 + stages
+ *   Vendredi → FluxSource RSS lot 5/6 + formations
+ *   Samedi   → FluxSource RSS lot 6/6 + admissions/appels
  *   Dimanche → Expiration + nettoyage
  *
- * Enrichir + auto-validation se lancent via /api/cron/enrichir et
- * /api/cron/auto-validation (endpoints séparés, appelés par cron externe).
+ * Les lots sont recalculés à partir du nombre actuel de sources actives (voir
+ * calculerLotDuJour) : si le catalogue de sources grossit, la taille de chaque
+ * lot grossit avec lui — plus de source jamais visitée par simple oubli de
+ * mise à jour des bornes.
+ *
+ * Enrichir + auto-validation tournent maintenant via des crons dédiés,
+ * plusieurs fois par jour (voir vercel.json), en plus de ce dispatcher.
  */
 export async function GET(req: Request) {
   const secret = process.env.CRON_SECRET;
@@ -61,44 +80,54 @@ export async function GET(req: Request) {
     switch (jour) {
       case 1:
         tache = "flux-lot1";
-        rapport = await ingererToutesLesSources({ skip: 0, take: 15 });
+        rapport = await ingererToutesLesSources(await calculerLotDuJour(0));
         break;
-      case 2:
+      case 2: {
         tache = "flux-lot2+bourses";
-        rapport = {
-          flux: await ingererToutesLesSources({ skip: 15, take: 15 }),
-          bourses: await ingererBourses(),
-        };
+        const [flux, bourses] = await Promise.all([
+          ingererToutesLesSources(await calculerLotDuJour(1)),
+          ingererBourses(),
+        ]);
+        rapport = { flux, bourses };
         break;
-      case 3:
+      }
+      case 3: {
         tache = "flux-lot3+emplois";
-        rapport = {
-          flux: await ingererToutesLesSources({ skip: 30, take: 20 }),
-          ats: await ingererOffresATS(),
-        };
+        const [flux, ats] = await Promise.all([
+          ingererToutesLesSources(await calculerLotDuJour(2)),
+          ingererOffresATS(),
+        ]);
+        rapport = { flux, ats };
         break;
-      case 4:
+      }
+      case 4: {
         tache = "flux-lot4+stages";
-        rapport = {
-          flux: await ingererToutesLesSources({ skip: 50, take: 20 }),
-          stages: await ingererStages(),
-        };
+        const [flux, stages] = await Promise.all([
+          ingererToutesLesSources(await calculerLotDuJour(3)),
+          ingererStages(),
+        ]);
+        rapport = { flux, stages };
         break;
-      case 5:
+      }
+      case 5: {
         tache = "flux-lot5+formations";
-        rapport = {
-          flux: await ingererToutesLesSources({ skip: 70, take: 30 }),
-          formations: await ingererFormations(),
-        };
+        const [flux, formations] = await Promise.all([
+          ingererToutesLesSources(await calculerLotDuJour(4)),
+          ingererFormations(),
+        ]);
+        rapport = { flux, formations };
         break;
-      case 6:
+      }
+      case 6: {
         tache = "flux-lot6+admissions+appels";
-        rapport = {
-          flux: await ingererToutesLesSources({ skip: 100, take: 100 }),
-          admissions: await ingererAdmissions(),
-          appelsProjets: await ingererAppelsProjets(),
-        };
+        const [flux, admissions, appelsProjets] = await Promise.all([
+          ingererToutesLesSources(await calculerLotDuJour(5)),
+          ingererAdmissions(),
+          ingererAppelsProjets(),
+        ]);
+        rapport = { flux, admissions, appelsProjets };
         break;
+      }
       case 0:
         tache = "nettoyage";
         await retirerExpirees();
@@ -106,20 +135,16 @@ export async function GET(req: Request) {
     }
   }
 
-  let expirees = 0;
-  try {
-    expirees = await retirerExpirees();
-  } catch { /* expiration is best-effort */ }
-
-  let enrichissement = null;
-  try {
-    enrichissement = await enrichirBrouillons(2);
-  } catch { /* enrichir is best-effort here */ }
-
-  let refresh = null;
-  try {
-    refresh = await rafraichirOffres(5);
-  } catch { /* refresh is best-effort */ }
+  // Tâches de fin indépendantes (expiration / brouillons / offres publiées) :
+  // lancées en parallèle plutôt qu'en série pour rester dans le budget du cron.
+  const [expireesResult, enrichissementResult, refreshResult] = await Promise.allSettled([
+    retirerExpirees(),
+    enrichirBrouillons(2),
+    rafraichirOffres(5),
+  ]);
+  const expirees = expireesResult.status === "fulfilled" ? expireesResult.value : 0;
+  const enrichissement = enrichissementResult.status === "fulfilled" ? enrichissementResult.value : null;
+  const refresh = refreshResult.status === "fulfilled" ? refreshResult.value : null;
 
   const botsRapport: RapportBot[] = [];
   function extraireBotStats(nom: string, r: unknown) {

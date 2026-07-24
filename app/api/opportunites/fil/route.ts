@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { calculerScore } from "@/lib/matching/score";
+import { getProfilActifSelect } from "@/lib/profil/actif";
 
 export async function GET() {
   const session = await auth();
@@ -24,9 +25,8 @@ export async function GET() {
         exigenceLangue: true, dateLimite: true, lien: true, source: true,
       },
     }),
-    prisma.profil.findUnique({
-      where: { userId: session.user.id },
-      select: { formations: true, experiences: true, competences: true, langues: true, objectifs: true, nationalite: true },
+    getProfilActifSelect(session.user.id, {
+      formations: true, experiences: true, competences: true, langues: true, objectifs: true, nationalite: true,
     }),
   ]);
 

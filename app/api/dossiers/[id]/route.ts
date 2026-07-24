@@ -8,7 +8,7 @@ function estPlanGratuit(plan: string) {
   return plan === "gratuit" || plan === "GRATUIT";
 }
 
-const STATUTS_VALIDES = ["a_preparer", "genere", "utilise", "soumis"];
+const STATUTS_VALIDES = ["a_preparer", "genere", "utilise", "soumis", "obtenu"];
 
 export async function GET(_req: Request, { params }: Props) {
   const session = await auth();

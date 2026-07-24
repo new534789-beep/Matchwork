@@ -134,13 +134,13 @@ async function main() {
   // Cheerio d'abord pour les deux sites (aucune dépendance sur playwright) :
   // on garantit des résultats même si le navigateur headless est indisponible.
   await testerCheerio("Emploi.ci", "https://www.emploi.ci/recherche-jobs-cote-ivoire", "article, .job-item, .job-list-item");
-  await testerCheerio("Jobberman NG", "https://www.jobberman.com.ng/jobs", "[class*='job'], article");
+  await testerCheerio("Jobberman NG", "https://www.jobberman.com.ng/jobs", "a[href*='/listings/']");
 
   // Emploi.ci et Emploi Bénin ont affiché un interstitiel "Un instant…"
   // (probable anti-bot) en navigation manuelle : bon cas de test pour
   // Playwright (navigateur réel).
   await testerPlaywright("Emploi.ci", "https://www.emploi.ci/recherche-jobs-cote-ivoire", "article, .job-item, .job-list-item, [class*='job']");
-  await testerPlaywright("Jobberman NG", "https://www.jobberman.com.ng/jobs", "[class*='job'], article");
+  await testerPlaywright("Jobberman NG", "https://www.jobberman.com.ng/jobs", "a[href*='/listings/']");
   await testerPlaywright("Emploi Bénin", "https://www.emploibenin.com/recherche-jobs-benin", "article, .job-item, .job-list-item, [class*='job']");
 
   console.log("\n=== Résultats ===\n");

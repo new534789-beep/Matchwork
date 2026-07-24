@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getAdminSession, journaliserActionAdmin } from "@/lib/admin";
 import { prisma } from "@/lib/prisma";
+import { notifierOpportunitePubliee } from "@/lib/blog/notifier-make";
 
 // Approuver (→ publiee, visible dans le fil) ou rejeter (→ rejetee) une opportunité en attente.
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -35,5 +36,6 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
 
   if (!opp) return NextResponse.json({ erreur: "Opportunité introuvable" }, { status: 404 });
   await journaliserActionAdmin(session.user!.id as string, `opportunite.${action}`, id);
+  if (statut === "publiee") notifierOpportunitePubliee(opp);
   return NextResponse.json({ ok: true, statut });
 }

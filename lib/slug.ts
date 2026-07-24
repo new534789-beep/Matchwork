@@ -25,3 +25,10 @@ export function genererSlugOpportunite(intitule: string, organisme: string): str
   const suffixe = randomBytes(4).toString("hex");
   return `${base}-${suffixe}`;
 }
+
+/** Slug public d'un article de blog : même principe que genererSlugOpportunite. */
+export function genererSlugArticle(titre: string): string {
+  const base = slugify(titre) || "article";
+  const suffixe = randomBytes(4).toString("hex");
+  return `${base}-${suffixe}`;
+}
