@@ -3,20 +3,14 @@
  * Usage:  npx tsx scripts/run-all-bots-local.ts
  */
 
-// ── Forcer Neon AVANT tout import Prisma ──
-const NEON = "postgresql://neondb_owner:npg_RDgAmsG3nZi9@ep-empty-grass-as9bylpg.c-4.eu-central-1.aws.neon.tech/neondb?sslmode=require&connection_limit=2";
-process.env.DATABASE_URL = NEON;
-process.env.DIRECT_URL = NEON;
-
-import { readFileSync } from "fs";
-if (!process.env.MISTRAL_API_KEY) {
-  try {
-    const envLocal = readFileSync(".env.local", "utf-8");
-    for (const line of envLocal.split("\n")) {
-      const m = line.match(/^(MISTRAL_API_KEY|GEMINI_API_KEY)\s*=\s*"?([^"]+)"?/);
-      if (m) process.env[m[1]] = m[2].trim();
-    }
-  } catch { /* pas de .env.local */ }
+// ── Forcer Neon PROD avant tout import Prisma — jamais de connexion en dur ici :
+// nécessite `.env.prod-fresh` en local (`npx vercel env pull .env.prod-fresh
+// --environment=production`), jamais commité (voir .gitignore ".env*"). ──
+import { config } from "dotenv";
+config({ path: ".env.prod-fresh", override: true });
+if (!process.env.DATABASE_URL || !process.env.DIRECT_URL) {
+  console.error("DATABASE_URL/DIRECT_URL manquants — lancez d'abord: npx vercel env pull .env.prod-fresh --environment=production");
+  process.exit(1);
 }
 
 import { ingererToutesLesSources } from "../lib/ingestion/recuperateur";
