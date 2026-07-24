@@ -16,6 +16,9 @@ jobs:
       - name: Installer les dépendances
         run: npm ci
 
+      - name: Installer Crawlee + Playwright (test jetable, pas encore dans package.json)
+        run: npm install --no-save crawlee playwright
+
       - name: Installer Playwright + Chromium (avec dépendances système)
         run: npx playwright install --with-deps chromium
 
