@@ -78,7 +78,7 @@ export function GestionPaiements({ paiements, comptes, quotaMax }: { paiements: 
       {/* Plans & quotas */}
       <section>
         <h2 style={{ fontSize: "0.95rem", fontWeight: 700, color: "var(--text)", marginBottom: 4 }}>Plans & quotas</h2>
-        <p style={{ fontSize: "0.76rem", color: "var(--text-3)", marginBottom: 10 }}>Quota gratuit du mois : {quotaMax} générations.</p>
+        <p style={{ fontSize: "0.76rem", color: "var(--text-3)", marginBottom: 10 }}>Quota gratuit du jour : {quotaMax} générations.</p>
         {msg && <div style={{ padding: "8px 12px", borderRadius: 9, fontSize: "0.8rem", background: "rgba(124,58,237,0.1)", border: "1px solid rgba(124,58,237,0.28)", color: "#a78bfa", marginBottom: 10 }}>{msg}</div>}
         <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Rechercher par e-mail…" style={{ width: "100%", maxWidth: 360, padding: "9px 12px", borderRadius: 10, fontSize: "0.86rem", background: "var(--input-bg)", border: "1px solid var(--border)", color: "var(--text)", marginBottom: 12 }} />
         <div className="flex flex-col gap-2">

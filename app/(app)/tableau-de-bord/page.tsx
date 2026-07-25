@@ -181,7 +181,7 @@ export default async function TableauDeBord() {
     }
   }
   if (estGratuit && quotaRestant !== null && quotaRestant > 0 && quotaRestant <= 1) {
-    alertes.push({ cle: "quota-bas", prio: 20, couleur: "ambre", titre: "Quota bientôt épuisé", sous: `${quotaRestant} génération restante ce mois`, href: "/compte", tag: `${quotaRestant} restante` });
+    alertes.push({ cle: "quota-bas", prio: 20, couleur: "ambre", titre: "Quota bientôt épuisé", sous: `${quotaRestant} génération restante aujourd'hui`, href: "/compte", tag: `${quotaRestant} restante` });
   }
   if (profilPct < 100) {
     alertes.push({ cle: "profil", prio: 30, couleur: "violet", titre: "Complétez votre profil", sous: `Profil rempli à ${profilPct} % — un profil complet améliore vos dossiers`, href: "/profil", tag: `${profilPct} %` });
@@ -195,7 +195,7 @@ export default async function TableauDeBord() {
   const stats = [
     { key: "dossiers", label: "Dossiers en cours", valeur: String(dossiersEnCours), sous: dossiersEnCours > 0 ? `${retenues.length} opportunité${retenues.length > 1 ? "s" : ""} retenue${retenues.length > 1 ? "s" : ""}` : "Commencez à swiper", href: "/candidatures" },
     { key: "deadline", label: "Prochaine deadline", valeur: prochaineDeadline === null ? "—" : prochaineDeadline === 0 ? "Auj." : `J-${prochaineDeadline}`, sous: prochaineEcheance?.opp.organisme ?? "Aucune échéance", href: "/candidatures" },
-    { key: "quota", label: estGratuit ? "Quota restant" : "Abonnement", valeur: estGratuit ? `${quotaRestant}/${quotaMax}` : "∞", sous: estGratuit ? "générations ce mois" : "Plan payant actif", href: "/compte" },
+    { key: "quota", label: estGratuit ? "Quota restant" : "Abonnement", valeur: estGratuit ? `${quotaRestant}/${quotaMax}` : "∞", sous: estGratuit ? "générations aujourd'hui" : "Plan payant actif", href: "/compte" },
     { key: "profil", label: "Profil complété", valeur: `${profilPct} %`, sous: profilPct === 100 ? "Profil complet" : "À finaliser", href: "/profil" },
   ];
   if (planPro) {

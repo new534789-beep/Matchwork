@@ -360,7 +360,7 @@ export function TableauBordClient({ stats, alertes, retenues, prochaineEcheance,
 
           <div style={{ borderRadius: 18, padding: 20, background: "linear-gradient(150deg,#1a0840,#0a0a0a)", border: "1px solid rgba(124,58,237,0.3)", display: "flex", flexDirection: "column", color: "#fff", overflow: "hidden", position: "relative" }}>
             <div aria-hidden style={{ position: "absolute", top: -40, right: -40, width: 160, height: 160, borderRadius: "50%", background: "radial-gradient(circle,rgba(124,58,237,0.35),transparent 70%)", pointerEvents: "none" }} />
-            <p style={{ fontSize: "0.78rem", fontWeight: 700, color: "rgba(255,255,255,0.6)", letterSpacing: "0.04em", textTransform: "uppercase", marginBottom: 14, position: "relative" }}>{estGratuit ? "Quota du mois" : "Abonnement"}</p>
+            <p style={{ fontSize: "0.78rem", fontWeight: 700, color: "rgba(255,255,255,0.6)", letterSpacing: "0.04em", textTransform: "uppercase", marginBottom: 14, position: "relative" }}>{estGratuit ? "Quota du jour" : "Abonnement"}</p>
             <div style={{ position: "relative", marginBottom: "auto" }}>
               <p style={{ fontSize: "2.8rem", fontWeight: 800, lineHeight: 1, letterSpacing: "-0.03em" }}>{estGratuit ? restant : "∞"}</p>
               <p style={{ fontSize: "0.78rem", color: "rgba(255,255,255,0.55)", marginTop: 6 }}>{estGratuit ? `génération${(restant ?? 0) > 1 ? "s" : ""} restante${(restant ?? 0) > 1 ? "s" : ""} sur ${max}` : "Générations illimitées"}</p>

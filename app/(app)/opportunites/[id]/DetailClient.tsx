@@ -95,7 +95,7 @@ export function DetailClient({
           setGeneration("done");
         } else if (data.quotaAtteint) {
           setGeneration("error");
-          setErreurGen("Quota mensuel atteint. Passez au plan Pro pour continuer.");
+          setErreurGen("Quota du jour atteint. Passez au plan Pro pour continuer.");
         } else if (data.erreur) {
           setGeneration("error");
           setErreurGen(data.erreur);

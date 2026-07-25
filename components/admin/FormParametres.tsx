@@ -44,7 +44,7 @@ export function FormParametres({
 
       <div>
         <label style={labelStyle}>Quota gratuit par défaut</label>
-        <p style={aideStyle}>Nombre de générations offertes par mois. Vide = valeur d&apos;environnement ({defauts[CLES_PARAMETRES.quotaGratuitDefaut] || "3"}).</p>
+        <p style={aideStyle}>Nombre de générations offertes par jour. Vide = valeur d&apos;environnement ({defauts[CLES_PARAMETRES.quotaGratuitDefaut] || "3"}).</p>
         <input type="number" min={0} value={v[CLES_PARAMETRES.quotaGratuitDefaut] ?? ""} onChange={(e) => set(CLES_PARAMETRES.quotaGratuitDefaut, e.target.value)} placeholder={defauts[CLES_PARAMETRES.quotaGratuitDefaut] || "3"} style={inputStyle} />
       </div>
 

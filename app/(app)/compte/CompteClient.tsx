@@ -83,7 +83,7 @@ export function CompteClient({ email, plan, quotaMax, generationsUtilisees, quot
         {estGratuit ? (
           <>
             <div className="flex justify-between mb-1.5">
-              <span style={{ fontSize: "0.8rem", color: "var(--text-2)" }}>Générations ce mois</span>
+              <span style={{ fontSize: "0.8rem", color: "var(--text-2)" }}>Générations aujourd&apos;hui</span>
               <span style={{ fontSize: "0.8rem", fontWeight: 700, color: "#a78bfa" }}>{generationsUtilisees} / {quotaMax}</span>
             </div>
             <div style={{ height: 6, borderRadius: 6, background: "var(--border)", overflow: "hidden" }}>
@@ -94,7 +94,7 @@ export function CompteClient({ email, plan, quotaMax, generationsUtilisees, quot
             )}
           </>
         ) : (
-          <p style={{ fontSize: "0.85rem", color: "var(--text-2)" }}>Générations illimitées ce mois. Merci de votre confiance.</p>
+          <p style={{ fontSize: "0.85rem", color: "var(--text-2)" }}>Générations illimitées. Merci de votre confiance.</p>
         )}
       </div>
 

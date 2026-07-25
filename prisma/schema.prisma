@@ -360,8 +360,11 @@ model DocumentGenere {
   @@map("documents_generes")
 }
 
-// ─── Quota mensuel — étape 4 ─────────────────────────────────────────────────
-
+// ─── Quota gratuit — réinitialisé chaque jour ────────────────────────────────
+// Le champ `mois` est un nom historique trompeur : il contient en réalité une
+// date "AAAA-MM-JJ" (voir `jour` dans app/api/dossiers/generer/route.ts), pas
+// un mois. Conservé tel quel pour éviter un renommage de colonne à risque —
+// c'est bien un quota JOURNALIER (3 générations/jour par défaut).
 model QuotaUsage {
   id                   String @id @default(cuid())
   userId               String

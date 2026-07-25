@@ -13,7 +13,7 @@ export const metadata: Metadata = {
 const FAQ_ITEMS = [
   {
     q: "Matchwork est-il vraiment gratuit ?",
-    r: "Oui. Le plan gratuit vous offre 3 dossiers complets par mois, sans carte bancaire ni engagement. Vous ne payez que si vous voulez aller plus loin.",
+    r: "Oui. Le plan gratuit vous offre 3 dossiers complets par jour, sans carte bancaire ni engagement. Vous ne payez que si vous voulez aller plus loin.",
   },
   {
     q: "L'IA invente-t-elle des informations sur moi ?",

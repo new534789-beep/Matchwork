@@ -12,7 +12,7 @@ function estPlanGratuit(plan: string) {
   return plan === "gratuit" || plan === "GRATUIT";
 }
 
-// Cadence de génération (anti-abus technique, distincte du quota mensuel/journalier) :
+// Cadence de génération (anti-abus technique, distincte du quota journalier gratuit) :
 // Pro+ traite les dossiers en priorité (« génération accélérée », promesse du plan à
 // 5900 XOF) via une limite par minute nettement plus haute que gratuit/Pro.
 const CADENCE_PAR_MINUTE: Record<string, number> = {
