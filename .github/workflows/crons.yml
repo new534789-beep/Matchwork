@@ -48,8 +48,15 @@ jobs:
     if: github.event_name == 'workflow_dispatch' || github.event.schedule == '0 6 * * *'
     runs-on: ubuntu-latest
     steps:
+      # limit doit rester SOUS le nombre total de sources (31) : au-delà, le
+      # scraper désactive son mode "léger" (pagination) et charge tout en un
+      # bloc avec des paramètres plus lourds — a fait planter la fonction par
+      # manque de mémoire (OOM) lors du test. offset tourne sur 4 jours pour
+      # couvrir la totalité des sources sans jamais dépasser cette limite.
       - run: |
-          curl -sf -X GET "https://matchworks.app/api/cron/ingestion-bourses?limit=35" \
+          DOW=$(date -u +%u)
+          OFFSET=$(( ((DOW - 1) % 4) * 10 ))
+          curl -sf -X GET "https://matchworks.app/api/cron/ingestion-bourses?offset=$OFFSET&limit=10" \
             -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}"
 
   emplois:
@@ -64,8 +71,13 @@ jobs:
     if: github.event_name == 'workflow_dispatch' || github.event.schedule == '0 8 * * *'
     runs-on: ubuntu-latest
     steps:
+      # Même logique que "bourses" : limit sous le total (21 sources), offset
+      # tourne sur 3 jours pour couvrir la totalité sans jamais désactiver le
+      # mode léger du scraper (voir commentaire du job bourses).
       - run: |
-          curl -sf -X GET "https://matchworks.app/api/cron/ingestion-stages?limit=25" \
+          DOW=$(date -u +%u)
+          OFFSET=$(( ((DOW - 1) % 3) * 8 ))
+          curl -sf -X GET "https://matchworks.app/api/cron/ingestion-stages?offset=$OFFSET&limit=8" \
             -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}"
 
   formations:
