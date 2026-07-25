@@ -3,6 +3,7 @@ import { Geist } from "next/font/google";
 import { ThemeProvider } from "@/lib/theme/ThemeContext";
 import { GenerationProvider } from "@/lib/generation/GenerationContext";
 import { CookieBanner } from "@/components/public/CookieBanner";
+import { ToastProvider } from "@/components/ui/Toast";
 import { getSiteUrl } from "@/lib/site-url";
 import "./globals.css";
 
@@ -68,7 +69,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="fr" className={`${geist.variable} h-full`} suppressHydrationWarning>
       <head>
         <link rel="manifest" href="/manifest.json" />
-        <meta name="theme-color" content="#7c3aed" />
+        <meta name="theme-color" content="#ffffff" />
         <link rel="apple-touch-icon" href="/icons/icon-192.png" />
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(ORGANIZATION_JSONLD) }} />
         {/* Applique le thème avant le premier rendu pour éviter le flash */}
@@ -81,7 +82,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               // ChunkLoadError en boucle. En dev on désinscrit systématiquement tout SW
               // déjà enregistré lors d'une session précédente (avant ce correctif).
               + (process.env.NODE_ENV === "production"
-                ? `;if('serviceWorker' in navigator){navigator.serviceWorker.register('/sw.js')}`
+                // Auto-mise à jour : dès qu'un nouveau service worker prend le
+                // contrôle (déploiement plus récent que celui déjà en mémoire
+                // sur le téléphone), on recharge la page automatiquement — pas
+                // besoin de fermer/rouvrir l'app ou vider le cache à la main.
+                // On force aussi une vérification de mise à jour à chaque
+                // reprise de l'app (PWA Android relancée depuis l'arrière-plan
+                // ne redéclenche pas toujours cette vérification toute seule).
+                ? `;if('serviceWorker' in navigator){navigator.serviceWorker.register('/sw.js').then(function(reg){document.addEventListener('visibilitychange',function(){if(document.visibilityState==='visible')reg.update()})});navigator.serviceWorker.addEventListener('controllerchange',function(){window.location.reload()})}`
                 : `;if('serviceWorker' in navigator){navigator.serviceWorker.getRegistrations().then(function(rs){rs.forEach(function(r){r.unregister()})})}`),
           }}
         />
@@ -89,8 +97,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className="font-sans antialiased min-h-full flex flex-col">
         <ThemeProvider>
           <GenerationProvider>
-            {children}
-            <CookieBanner />
+            <ToastProvider>
+              {children}
+              <CookieBanner />
+            </ToastProvider>
           </GenerationProvider>
         </ThemeProvider>
       </body>
