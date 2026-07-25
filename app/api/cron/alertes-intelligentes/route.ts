@@ -3,6 +3,8 @@ import { prisma } from "@/lib/prisma";
 import { calculerScore } from "@/lib/matching/score";
 import { envoyerNotification } from "@/lib/push/envoyer";
 
+export const maxDuration = 60;
+
 // Alertes intelligentes (Pro) : prévient un utilisateur Pro par push dès
 // qu'une offre récemment publiée correspond fortement à son profil, sans
 // qu'il ait besoin de repasser dans le fil. Fenêtre large (26h) car le cron

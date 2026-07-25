@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { envoyerNotification } from "@/lib/push/envoyer";
 
+export const maxDuration = 60;
+
 // Rappel unique, 5 jours après avoir marqué un dossier « obtenu », si des
 // étapes de la checklist post-obtention (visa, documents, logement...)
 // restent à cocher. Un seul rappel par dossier (voir checklistRelanceEnvoyeeLe).

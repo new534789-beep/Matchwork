@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { envoyerNotification } from "@/lib/push/envoyer";
 
+export const maxDuration = 60;
+
 // Relance automatique (Pro) : 7 jours après avoir marqué un dossier « utilisé »
 // (candidature envoyée), rappelle une seule fois à l'utilisateur de relancer
 // le recruteur — simple rappel + lien vers un brouillon de message généré à

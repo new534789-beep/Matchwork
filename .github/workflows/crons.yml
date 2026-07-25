@@ -2,38 +2,140 @@ name: Crons Matchwork
 
 on:
   schedule:
-    # Dispatcher (ingestion RSS) — 1x/jour à 6h UTC
-    - cron: "0 6 * * *"
-    # Enrichissement IA — toutes les 2h
-    - cron: "0 0,2,4,6,8,10,12,14,16,18,20,22 * * *"
+    # RSS (toutes sources génériques) — 2x/jour, tous les jours. L'index du
+    # lot (0-13) est calculé dans le job à partir du jour + créneau, pour
+    # visiter la totalité du catalogue de sources actives une fois par semaine.
+    - cron: "0 5,17 * * *"
+    # Bots par type de source — 1x/jour chacun, décorrélés de l'ingestion RSS
+    # (avant : tout bundlé dans un seul appel dispatcher qui dépassait
+    # régulièrement les 60s du plan Hobby et échouait ~1 jour sur 2).
+    - cron: "0 6 * * *"   # bourses
+    - cron: "0 7 * * *"   # emplois (ATS)
+    - cron: "0 8 * * *"   # stages
+    - cron: "0 9 * * *"   # formations
+    - cron: "0 10 * * *"  # admissions
+    - cron: "0 11 * * *"  # appels à projets
+    # Nettoyage/entretien (expiration, enrichissement, rafraîchissement) —
+    # rapide (jamais bundlé avec l'ingestion), donc peut tourner souvent.
+    - cron: "0 12,22 * * *"
+    # Enrichissement IA des brouillons — toutes les 2h
+    - cron: "0 0,2,4,14,16,18,20 * * *"
     # Auto-validation — toutes les 4h (décalé de 1h)
-    - cron: "0 1,5,9,13,17,21 * * *"
+    - cron: "0 1,13,21 * * *"
+    # Fonctionnalités Pro (notifications) — jamais déclenchées avant ce
+    # correctif (aucun cron ni Vercel ni GitHub Actions ne les appelait).
+    - cron: "0 3 * * *"   # alertes intelligentes
+    - cron: "0 15 * * *"  # checklist post-obtention
+    - cron: "0 19 * * *"  # relance candidature
   workflow_dispatch:
 
 jobs:
-  dispatcher:
+  rss:
+    if: github.event_name == 'workflow_dispatch' || github.event.schedule == '0 5,17 * * *'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Calculer le lot du jour et appeler /api/cron/ingestion
+        run: |
+          HOUR=$(date -u +%H)
+          DOW=$(date -u +%u)
+          SLOT=0
+          if [ "$HOUR" -ge 12 ]; then SLOT=1; fi
+          INDEX=$(( (DOW - 1) * 2 + SLOT ))
+          curl -sf -X GET "https://matchworks.app/api/cron/ingestion?diviseur=14&index=$INDEX" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}"
+
+  bourses:
     if: github.event_name == 'workflow_dispatch' || github.event.schedule == '0 6 * * *'
     runs-on: ubuntu-latest
     steps:
-      - name: Appeler /api/cron/dispatcher
-        run: |
+      - run: |
+          curl -sf -X GET "https://matchworks.app/api/cron/ingestion-bourses?limit=35" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}"
+
+  emplois:
+    if: github.event_name == 'workflow_dispatch' || github.event.schedule == '0 7 * * *'
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          curl -sf -X GET "https://matchworks.app/api/cron/ingestion-emplois" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}"
+
+  stages:
+    if: github.event_name == 'workflow_dispatch' || github.event.schedule == '0 8 * * *'
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          curl -sf -X GET "https://matchworks.app/api/cron/ingestion-stages?limit=25" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}"
+
+  formations:
+    if: github.event_name == 'workflow_dispatch' || github.event.schedule == '0 9 * * *'
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          curl -sf -X GET "https://matchworks.app/api/cron/ingestion-formations" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}"
+
+  admissions:
+    if: github.event_name == 'workflow_dispatch' || github.event.schedule == '0 10 * * *'
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          curl -sf -X GET "https://matchworks.app/api/cron/ingestion-admissions" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}"
+
+  appels-projets:
+    if: github.event_name == 'workflow_dispatch' || github.event.schedule == '0 11 * * *'
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          curl -sf -X GET "https://matchworks.app/api/cron/dispatcher?force=appels-projets" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}"
+
+  nettoyage:
+    if: github.event_name == 'workflow_dispatch' || github.event.schedule == '0 12,22 * * *'
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
           curl -sf -X GET "https://matchworks.app/api/cron/dispatcher" \
             -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}"
 
   enrichir:
-    if: github.event_name == 'workflow_dispatch' || github.event.schedule == '0 0,2,4,6,8,10,12,14,16,18,20,22 * * *'
+    if: github.event_name == 'workflow_dispatch' || github.event.schedule == '0 0,2,4,14,16,18,20 * * *'
     runs-on: ubuntu-latest
     steps:
-      - name: Appeler /api/cron/enrichir
-        run: |
+      - run: |
           curl -sf -X GET "https://matchworks.app/api/cron/enrichir?limite=25" \
             -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}"
 
   auto-validation:
-    if: github.event_name == 'workflow_dispatch' || github.event.schedule == '0 1,5,9,13,17,21 * * *'
+    if: github.event_name == 'workflow_dispatch' || github.event.schedule == '0 1,13,21 * * *'
     runs-on: ubuntu-latest
     steps:
-      - name: Appeler /api/cron/auto-validation
-        run: |
+      - run: |
           curl -sf -X GET "https://matchworks.app/api/cron/auto-validation?limite=60" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}"
+
+  alertes-intelligentes:
+    if: github.event_name == 'workflow_dispatch' || github.event.schedule == '0 3 * * *'
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          curl -sf -X GET "https://matchworks.app/api/cron/alertes-intelligentes" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}"
+
+  checklist-post-obtention:
+    if: github.event_name == 'workflow_dispatch' || github.event.schedule == '0 15 * * *'
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          curl -sf -X GET "https://matchworks.app/api/cron/checklist-post-obtention" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}"
+
+  relance-candidature:
+    if: github.event_name == 'workflow_dispatch' || github.event.schedule == '0 19 * * *'
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          curl -sf -X GET "https://matchworks.app/api/cron/relance-candidature" \
             -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}"

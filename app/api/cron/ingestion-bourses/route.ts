@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { ingererBourses, SCHOLARSHIP_SOURCE_COUNT } from "@/lib/ingestion/scholarship-scraper";
 import { validerAutomatiquement } from "@/lib/ingestion/auto-validation";
 
-export const maxDuration = 60;
+export const maxDuration = 120;
 
 export async function GET(req: Request) {
   const secret = process.env.CRON_SECRET;
