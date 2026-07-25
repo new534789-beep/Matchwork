@@ -2,36 +2,14 @@
 
 html, body { overflow-x: hidden; max-width: 100vw; }
 
-/* ── Couleurs CSS variables (clair = défaut/officiel, sombre = override) ── */
+/* ── Couleurs CSS variables (clair = défaut/officiel, sombre = override) ──
+   IMPORTANT : `:root` matche toujours <html>, quel que soit data-theme.
+   Il doit donc être défini AVANT [data-theme="dark"] dans le fichier, sinon
+   à spécificité égale c'est la règle la plus basse qui gagne et le mode
+   sombre ne s'applique jamais (bug vécu : data-theme="dark" posé sur <html>
+   mais --bg résolu en clair quand même). ── */
 
-[data-theme="dark"] {
-  color-scheme: dark;
-  --bg: #0a0a0a;
-  --bg-card: rgba(255,255,255,0.05);
-  --bg-card-hover: rgba(255,255,255,0.08);
-  --border: rgba(255,255,255,0.09);
-  --border-strong: rgba(255,255,255,0.16);
-  --text: #ffffff;
-  --text-2: rgba(255,255,255,0.52);
-  --text-3: rgba(255,255,255,0.26);
-  --text-4: rgba(255,255,255,0.12);
-  --nav-bg: rgba(10,10,10,0.94);
-  --header-bg: rgba(10,10,10,0.90);
-  --input-bg: rgba(255,255,255,0.06);
-  --input-border: rgba(255,255,255,0.11);
-  --scrollbar: #7c3aed;
-  --purple: #7c3aed;
-  --purple-light: #a78bfa;
-
-  --background: #0a0a0a;
-  --foreground: #ffffff;
-  --primary: #7c3aed;
-  --primary-foreground: #ffffff;
-  --font-sans: var(--font-geist);
-}
-
-:root,
-[data-theme="light"] {
+:root {
   color-scheme: light;
   /* Fond neutre proche blanc (pas de teinte violette) — base "verre dépoli". */
   --bg: #f6f6f9;
@@ -68,6 +46,56 @@ html, body { overflow-x: hidden; max-width: 100vw; }
   --primary: #7c3aed;
   --primary-foreground: #ffffff;
   --font-sans: var(--font-geist);
+}
+
+/* Redondant avec :root mais explicite — sert si data-theme="light" est posé
+   alors qu'un ancêtre a basculé en sombre (ex. embed), ou pour la lisibilité. */
+[data-theme="light"] {
+  color-scheme: light;
+  --bg: #f6f6f9;
+  --bg-card: rgba(255,255,255,0.86);
+  --bg-card-hover: rgba(255,255,255,0.96);
+  --border: rgba(124,58,237,0.08);
+  --border-strong: rgba(124,58,237,0.2);
+  --text: #100a20;
+  --text-2: rgba(16,10,32,0.78);
+  --text-3: rgba(16,10,32,0.52);
+  --text-4: rgba(16,10,32,0.2);
+  --nav-bg: rgba(255,255,255,0.75);
+  --header-bg: rgba(255,255,255,0.75);
+  --input-bg: rgba(255,255,255,0.7);
+  --input-border: rgba(124,58,237,0.14);
+  --scrollbar: #7c3aed;
+  --purple: #7c3aed;
+  --purple-light: #6d28d9;
+  --background: #f6f6f9;
+  --foreground: #1a0840;
+  --primary: #7c3aed;
+  --primary-foreground: #ffffff;
+}
+
+[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #0a0a0a;
+  --bg-card: rgba(255,255,255,0.05);
+  --bg-card-hover: rgba(255,255,255,0.08);
+  --border: rgba(255,255,255,0.09);
+  --border-strong: rgba(255,255,255,0.16);
+  --text: #ffffff;
+  --text-2: rgba(255,255,255,0.52);
+  --text-3: rgba(255,255,255,0.26);
+  --text-4: rgba(255,255,255,0.12);
+  --nav-bg: rgba(10,10,10,0.94);
+  --header-bg: rgba(10,10,10,0.90);
+  --input-bg: rgba(255,255,255,0.06);
+  --input-border: rgba(255,255,255,0.11);
+  --scrollbar: #7c3aed;
+  --purple: #7c3aed;
+  --purple-light: #a78bfa;
+  --background: #0a0a0a;
+  --foreground: #ffffff;
+  --primary: #7c3aed;
+  --primary-foreground: #ffffff;
 }
 
 /* Applique la matière verre à toute surface qui utilise --bg-card comme fond
