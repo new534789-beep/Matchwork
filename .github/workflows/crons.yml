@@ -48,15 +48,15 @@ jobs:
     if: github.event_name == 'workflow_dispatch' || github.event.schedule == '0 6 * * *'
     runs-on: ubuntu-latest
     steps:
-      # limit doit rester SOUS le nombre total de sources (31) : au-delà, le
-      # scraper désactive son mode "léger" (pagination) et charge tout en un
-      # bloc avec des paramètres plus lourds — a fait planter la fonction par
-      # manque de mémoire (OOM) lors du test. offset tourne sur 4 jours pour
-      # couvrir la totalité des sources sans jamais dépasser cette limite.
+      # Lots volontairement petits (5 sources) : testé en conditions réelles,
+      # certains lots plus gros (même sous le seuil de pagination) ont fait
+      # planter la fonction par manque de mémoire selon les sources tombées
+      # dans le lot — visiblement une ou des sources individuellement lourdes,
+      # pas un simple effet de seuil. offset tourne sur 7 jours pour tout couvrir.
       - run: |
           DOW=$(date -u +%u)
-          OFFSET=$(( ((DOW - 1) % 4) * 10 ))
-          curl -sf -X GET "https://matchworks.app/api/cron/ingestion-bourses?offset=$OFFSET&limit=10" \
+          OFFSET=$(( ((DOW - 1) % 7) * 5 ))
+          curl -sf -X GET "https://matchworks.app/api/cron/ingestion-bourses?offset=$OFFSET&limit=5" \
             -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}"
 
   emplois:

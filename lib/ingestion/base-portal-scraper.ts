@@ -108,6 +108,12 @@ export function normaliserDatesLocales(texte: string, langue: string): string {
 
 // ── Fetch HTML ──────────────────────────────────────────────────────────────
 
+// Plafond de lecture réseau — certaines pages de listing renvoient un HTML
+// anormalement volumineux (constaté en production sur ecowas.int : faisait
+// planter la fonction par manque de mémoire). On lit au niveau du flux plutôt
+// qu'avec res.text() (qui charge toute la réponse d'un bloc en mémoire).
+const MAX_OCTETS_LISTING = 2_000_000;
+
 export async function recupererHtml(url: string): Promise<string | null> {
   const ctrl = new AbortController();
   const t = setTimeout(() => ctrl.abort(), 15000);
@@ -117,11 +123,23 @@ export async function recupererHtml(url: string): Promise<string | null> {
       headers: { "User-Agent": "MatchworkBot/1.0 (+https://matchwork.app)" },
       redirect: "follow",
     });
-    clearTimeout(t);
-    if (!res.ok) return null;
+    if (!res.ok || !res.body) { clearTimeout(t); return null; }
     const ct = res.headers.get("content-type") ?? "";
-    if (!ct.includes("html")) return null;
-    return await res.text();
+    if (!ct.includes("html")) { clearTimeout(t); return null; }
+
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder("utf-8");
+    let html = "";
+    let octetsLus = 0;
+    while (octetsLus < MAX_OCTETS_LISTING) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      octetsLus += value.byteLength;
+      html += decoder.decode(value, { stream: true });
+    }
+    await reader.cancel().catch(() => {});
+    clearTimeout(t);
+    return html;
   } catch {
     clearTimeout(t);
     return null;
