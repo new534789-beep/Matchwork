@@ -3,11 +3,11 @@
  *
  * Les entreprises suivies (Stripe, Airbnb, Databricks, Cloudflare, ...) publient
  * des offres dans le monde entier, sans rapport avec le marché cible de Matchwork
- * (Afrique de l'Ouest). On ne garde que les offres situées dans la zone couverte
- * par [[PAYS_SEO]], en Afrique au sens large (y compris EMEA, qui inclut l'Afrique),
- * ou explicitement ouvertes à distance sans restriction géographique — un
- * "Remote - US" reste hors zone : la restriction rend l'offre inaccessible depuis
- * l'Afrique de l'Ouest.
+ * (l'Afrique dans son ensemble). On ne garde que les offres situées dans la zone
+ * couverte par [[PAYS_SEO]] (tout pays africain), en Afrique au sens large (y
+ * compris EMEA, qui inclut l'Afrique), ou explicitement ouvertes à distance sans
+ * restriction géographique — un "Remote - US" reste hors zone : la restriction
+ * rend l'offre inaccessible depuis l'Afrique.
  */
 import { detecterPays, PAYS_SEO } from "@/lib/pays";
 
