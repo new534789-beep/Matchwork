@@ -13,6 +13,7 @@ const SCHOLARSHIP_SOURCES: BasePortalSource[] = [
   { name: "Campus France Mali", country: "mali", url: "https://www.mali.campusfrance.org/bourses", identifier: "cf-mali", language: "fr" },
   { name: "Campus France Burkina Faso", country: "burkina-faso", url: "https://www.burkinafaso.campusfrance.org/bourses", identifier: "cf-burkina", language: "fr" },
   { name: "Campus France Bénin", country: "benin", url: "https://www.benin.campusfrance.org/bourses", identifier: "cf-benin", language: "fr" },
+  { name: "DBAU Bénin (bourses gouvernementales)", country: "benin", url: "https://bourses.enseignementsuperieur.gouv.bj/", identifier: "dbau-benin", language: "fr" },
   { name: "Campus France Togo", country: "togo", url: "https://www.togo.campusfrance.org/bourses", identifier: "cf-togo", language: "fr" },
   { name: "Campus France Niger", country: "niger", url: "https://www.niger.campusfrance.org/bourses", identifier: "cf-niger", language: "fr" },
   { name: "AUF Appels à candidatures", country: "international", url: "https://www.auf.org/nouvelles/appels-a-candidatures/", identifier: "auf", language: "fr" },

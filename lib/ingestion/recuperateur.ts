@@ -85,6 +85,17 @@ export async function ingererToutesLesSources(opts?: { skip?: number; take?: num
       return;
     }
 
+    // Sources de type « sitemap » (sites en JS côté client, sans flux RSS ni
+    // HTML statique exploitable — ex. Setondji reconstruit en SPA) : le
+    // sitemap.xml reste servi statiquement même quand le reste du site ne
+    // l'est plus. Pas de titre/description dans un sitemap (juste des URLs) —
+    // dérivés du slug, complétés plus tard par le passage d'enrichissement IA.
+    if (source.type === "sitemap") {
+      const { ingererDepuisSitemap } = await import("@/lib/ingestion/sitemap-scraper");
+      await ingererDepuisSitemap(source, { rapport, aujourdhui });
+      return;
+    }
+
     let creeesSource = 0;
     try {
       const parser = await getParser();
