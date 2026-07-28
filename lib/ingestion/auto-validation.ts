@@ -13,6 +13,7 @@ import { prisma } from "@/lib/prisma";
 import { STATUTS_EN_FILE } from "@/lib/opportunites";
 import { detecterBlog } from "@/lib/ia/detection-blog";
 import { notifierOpportunitePubliee } from "@/lib/blog/notifier-make";
+import { canalCandidatureFiable, extraireOffre } from "@/lib/ia/extraction-offre";
 
 export type RapportValidation = {
   traitees: number;
@@ -138,6 +139,8 @@ export async function deciderEmploi(opp: {
   description: string;
   lien: string | null;
   source: string;
+  canalCandidature?: string | null;
+  cibleCandidature?: string | null;
 }): Promise<Decision> {
   if (!champRempli(opp.intitule)) {
     return { action: "rejetee", raison: "Titre manquant" };
@@ -151,6 +154,10 @@ export async function deciderEmploi(opp: {
   }
   if (!champRempli(opp.lien)) {
     return { action: "rejetee", raison: "Lien de candidature manquant" };
+  }
+  // Source ATS : le lien EST le canal de candidature (formulaire de l'ATS), fiable par construction.
+  if (!opp.source.startsWith("ATS:") && !canalCandidatureFiable(opp.canalCandidature, opp.cibleCandidature)) {
+    return { action: "rejetee", raison: "Aucun canal de candidature fiable (ni e-mail valide, ni lien de formulaire précis)" };
   }
   if (estSpam(`${opp.intitule} ${opp.description}`)) {
     return { action: "rejetee", raison: "Contenu suspect (spam)" };
@@ -176,6 +183,8 @@ export async function deciderBourseOuAutre(opp: {
   lien: string | null;
   dateLimite: Date | null;
   confianceDateLimite: number | null;
+  canalCandidature?: string | null;
+  cibleCandidature?: string | null;
 }): Promise<Decision> {
   if (!champRempli(opp.intitule)) {
     return { action: "rejetee", raison: "Titre manquant" };
@@ -189,6 +198,9 @@ export async function deciderBourseOuAutre(opp: {
   }
   if (!champRempli(opp.description) || opp.description.trim().length < 30) {
     return { action: "rejetee", raison: "Description trop courte ou absente" };
+  }
+  if (!canalCandidatureFiable(opp.canalCandidature, opp.cibleCandidature)) {
+    return { action: "rejetee", raison: "Aucun canal de candidature fiable (ni e-mail valide, ni lien de formulaire précis)" };
   }
   if (estSpam(`${opp.intitule} ${opp.description}`)) {
     return { action: "rejetee", raison: "Contenu suspect (spam)" };
@@ -234,6 +246,8 @@ export async function validerAutomatiquement(options?: { limite?: number }): Pro
       confianceDateLimite: true,
       pays: true,
       slug: true,
+      canalCandidature: true,
+      cibleCandidature: true,
     },
   });
 
@@ -244,6 +258,25 @@ export async function validerAutomatiquement(options?: { limite?: number }): Pro
     ignorees: 0,
     details: [],
   };
+
+  // Backfill du canal de candidature avant de décider : certaines offres (import
+  // historique, coller-une-offre ancien, etc.) n'ont jamais eu ce champ calculé.
+  // On retente une extraction sur le texte déjà en base avant de rejeter — pour
+  // ne pas confondre "jamais cherché" et "vraiment introuvable".
+  for (const opp of offres) {
+    if (opp.source.startsWith("ATS:")) continue; // le lien EST le canal, pas besoin
+    if (opp.canalCandidature && opp.canalCandidature !== "aucun") continue;
+    const contenu = `Organisme : ${opp.organisme}\nIntitulé : ${opp.intitule}\nLien : ${opp.lien ?? "non précisé"}\n\n${opp.description}`;
+    const extrait = await extraireOffre(contenu);
+    if (extrait?.canalCandidature && extrait.canalCandidature !== "aucun") {
+      opp.canalCandidature = extrait.canalCandidature;
+      opp.cibleCandidature = extrait.cibleCandidature ?? null;
+      await prisma.opportunite.update({
+        where: { id: opp.id },
+        data: { canalCandidature: opp.canalCandidature, cibleCandidature: opp.cibleCandidature },
+      });
+    }
+  }
 
   for (const opp of offres) {
     const estATS = opp.source.startsWith("ATS:");
@@ -302,8 +335,12 @@ export async function nettoyerOffresIncoherentes(): Promise<{
       id: true,
       type: true,
       intitule: true,
+      organisme: true,
       description: true,
+      lien: true,
       source: true,
+      canalCandidature: true,
+      cibleCandidature: true,
     },
   });
 
@@ -311,6 +348,20 @@ export async function nettoyerOffresIncoherentes(): Promise<{
   const details: RapportValidation["details"] = [];
 
   for (const opp of publiees) {
+    // Backfill avant de juger : ne pas confondre "canal jamais cherché" et "vraiment introuvable".
+    if (!opp.source.startsWith("ATS:") && (!opp.canalCandidature || opp.canalCandidature === "aucun")) {
+      const contenu = `Organisme : ${opp.organisme}\nIntitulé : ${opp.intitule}\nLien : ${opp.lien ?? "non précisé"}\n\n${opp.description}`;
+      const extrait = await extraireOffre(contenu);
+      if (extrait?.canalCandidature && extrait.canalCandidature !== "aucun") {
+        opp.canalCandidature = extrait.canalCandidature;
+        opp.cibleCandidature = extrait.cibleCandidature ?? null;
+        await prisma.opportunite.update({
+          where: { id: opp.id },
+          data: { canalCandidature: opp.canalCandidature, cibleCandidature: opp.cibleCandidature },
+        });
+      }
+    }
+
     let raison: string | null = intituleGenerique(opp.intitule);
 
     if (!raison) {
@@ -320,6 +371,11 @@ export async function nettoyerOffresIncoherentes(): Promise<{
 
     if (!raison && (opp.type === "BOURSE" || opp.type === "BOURSE_ETUDE")) {
       raison = descriptionValide(opp.intitule, opp.description);
+    }
+
+    // Source ATS : le lien est le canal de candidature par construction, fiable.
+    if (!raison && !opp.source.startsWith("ATS:") && !canalCandidatureFiable(opp.canalCandidature, opp.cibleCandidature)) {
+      raison = "Aucun canal de candidature fiable (ni e-mail valide, ni lien de formulaire précis)";
     }
 
     if (raison) {

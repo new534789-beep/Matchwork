@@ -25,6 +25,29 @@ export function normaliserCanal(v: unknown): string {
   return typeof v === "string" && (CANAUX as readonly string[]).includes(v) ? v : "aucun";
 }
 
+export function estEmailValide(v: string | null | undefined): v is string {
+  return !!v && /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v.trim());
+}
+
+function estUrlValide(v: string | null | undefined): v is string {
+  if (!v) return false;
+  try { const u = new URL(v.trim()); return u.protocol === "http:" || u.protocol === "https:"; }
+  catch { return false; }
+}
+
+/**
+ * Une offre n'a sa place dans le catalogue que si on sait exactement où
+ * envoyer la candidature : un e-mail valide, ou un lien de formulaire précis.
+ * Un simple lien d'information ("lien_info") ou un canal indéterminé
+ * ("aucun") ne suffisent pas — Matchwork n'envoie jamais l'utilisateur
+ * "voir sur le site" à l'aveugle.
+ */
+export function canalCandidatureFiable(canal: string | null | undefined, cible: string | null | undefined): boolean {
+  if (canal === "email") return estEmailValide(cible);
+  if (canal === "formulaire") return estUrlValide(cible);
+  return false;
+}
+
 export function iaDisponible(): boolean {
   return hasMistralKey();
 }

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import type { ChecklistItem } from "./page";
 import { TimelineDossier } from "./TimelineDossier";
+import { useToast } from "@/components/ui/Toast";
 
 type DocGenere = { id: string; type: string; label: string; contenu: string; langue: string };
 type EtapeObtention = { id: string; texte: string; lienGuide: string | null; fait: boolean };
@@ -40,6 +41,7 @@ function estEmail(v: string | null | undefined): v is string {
 
 export function DossierClient({ dossier, checklist }: Props) {
   const router = useRouter();
+  const toast = useToast();
   const docs = dossier.docsGeneres;
 
   const [regenerating, setRegenerating] = useState(false);
@@ -175,6 +177,7 @@ export function DossierClient({ dossier, checklist }: Props) {
       if (!res.ok || !data.etapes) { setErreur(data.erreur ?? "Impossible de marquer l'offre comme obtenue."); return; }
       setStatut("obtenu");
       setEtapes(data.etapes);
+      toast.succes("Offre marquée comme obtenue — bravo !");
     } catch { setErreur("Impossible de marquer l'offre comme obtenue."); }
     finally { setObtenuEnCours(false); }
   }
@@ -200,21 +203,21 @@ export function DossierClient({ dossier, checklist }: Props) {
     } catch { setErreur("Impossible d'annuler le dossier."); setActionEnCours(false); }
   }
 
-  // ── Bouton de candidature intelligent (priorité email > formulaire > lien_info > aucun) ──
+  // ── Bouton de candidature intelligent — priorité email > formulaire exact.
+  // Matchwork n'envoie plus jamais l'utilisateur "voir sur le site" à l'aveugle
+  // (ancien cas lien_info/canal indéterminé) : si aucun des deux canaux fiables
+  // n'est connu, on ne propose que de recevoir le dossier pour postuler soi-même.
   const canal = opp.canalCandidature;
   const cible = opp.cibleCandidature;
   let bouton: { label: string; onClick: () => void; note?: string };
+  let emailDestinataire: string | null = null;
   if (canal === "email" && estEmail(cible)) {
-    bouton = { label: `Envoyer à ${cible}`, onClick: () => envoyerEmail("candidature"), note: "L'IA a détecté une candidature par e-mail." };
+    emailDestinataire = cible;
+    bouton = { label: "Envoyer la candidature", onClick: () => envoyerEmail("candidature"), note: "Matchwork envoie directement votre dossier au recruteur." };
   } else if (canal === "formulaire" && cible) {
-    bouton = { label: "Postuler (formulaire)", onClick: () => { ouvrir(cible); marquerUtilise(); }, note: "Candidature via un formulaire en ligne." };
-  } else if (canal === "lien_info" && cible) {
-    bouton = { label: "Postuler sur le site officiel", onClick: () => { ouvrir(cible); marquerUtilise(); } };
-  } else if (opp.lien) {
-    // Ambigu / non déterminé : on affiche le lien sans forcer d'envoi.
-    bouton = { label: "Postuler ici →", onClick: () => { ouvrir(opp.lien!); marquerUtilise(); }, note: "Canal non déterminé — vérifiez la marche à suivre sur le site." };
+    bouton = { label: "Postuler (formulaire)", onClick: () => { ouvrir(cible); marquerUtilise(); }, note: "Vous arrivez directement sur le formulaire de candidature." };
   } else {
-    bouton = { label: "Recevoir mon dossier par e-mail", onClick: () => envoyerEmail("self"), note: "Aucun canal indiqué : recevez le dossier pour postuler vous-même." };
+    bouton = { label: "Recevoir mon dossier par e-mail", onClick: () => envoyerEmail("self"), note: "Aucun canal de candidature fiable trouvé pour cette offre : recevez le dossier pour postuler vous-même." };
   }
 
   const dateGen = new Date(dossier.createdAt).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" });
@@ -372,6 +375,12 @@ export function DossierClient({ dossier, checklist }: Props) {
 
         {/* Bouton de candidature intelligent */}
         <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 10 }}>
+          {emailDestinataire && (
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 6, padding: "8px 12px", borderRadius: 10, background: "rgba(124,58,237,0.08)", border: "1px solid rgba(124,58,237,0.2)" }}>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke={V} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}><path d="M4 4h16v16H4z" /><path d="M22 6l-10 7L2 6" /></svg>
+              <span style={{ fontSize: "0.78rem", fontWeight: 600, color: V, wordBreak: "break-all" }}>{emailDestinataire}</span>
+            </div>
+          )}
           <button onClick={bouton.onClick} disabled={actionEnCours} style={{ width: "100%", padding: "13px", borderRadius: 13, background: "linear-gradient(135deg,#7c3aed,#5b21b6)", color: "#fff", fontSize: "0.9rem", fontWeight: 700, border: "none", cursor: actionEnCours ? "default" : "pointer", opacity: actionEnCours ? 0.7 : 1, boxShadow: "0 6px 20px rgba(124,58,237,0.3)" }}>
             {actionEnCours ? "En cours…" : bouton.label}
           </button>
