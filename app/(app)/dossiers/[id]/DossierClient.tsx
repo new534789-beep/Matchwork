@@ -203,21 +203,27 @@ export function DossierClient({ dossier, checklist }: Props) {
     } catch { setErreur("Impossible d'annuler le dossier."); setActionEnCours(false); }
   }
 
-  // ── Bouton de candidature intelligent — priorité email > formulaire exact.
-  // Matchwork n'envoie plus jamais l'utilisateur "voir sur le site" à l'aveugle
-  // (ancien cas lien_info/canal indéterminé) : si aucun des deux canaux fiables
-  // n'est connu, on ne propose que de recevoir le dossier pour postuler soi-même.
+  // ── Bouton de candidature intelligent — priorité email > formulaire exact >
+  // portail officiel. Les grands programmes (Chevening, Fulbright, Erasmus
+  // Mundus...) fonctionnent par portail complet, jamais par simple e-mail ou
+  // lien de formulaire — on les oriente honnêtement plutôt que de faire
+  // comme s'ils n'existaient pas. Le catalogue ne publie plus d'offre sans
+  // canal fiable (voir lib/ia/extraction-offre.ts canalCandidatureFiable) :
+  // ce cas ne devrait normalement jamais se produire pour un dossier généré
+  // sur une offre publiée. S'il survient malgré tout (donnée historique), on
+  // n'affiche simplement pas de bouton principal — le bouton "Recevoir par
+  // e-mail", toujours visible plus bas, reste le filet de sécurité.
   const canal = opp.canalCandidature;
   const cible = opp.cibleCandidature;
-  let bouton: { label: string; onClick: () => void; note?: string };
+  let bouton: { label: string; onClick: () => void; note?: string } | null = null;
   let emailDestinataire: string | null = null;
   if (canal === "email" && estEmail(cible)) {
     emailDestinataire = cible;
     bouton = { label: "Envoyer la candidature", onClick: () => envoyerEmail("candidature"), note: "Matchwork envoie directement votre dossier au recruteur." };
   } else if (canal === "formulaire" && cible) {
     bouton = { label: "Postuler (formulaire)", onClick: () => { ouvrir(cible); marquerUtilise(); }, note: "Vous arrivez directement sur le formulaire de candidature." };
-  } else {
-    bouton = { label: "Recevoir mon dossier par e-mail", onClick: () => envoyerEmail("self"), note: "Aucun canal de candidature fiable trouvé pour cette offre : recevez le dossier pour postuler vous-même." };
+  } else if (canal === "lien_info" && cible) {
+    bouton = { label: "Continuer sur le portail officiel →", onClick: () => { ouvrir(cible); marquerUtilise(); }, note: "Cette offre utilise son propre système de candidature — utilisez le CV et la lettre générés ci-dessus pour compléter votre dossier là-bas." };
   }
 
   const dateGen = new Date(dossier.createdAt).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" });
@@ -381,10 +387,14 @@ export function DossierClient({ dossier, checklist }: Props) {
               <span style={{ fontSize: "0.78rem", fontWeight: 600, color: V, wordBreak: "break-all" }}>{emailDestinataire}</span>
             </div>
           )}
-          <button onClick={bouton.onClick} disabled={actionEnCours} style={{ width: "100%", padding: "13px", borderRadius: 13, background: "linear-gradient(135deg,#7c3aed,#5b21b6)", color: "#fff", fontSize: "0.9rem", fontWeight: 700, border: "none", cursor: actionEnCours ? "default" : "pointer", opacity: actionEnCours ? 0.7 : 1, boxShadow: "0 6px 20px rgba(124,58,237,0.3)" }}>
-            {actionEnCours ? "En cours…" : bouton.label}
-          </button>
-          {bouton.note && <p style={{ fontSize: "0.72rem", color: "var(--text-3)", textAlign: "center" }}>{bouton.note}</p>}
+          {bouton && (
+            <>
+              <button onClick={bouton.onClick} disabled={actionEnCours} style={{ width: "100%", padding: "13px", borderRadius: 13, background: "linear-gradient(135deg,#7c3aed,#5b21b6)", color: "#fff", fontSize: "0.9rem", fontWeight: 700, border: "none", cursor: actionEnCours ? "default" : "pointer", opacity: actionEnCours ? 0.7 : 1, boxShadow: "0 6px 20px rgba(124,58,237,0.3)" }}>
+                {actionEnCours ? "En cours…" : bouton.label}
+              </button>
+              {bouton.note && <p style={{ fontSize: "0.72rem", color: "var(--text-3)", textAlign: "center" }}>{bouton.note}</p>}
+            </>
+          )}
           <button onClick={() => envoyerEmail("self")} disabled={actionEnCours} style={{ width: "100%", padding: "11px", borderRadius: 12, background: "var(--bg-card)", border: "1px solid var(--border)", color: "var(--text-2)", fontSize: "0.82rem", fontWeight: 600, cursor: actionEnCours ? "default" : "pointer", opacity: actionEnCours ? 0.6 : 1 }}>Recevoir par e-mail</button>
           {statut === "genere" && (
             <button onClick={annuler} disabled={actionEnCours} style={{ width: "100%", padding: "11px", borderRadius: 12, background: "transparent", border: "1px solid var(--border)", color: "var(--text-3)", fontSize: "0.82rem", fontWeight: 600, cursor: actionEnCours ? "default" : "pointer" }}>Annuler le dossier (rendre le crédit)</button>

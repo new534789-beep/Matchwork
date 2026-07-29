@@ -14,6 +14,7 @@ import { STATUTS_EN_FILE } from "@/lib/opportunites";
 import { detecterBlog } from "@/lib/ia/detection-blog";
 import { notifierOpportunitePubliee } from "@/lib/blog/notifier-make";
 import { canalCandidatureFiable, extraireOffre } from "@/lib/ia/extraction-offre";
+import { recupererContenuPage } from "@/lib/ingestion/contenu-page";
 
 export type RapportValidation = {
   traitees: number;
@@ -131,6 +132,48 @@ function champRempli(val: string | null | undefined): boolean {
 }
 
 type Decision = { action: "publiee" | "rejetee"; raison: string };
+
+type OppCanal = {
+  id: string;
+  organisme: string;
+  intitule: string;
+  lien: string | null;
+  description: string;
+  canalCandidature?: string | null;
+  cibleCandidature?: string | null;
+};
+
+/**
+ * Retente une extraction du canal de candidature avant de conclure qu'il est
+ * introuvable. Deux passes : 1) le texte déjà en base (rapide, pas de réseau),
+ * puis 2) si toujours rien, la vraie page de l'offre — la description stockée
+ * vient souvent d'un résumé RSS tronqué qui omet la section "comment
+ * postuler", présente plus bas sur la page réelle. Met à jour `opp` en place
+ * et persiste en base si un canal fiable est trouvé.
+ */
+async function backfillCanalCandidature(opp: OppCanal): Promise<void> {
+  if (opp.canalCandidature && opp.canalCandidature !== "aucun") return;
+
+  const contenuBase = `Organisme : ${opp.organisme}\nIntitulé : ${opp.intitule}\nLien : ${opp.lien ?? "non précisé"}\n\n${opp.description}`;
+  let extrait = await extraireOffre(contenuBase);
+
+  if ((!extrait?.canalCandidature || extrait.canalCandidature === "aucun") && opp.lien) {
+    const pageReelle = await recupererContenuPage(opp.lien);
+    if (pageReelle) {
+      const contenuPage = `Organisme : ${opp.organisme}\nIntitulé : ${opp.intitule}\nLien : ${opp.lien}\n\n${pageReelle}`;
+      extrait = await extraireOffre(contenuPage);
+    }
+  }
+
+  if (extrait?.canalCandidature && extrait.canalCandidature !== "aucun") {
+    opp.canalCandidature = extrait.canalCandidature;
+    opp.cibleCandidature = extrait.cibleCandidature ?? null;
+    await prisma.opportunite.update({
+      where: { id: opp.id },
+      data: { canalCandidature: opp.canalCandidature, cibleCandidature: opp.cibleCandidature },
+    });
+  }
+}
 
 export async function deciderEmploi(opp: {
   type: string;
@@ -261,21 +304,11 @@ export async function validerAutomatiquement(options?: { limite?: number }): Pro
 
   // Backfill du canal de candidature avant de décider : certaines offres (import
   // historique, coller-une-offre ancien, etc.) n'ont jamais eu ce champ calculé.
-  // On retente une extraction sur le texte déjà en base avant de rejeter — pour
-  // ne pas confondre "jamais cherché" et "vraiment introuvable".
+  // On retente une extraction (texte en base, puis vraie page si besoin) avant
+  // de rejeter — pour ne pas confondre "jamais cherché" et "vraiment introuvable".
   for (const opp of offres) {
     if (opp.source.startsWith("ATS:")) continue; // le lien EST le canal, pas besoin
-    if (opp.canalCandidature && opp.canalCandidature !== "aucun") continue;
-    const contenu = `Organisme : ${opp.organisme}\nIntitulé : ${opp.intitule}\nLien : ${opp.lien ?? "non précisé"}\n\n${opp.description}`;
-    const extrait = await extraireOffre(contenu);
-    if (extrait?.canalCandidature && extrait.canalCandidature !== "aucun") {
-      opp.canalCandidature = extrait.canalCandidature;
-      opp.cibleCandidature = extrait.cibleCandidature ?? null;
-      await prisma.opportunite.update({
-        where: { id: opp.id },
-        data: { canalCandidature: opp.canalCandidature, cibleCandidature: opp.cibleCandidature },
-      });
-    }
+    await backfillCanalCandidature(opp);
   }
 
   for (const opp of offres) {
@@ -349,17 +382,8 @@ export async function nettoyerOffresIncoherentes(): Promise<{
 
   for (const opp of publiees) {
     // Backfill avant de juger : ne pas confondre "canal jamais cherché" et "vraiment introuvable".
-    if (!opp.source.startsWith("ATS:") && (!opp.canalCandidature || opp.canalCandidature === "aucun")) {
-      const contenu = `Organisme : ${opp.organisme}\nIntitulé : ${opp.intitule}\nLien : ${opp.lien ?? "non précisé"}\n\n${opp.description}`;
-      const extrait = await extraireOffre(contenu);
-      if (extrait?.canalCandidature && extrait.canalCandidature !== "aucun") {
-        opp.canalCandidature = extrait.canalCandidature;
-        opp.cibleCandidature = extrait.cibleCandidature ?? null;
-        await prisma.opportunite.update({
-          where: { id: opp.id },
-          data: { canalCandidature: opp.canalCandidature, cibleCandidature: opp.cibleCandidature },
-        });
-      }
+    if (!opp.source.startsWith("ATS:")) {
+      await backfillCanalCandidature(opp);
     }
 
     let raison: string | null = intituleGenerique(opp.intitule);

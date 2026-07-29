@@ -29,22 +29,23 @@ export function estEmailValide(v: string | null | undefined): v is string {
   return !!v && /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v.trim());
 }
 
-function estUrlValide(v: string | null | undefined): v is string {
+export function estUrlValide(v: string | null | undefined): v is string {
   if (!v) return false;
   try { const u = new URL(v.trim()); return u.protocol === "http:" || u.protocol === "https:"; }
   catch { return false; }
 }
 
 /**
- * Une offre n'a sa place dans le catalogue que si on sait exactement où
- * envoyer la candidature : un e-mail valide, ou un lien de formulaire précis.
- * Un simple lien d'information ("lien_info") ou un canal indéterminé
- * ("aucun") ne suffisent pas — Matchwork n'envoie jamais l'utilisateur
- * "voir sur le site" à l'aveugle.
+ * Une offre n'a sa place dans le catalogue que si on sait où orienter le
+ * candidat : un e-mail valide, un lien de formulaire précis, ou — pour les
+ * grands programmes qui fonctionnent par portail complet (Chevening,
+ * Fulbright, Erasmus Mundus...) — un lien officiel exact ("lien_info").
+ * Seul un canal vraiment indéterminé ("aucun") est rejeté : Matchwork ne
+ * propose jamais "voir sur le site" sans savoir précisément où.
  */
 export function canalCandidatureFiable(canal: string | null | undefined, cible: string | null | undefined): boolean {
   if (canal === "email") return estEmailValide(cible);
-  if (canal === "formulaire") return estUrlValide(cible);
+  if (canal === "formulaire" || canal === "lien_info") return estUrlValide(cible);
   return false;
 }
 
