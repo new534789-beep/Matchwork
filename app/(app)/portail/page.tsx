@@ -6,7 +6,11 @@ import { Carte } from "@/components/ui/carte";
 import { CandidatsPanel } from "@/components/portail/CandidatsPanel";
 
 type Organisme = { id: string; nom: string; type: string; pays: string | null; siteWeb: string | null; verifie: boolean };
-type OppItem = { id: string; type: string; intitule: string; statut: string; dateLimite: string | null; createdAt: string; _count: { interactions: number; dossiers: number } };
+type OppItem = {
+  id: string; type: string; intitule: string; description: string; conditions: string | null; lien: string | null;
+  statut: string; actif: boolean; dateLimite: string | null; createdAt: string;
+  _count: { interactions: number; dossiers: number };
+};
 
 export default function Portail() {
   const [organisme, setOrganisme] = useState<Organisme | null>(null);
@@ -18,10 +22,12 @@ export default function Portail() {
   const [formOrg, setFormOrg] = useState({ nom: "", type: "universite" as string, pays: "", siteWeb: "" });
   const [erreurOrg, setErreurOrg] = useState("");
 
-  // Form nouvelle offre
+  // Form nouvelle offre / édition (editId non-null = mode édition d'une offre existante)
   const [formOpp, setFormOpp] = useState({ type: "BOURSE", intitule: "", description: "", conditions: "", dateLimite: "", lien: "" });
+  const [editId, setEditId] = useState<string | null>(null);
   const [erreurOpp, setErreurOpp] = useState("");
   const [succes, setSucces] = useState("");
+  const [retraitEnCours, setRetraitEnCours] = useState<string | null>(null);
 
   useEffect(() => {
     fetch("/api/organisme")
@@ -56,6 +62,23 @@ export default function Portail() {
   const publier = async () => {
     setErreurOpp("");
     setSucces("");
+    if (editId) {
+      const res = await fetch(`/api/organisme/opportunites/${editId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formOpp),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setOpps((prev) => prev.map((o) => (o.id === editId ? { ...o, ...data } : o)));
+        setEditId(null);
+        setSucces("Offre mise à jour.");
+        setMode("dash");
+      } else {
+        setErreurOpp(data.erreur || "Erreur");
+      }
+      return;
+    }
     const res = await fetch("/api/organisme/opportunites", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -69,6 +92,33 @@ export default function Portail() {
       setMode("dash");
     } else {
       setErreurOpp(data.erreur || "Erreur");
+    }
+  };
+
+  const ouvrirEdition = (o: OppItem) => {
+    setFormOpp({
+      type: o.type, intitule: o.intitule, description: o.description,
+      conditions: o.conditions ?? "", dateLimite: o.dateLimite ? o.dateLimite.slice(0, 10) : "", lien: o.lien ?? "",
+    });
+    setEditId(o.id);
+    setErreurOpp("");
+    setMode("nouvelle");
+  };
+
+  const basculerActif = async (o: OppItem) => {
+    setRetraitEnCours(o.id);
+    try {
+      const res = await fetch(`/api/organisme/opportunites/${o.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ actif: !o.actif }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setOpps((prev) => prev.map((x) => (x.id === o.id ? { ...x, actif: data.actif, statut: data.statut } : x)));
+      }
+    } finally {
+      setRetraitEnCours(null);
     }
   };
 
@@ -133,17 +183,17 @@ export default function Portail() {
     );
   }
 
-  // Nouvelle offre
+  // Nouvelle offre / édition
   if (mode === "nouvelle") {
     return (
       <>
-        <EnteteApp titre="Nouvelle offre" />
+        <EnteteApp titre={editId ? "Modifier l'offre" : "Nouvelle offre"} />
         <main className="flex-1 px-4 sm:px-6 py-6 max-w-lg mx-auto w-full">
-          <button onClick={() => setMode("dash")} style={{ color: "var(--text-2)", fontSize: "0.82rem", fontWeight: 600, background: "none", border: "none", cursor: "pointer", marginBottom: 16 }}>
+          <button onClick={() => { setEditId(null); setMode("dash"); }} style={{ color: "var(--text-2)", fontSize: "0.82rem", fontWeight: 600, background: "none", border: "none", cursor: "pointer", marginBottom: 16 }}>
             &larr; Retour au tableau de bord
           </button>
           <Carte>
-            <h2 className="font-semibold text-sm mb-4" style={{ color: "var(--text)" }}>Publier une opportunité</h2>
+            <h2 className="font-semibold text-sm mb-4" style={{ color: "var(--text)" }}>{editId ? "Modifier l'offre" : "Publier une opportunité"}</h2>
             <div className="flex flex-col gap-4">
               <label className="flex flex-col gap-1">
                 <span className="text-xs font-semibold" style={{ color: "var(--text-2)" }}>Type *</span>
@@ -187,7 +237,7 @@ export default function Portail() {
                 background: "linear-gradient(135deg,#7c3aed,#5b21b6)", color: "#fff",
                 fontWeight: 600, fontSize: "0.85rem",
               }}>
-                {organisme?.verifie ? "Publier" : "Soumettre à validation"}
+                {editId ? "Enregistrer" : organisme?.verifie ? "Publier" : "Soumettre à validation"}
               </button>
             </div>
           </Carte>
@@ -227,7 +277,7 @@ export default function Portail() {
               )}
             </div>
           </div>
-          <button onClick={() => setMode("nouvelle")} style={{
+          <button onClick={() => { setEditId(null); setFormOpp({ type: "BOURSE", intitule: "", description: "", conditions: "", dateLimite: "", lien: "" }); setMode("nouvelle"); }} style={{
             padding: "10px 18px", borderRadius: 11, border: "none", cursor: "pointer",
             background: "linear-gradient(135deg,#7c3aed,#5b21b6)", color: "#fff",
             fontWeight: 600, fontSize: "0.82rem",
@@ -269,26 +319,44 @@ export default function Portail() {
                 <div key={o.id} style={{
                   padding: "14px 16px", borderRadius: 12,
                   border: "1px solid var(--border)", background: "var(--bg)",
-                  display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12,
+                  display: "flex", flexDirection: "column", gap: 10,
                 }}>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <p className="font-semibold text-sm truncate" style={{ color: "var(--text)" }}>{o.intitule}</p>
-                    <div className="flex items-center gap-2 mt-1">
-                      <span style={{
-                        fontSize: "0.68rem", fontWeight: 700, padding: "2px 8px", borderRadius: 6,
-                        background: o.statut === "publiee" ? "rgba(5,150,105,0.1)" : o.statut === "a_valider" ? "#d97706" : "rgba(100,100,100,0.1)",
-                        color: o.statut === "publiee" ? "#059669" : o.statut === "a_valider" ? "#fff" : "var(--text-3)",
-                      }}>
-                        {o.statut === "publiee" ? "Publiée" : o.statut === "a_valider" ? "En validation" : o.statut}
-                      </span>
-                      <span style={{ fontSize: "0.7rem", color: "var(--text-3)" }}>
-                        {o._count.interactions} intéressés · {o._count.dossiers} dossiers
-                      </span>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <p className="font-semibold text-sm truncate" style={{ color: "var(--text)" }}>{o.intitule}</p>
+                      <div className="flex items-center gap-2 mt-1">
+                        <span style={{
+                          fontSize: "0.68rem", fontWeight: 700, padding: "2px 8px", borderRadius: 6,
+                          background: !o.actif ? "rgba(100,100,100,0.1)" : o.statut === "publiee" ? "rgba(5,150,105,0.1)" : o.statut === "a_valider" ? "#d97706" : "rgba(100,100,100,0.1)",
+                          color: !o.actif ? "var(--text-3)" : o.statut === "publiee" ? "#059669" : o.statut === "a_valider" ? "#fff" : "var(--text-3)",
+                        }}>
+                          {!o.actif ? "Retirée" : o.statut === "publiee" ? "Publiée" : o.statut === "a_valider" ? "En validation" : o.statut}
+                        </span>
+                        <span style={{ fontSize: "0.7rem", color: "var(--text-3)" }}>
+                          {o._count.interactions} intéressés · {o._count.dossiers} dossiers
+                        </span>
+                      </div>
                     </div>
+                    <span style={{ fontSize: "0.72rem", color: "var(--text-3)", flexShrink: 0 }}>
+                      {new Date(o.createdAt).toLocaleDateString("fr-FR")}
+                    </span>
                   </div>
-                  <span style={{ fontSize: "0.72rem", color: "var(--text-3)", flexShrink: 0 }}>
-                    {new Date(o.createdAt).toLocaleDateString("fr-FR")}
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <button onClick={() => ouvrirEdition(o)} style={{
+                      padding: "6px 12px", borderRadius: 8, fontSize: "0.75rem", fontWeight: 600, cursor: "pointer",
+                      background: "var(--bg-card)", border: "1px solid var(--border)", color: "var(--text-2)",
+                    }}>
+                      Modifier
+                    </button>
+                    <button onClick={() => void basculerActif(o)} disabled={retraitEnCours === o.id} style={{
+                      padding: "6px 12px", borderRadius: 8, fontSize: "0.75rem", fontWeight: 600,
+                      cursor: retraitEnCours === o.id ? "default" : "pointer", opacity: retraitEnCours === o.id ? 0.6 : 1,
+                      background: "var(--bg-card)", border: "1px solid var(--border)",
+                      color: o.actif ? "#ef4444" : "#059669",
+                    }}>
+                      {retraitEnCours === o.id ? "…" : o.actif ? "Retirer" : "Remettre en ligne"}
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>

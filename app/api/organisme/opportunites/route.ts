@@ -31,7 +31,8 @@ export async function GET() {
     where: { organisme: organisme.nom, source: "portail_b2b" },
     orderBy: { createdAt: "desc" },
     select: {
-      id: true, type: true, intitule: true, statut: true, dateLimite: true,
+      id: true, type: true, intitule: true, description: true, conditions: true, lien: true,
+      statut: true, actif: true, dateLimite: true,
       createdAt: true, _count: { select: { interactions: true, dossiers: true } },
     },
   });
