@@ -225,6 +225,10 @@ model Article {
   opportunite     Opportunite? @relation(fields: [opportuniteId], references: [id], onDelete: SetNull)
 
   publieLe        DateTime     @default(now())
+  // Marqué quand le scénario Make "sélection Facebook quotidienne" relaie
+  // effectivement cet article — sert à la fois de statut (relayé ou pas) et
+  // de garde-fou anti-double-post. Null = jamais relayé.
+  facebookPostedLe DateTime?
   createdAt       DateTime     @default(now())
   updatedAt       DateTime     @updatedAt
 
@@ -407,9 +411,19 @@ model Message {
   contenu   String
   lu        Boolean  @default(false)
 
+  // Clé de thread réelle pour les échanges organisme ↔ candidat (nomAuteur
+  // reste la clé utilisée côté candidat pour grouper visuellement, mais n'est
+  // qu'une chaîne libre — organismeId permet à l'organisme de retrouver ses
+  // propres conversations de façon fiable, et sert de frontière d'autorisation
+  // (un organisme ne peut lire/écrire que les messages où il est partie).
+  // Null pour les messages système/support Matchwork.
+  organismeId String?
+  organisme   Organisme? @relation(fields: [organismeId], references: [id], onDelete: SetNull)
+
   createdAt DateTime @default(now())
 
   @@index([userId])
+  @@index([organismeId])
   @@map("messages")
 }
 
@@ -489,6 +503,8 @@ model Organisme {
   verifie     Boolean  @default(false)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+
+  messages    Message[]
 
   @@map("organismes")
 }

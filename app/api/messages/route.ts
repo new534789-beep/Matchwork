@@ -17,11 +17,18 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ erreur: "Message trop long (4000 caractères max)." }, { status: 400 });
   }
 
+  const nom = (nomAuteur?.trim() || "Matchwork").slice(0, 120);
+  // Rattache le message à l'organisme du fil (si ce nom correspond à un
+  // organisme réel) pour que l'organisme retrouve la conversation de son
+  // côté — best-effort, un message système/support reste organismeId: null.
+  const organisme = nom !== "Matchwork" ? await prisma.organisme.findFirst({ where: { nom } }) : null;
+
   const message = await prisma.message.create({
     data: {
       userId: session.user.id,
       auteur: "candidat",
-      nomAuteur: (nomAuteur?.trim() || "Matchwork").slice(0, 120),
+      nomAuteur: nom,
+      organismeId: organisme?.id ?? null,
       contenu: contenu.trim(),
       lu: true,
     },

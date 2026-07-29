@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { EnteteApp } from "@/components/navigation/EnteteApp";
 import { Carte } from "@/components/ui/carte";
+import { CandidatsPanel } from "@/components/portail/CandidatsPanel";
 
 type Organisme = { id: string; nom: string; type: string; pays: string | null; siteWeb: string | null; verifie: boolean };
 type OppItem = { id: string; type: string; intitule: string; statut: string; dateLimite: string | null; createdAt: string; _count: { interactions: number; dossiers: number } };
@@ -11,7 +12,7 @@ export default function Portail() {
   const [organisme, setOrganisme] = useState<Organisme | null>(null);
   const [opps, setOpps] = useState<OppItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const [mode, setMode] = useState<"dash" | "inscription" | "nouvelle">("dash");
+  const [mode, setMode] = useState<"dash" | "inscription" | "nouvelle" | "candidats">("dash");
 
   // Form inscription
   const [formOrg, setFormOrg] = useState({ nom: "", type: "universite" as string, pays: "", siteWeb: "" });
@@ -195,6 +196,18 @@ export default function Portail() {
     );
   }
 
+  // Candidats & messagerie
+  if (mode === "candidats") {
+    return (
+      <>
+        <EnteteApp titre="Candidats" />
+        <main className="flex-1 px-4 sm:px-6 py-6 max-w-3xl mx-auto w-full">
+          <CandidatsPanel onRetour={() => setMode("dash")} />
+        </main>
+      </>
+    );
+  }
+
   // Tableau de bord organisme
   return (
     <>
@@ -210,7 +223,7 @@ export default function Portail() {
               {organisme?.verifie ? (
                 <span style={{ fontSize: "0.68rem", fontWeight: 700, padding: "2px 8px", borderRadius: 6, background: "rgba(5,150,105,0.1)", color: "#059669" }}>Vérifié</span>
               ) : (
-                <span style={{ fontSize: "0.68rem", fontWeight: 700, padding: "2px 8px", borderRadius: 6, background: "rgba(217,119,6,0.1)", color: "#d97706" }}>En attente de vérification</span>
+                <span style={{ fontSize: "0.68rem", fontWeight: 700, padding: "2px 8px", borderRadius: 6, background: "#d97706", color: "#fff" }}>En attente de vérification</span>
               )}
             </div>
           </div>
@@ -234,11 +247,11 @@ export default function Portail() {
         {/* Statistiques rapides */}
         <div className="grid grid-cols-3 gap-3 mb-6">
           {[
-            { label: "Offres publiées", valeur: opps.filter((o) => o.statut === "publiee").length },
-            { label: "Candidats intéressés", valeur: opps.reduce((s, o) => s + o._count.interactions, 0) },
-            { label: "Dossiers reçus", valeur: opps.reduce((s, o) => s + o._count.dossiers, 0) },
+            { label: "Offres publiées", valeur: opps.filter((o) => o.statut === "publiee").length, clic: false },
+            { label: "Candidats intéressés", valeur: opps.reduce((s, o) => s + o._count.interactions, 0), clic: true },
+            { label: "Dossiers reçus", valeur: opps.reduce((s, o) => s + o._count.dossiers, 0), clic: true },
           ].map((s) => (
-            <Carte key={s.label}>
+            <Carte key={s.label} onClick={s.clic ? () => setMode("candidats") : undefined} className={s.clic ? "cursor-pointer" : undefined}>
               <p style={{ fontSize: "1.6rem", fontWeight: 800, color: "#7c3aed" }}>{s.valeur}</p>
               <p style={{ fontSize: "0.72rem", color: "var(--text-3)", marginTop: 2 }}>{s.label}</p>
             </Carte>
@@ -263,8 +276,8 @@ export default function Portail() {
                     <div className="flex items-center gap-2 mt-1">
                       <span style={{
                         fontSize: "0.68rem", fontWeight: 700, padding: "2px 8px", borderRadius: 6,
-                        background: o.statut === "publiee" ? "rgba(5,150,105,0.1)" : o.statut === "a_valider" ? "rgba(217,119,6,0.1)" : "rgba(100,100,100,0.1)",
-                        color: o.statut === "publiee" ? "#059669" : o.statut === "a_valider" ? "#d97706" : "var(--text-3)",
+                        background: o.statut === "publiee" ? "rgba(5,150,105,0.1)" : o.statut === "a_valider" ? "#d97706" : "rgba(100,100,100,0.1)",
+                        color: o.statut === "publiee" ? "#059669" : o.statut === "a_valider" ? "#fff" : "var(--text-3)",
                       }}>
                         {o.statut === "publiee" ? "Publiée" : o.statut === "a_valider" ? "En validation" : o.statut}
                       </span>
