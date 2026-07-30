@@ -12,6 +12,38 @@ const loginSchema = z.object({
   password: z.string().min(8),
 });
 
+// ─── Résilience aux coupures passagères de la base ───────────────────────────
+// Neon (serverless) peut refuser des connexions quelques secondes : réveil de
+// la branche après mise en veille, redémarrage du pooler après une rotation de
+// mot de passe, pic de charge saturant le pool. Ces erreurs sont TRANSITOIRES.
+// Sans reprise, la moindre seconde d'indisponibilité fait échouer une connexion
+// utilisateur — et, pire, le callback signIn la traduisait en « Accès refusé »
+// (voir plus bas), message qui laisse croire à un bannissement.
+const CODES_TRANSITOIRES = ["P1001", "P1002", "P1008", "P1017", "P2024"];
+
+function estErreurTransitoire(e: unknown): boolean {
+  if (!e || typeof e !== "object") return false;
+  const err = e as { name?: string; code?: string; message?: string };
+  if (err.name === "PrismaClientInitializationError") return true;
+  if (err.code && CODES_TRANSITOIRES.includes(err.code)) return true;
+  return /can't reach database server|connection pool|connection closed/i.test(err.message ?? "");
+}
+
+/** Rejoue `fn` sur erreur transitoire de base (backoff court). Relance l'erreur d'origine si elle persiste. */
+async function avecReprise<T>(fn: () => Promise<T>, tentatives = 3): Promise<T> {
+  let derniere: unknown;
+  for (let i = 0; i < tentatives; i++) {
+    try {
+      return await fn();
+    } catch (e) {
+      derniere = e;
+      if (!estErreurTransitoire(e) || i === tentatives - 1) throw e;
+      await new Promise((r) => setTimeout(r, 250 * (i + 1)));
+    }
+  }
+  throw derniere;
+}
+
 export function hasGoogleAuth(): boolean {
   return !!(process.env.AUTH_GOOGLE_ID && process.env.AUTH_GOOGLE_SECRET);
 }
@@ -27,7 +59,9 @@ const providers: NextAuthConfig["providers"] = [
       const parsed = loginSchema.safeParse(credentials);
       if (!parsed.success) return null;
 
-      const user = await prisma.user.findUnique({ where: { email: parsed.data.email } });
+      // Reprise sur coupure passagère : sans elle, une seconde d'indisponibilité
+      // de la base se présentait à l'utilisateur comme « identifiants invalides ».
+      const user = await avecReprise(() => prisma.user.findUnique({ where: { email: parsed.data.email } }));
       if (!user || !user.motDePasse) return null;
 
       const valid = await bcrypt.compare(parsed.data.password, user.motDePasse);
@@ -66,7 +100,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           // upsert ne dit pas s'il a créé ou juste relu — on distingue nous-mêmes
           // pour ne poser l'attribution d'acquisition qu'à la toute première
           // connexion (jamais réécrite sur les connexions suivantes).
-          const existant = await prisma.user.findUnique({ where: { email } });
+          const existant = await avecReprise(() => prisma.user.findUnique({ where: { email } }));
           let dbUser = existant;
           if (!dbUser) {
             // Attribution d'acquisition : OPTIONNELLE. La lecture du cookie via
@@ -82,15 +116,17 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             } catch (e) {
               console.warn("[auth] cookie d'attribution ignoré:", (e as Error)?.message);
             }
-            dbUser = await prisma.user.create({
-              data: {
-                email,
-                motDePasse: "",
-                profils: { create: {} },
-                sourceAcquisition: attribution?.source,
-                refAcquisition: attribution?.ref,
-              },
-            });
+            dbUser = await avecReprise(() =>
+              prisma.user.create({
+                data: {
+                  email,
+                  motDePasse: "",
+                  profils: { create: {} },
+                  sourceAcquisition: attribution?.source,
+                  refAcquisition: attribution?.ref,
+                },
+              })
+            );
           }
           if (dbUser.suspendu) return false;
           user.id = dbUser.id;
@@ -99,7 +135,15 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         } catch (e) {
           const err = e as Error;
           console.error("[auth] signIn callback error:", err?.name, err?.message, e);
-          return false;
+          // `return false` signifie « cet utilisateur n'a PAS le droit de se
+          // connecter » → Auth.js affiche « Accès refusé / Vous n'avez pas la
+          // permission de vous connecter ». C'est faux et alarmant quand la
+          // cause est une panne technique (base injoignable) : l'utilisateur
+          // croit être banni alors qu'il suffirait de réessayer. On ne renvoie
+          // donc `false` que pour un vrai refus (compte suspendu, e-mail
+          // manquant — traités plus haut) et on relance l'erreur technique,
+          // qu'Auth.js présentera comme une erreur temporaire.
+          throw e;
         }
       }
       return true;
