@@ -197,9 +197,9 @@ export function DetailClient({
             {dateFormatee && (
               <span style={{
                 fontSize: "0.75rem", padding: "4px 10px", borderRadius: "8px",
-                background: joursUrgent ? "rgba(245,158,11,0.1)" : "var(--bg-card)",
-                color: joursUrgent ? "#f59e0b" : "var(--text-2)",
-                border: `1px solid ${joursUrgent ? "rgba(245,158,11,0.25)" : "var(--border)"}`,
+                background: joursUrgent ? "#f59e0b" : "var(--bg-card)",
+                color: joursUrgent ? "#fff" : "var(--text-2)",
+                border: joursUrgent ? "none" : "1px solid var(--border)",
                 display: "inline-flex", alignItems: "center", gap: "6px",
               }}>
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" /></svg>
@@ -441,17 +441,17 @@ export function DetailClient({
           <div
             style={{
               width: "100%", padding: "16px", borderRadius: "14px",
-              background: "rgba(124,58,237,0.08)", border: "1px solid rgba(124,58,237,0.2)",
+              background: "#7c3aed",
               display: "flex", flexDirection: "column", alignItems: "center", gap: "10px",
             }}
           >
             <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-              <span style={{ display: "inline-block", width: 18, height: 18, border: "2px solid rgba(124,58,237,0.3)", borderTopColor: "#a78bfa", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
-              <span style={{ fontSize: "0.88rem", fontWeight: 600, color: "#a78bfa" }}>
+              <span style={{ display: "inline-block", width: 18, height: 18, border: "2px solid rgba(255,255,255,0.35)", borderTopColor: "#fff", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
+              <span style={{ fontSize: "0.88rem", fontWeight: 600, color: "#fff" }}>
                 L&apos;IA rédige votre dossier…
               </span>
             </div>
-            <span style={{ fontSize: "0.75rem", color: "var(--text-3)" }}>
+            <span style={{ fontSize: "0.75rem", color: "rgba(255,255,255,0.75)" }}>
               Cela peut prendre 15 à 30 secondes.
             </span>
           </div>
@@ -459,11 +459,11 @@ export function DetailClient({
           <div
             style={{
               width: "100%", padding: "14px", borderRadius: "14px",
-              background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.25)",
+              background: "#ef4444",
               display: "flex", flexDirection: "column", alignItems: "center", gap: "8px",
             }}
           >
-            <span style={{ fontSize: "0.85rem", color: "#fca5a5" }}>
+            <span style={{ fontSize: "0.85rem", color: "#fff" }}>
               {erreurGen ?? "La génération a échoué."}
             </span>
             <button
@@ -492,8 +492,8 @@ export function DetailClient({
               }}
               style={{
                 padding: "8px 20px", borderRadius: "10px",
-                background: "rgba(124,58,237,0.15)", border: "1px solid rgba(124,58,237,0.3)",
-                color: "#a78bfa", fontSize: "0.82rem", fontWeight: 600, cursor: "pointer",
+                background: "#fff", border: "none",
+                color: "#ef4444", fontSize: "0.82rem", fontWeight: 600, cursor: "pointer",
               }}
             >
               Réessayer
@@ -539,10 +539,10 @@ export function DetailClient({
           >
             <div style={{
               width: 56, height: 56, margin: "0 auto 16px", borderRadius: 16,
-              background: "rgba(239,68,68,0.12)",
+              background: "#ef4444",
               display: "flex", alignItems: "center", justifyContent: "center",
             }}>
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#ef4444" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" />
               </svg>
             </div>

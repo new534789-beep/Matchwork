@@ -142,8 +142,8 @@ export default function Parametres() {
                   Supprimer mon compte
                 </button>
               ) : (
-                <div style={{ padding: 14, borderRadius: 12, background: "rgba(239,68,68,0.06)", border: "1px solid rgba(239,68,68,0.15)" }}>
-                  <p className="text-xs mb-3" style={{ color: "#ef4444", fontWeight: 600 }}>
+                <div style={{ padding: 14, borderRadius: 12, background: "#ef4444" }}>
+                  <p className="text-xs mb-3" style={{ color: "#fff", fontWeight: 600 }}>
                     Cette action est irréversible. Toutes vos données seront supprimées.
                   </p>
                   <div className="flex gap-2">
@@ -151,8 +151,8 @@ export default function Parametres() {
                       onClick={() => setShowConfirmDelete(false)}
                       style={{
                         padding: "7px 14px", borderRadius: 9,
-                        background: "var(--bg-card)", color: "var(--text-2)",
-                        border: "1px solid var(--border)",
+                        background: "rgba(255,255,255,0.15)", color: "#fff",
+                        border: "1px solid rgba(255,255,255,0.3)",
                         fontSize: "0.78rem", fontWeight: 600, cursor: "pointer",
                       }}
                     >
@@ -165,7 +165,7 @@ export default function Parametres() {
                       }}
                       style={{
                         padding: "7px 14px", borderRadius: 9,
-                        background: "#ef4444", color: "#fff",
+                        background: "#fff", color: "#ef4444",
                         border: "none",
                         fontSize: "0.78rem", fontWeight: 600, cursor: "pointer",
                       }}

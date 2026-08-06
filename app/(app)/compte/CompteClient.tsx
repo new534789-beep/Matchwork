@@ -1,7 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
+import { useToast } from "@/components/ui/Toast";
 
 type Paiement = {
   id: string;
@@ -27,7 +29,7 @@ const PLANS = [
 ] as const;
 
 function statutBadge(statut: string) {
-  if (statut === "reussi") return { label: "Réussi", color: "#a78bfa", bg: "rgba(124,58,237,0.12)", border: "rgba(124,58,237,0.3)" };
+  if (statut === "reussi") return { label: "Réussi", color: "#fff", bg: "#7c3aed", border: "#7c3aed" };
   if (statut === "echoue") return { label: "Échoué", color: "var(--text-3)", bg: "var(--bg-card)", border: "var(--border)" };
   return { label: "En attente", color: "var(--text-2)", bg: "var(--bg-card)", border: "var(--border)" };
 }
@@ -40,6 +42,31 @@ export function CompteClient({ email, plan, quotaMax, generationsUtilisees, quot
   const [planChoisi, setPlanChoisi] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [erreur, setErreur] = useState<string | null>(null);
+  const toast = useToast();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    const paiement = searchParams.get("paiement");
+    if (!paiement) return;
+
+    if (paiement === "reussi") {
+      const planParam = searchParams.get("plan");
+      const nomPlan = planParam === "pro_plus" ? "Pro+" : "Pro";
+      toast.succesModal({
+        titre: "Paiement réussi",
+        message: `Votre abonnement Matchwork ${nomPlan} est maintenant actif. Générations illimitées débloquées.`,
+        boutonLabel: "Continuer",
+      });
+    } else if (paiement === "echoue") {
+      toast.erreur("Paiement échoué — aucun montant n'a été débité. Vous pouvez réessayer.");
+    } else if (paiement === "attente") {
+      toast.erreur("Paiement en cours de traitement — vérifiez votre compte dans quelques instants.");
+    }
+
+    router.replace("/compte");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const estGratuit = plan === "gratuit" || plan === "GRATUIT";
   const barreProgression = estGratuit ? Math.min(1, generationsUtilisees / quotaMax) : 0;
@@ -70,31 +97,31 @@ export function CompteClient({ email, plan, quotaMax, generationsUtilisees, quot
     <div className="space-y-5">
 
       {/* ── Mon plan ── */}
-      <div style={{ borderRadius: 18, padding: 20, background: "linear-gradient(135deg,rgba(124,58,237,0.14),rgba(91,33,182,0.06))", border: "1px solid rgba(124,58,237,0.25)" }}>
+      <div style={{ borderRadius: 18, padding: 20, background: "#7c3aed" }}>
         <div className="flex items-center justify-between mb-4">
           <div>
-            <p style={{ fontSize: "0.75rem", color: "var(--text-2)", marginBottom: 3 }}>{email}</p>
-            <h2 style={{ fontSize: "1.15rem", fontWeight: 800, color: "var(--text)" }}>Mon abonnement</h2>
+            <p style={{ fontSize: "0.75rem", color: "rgba(255,255,255,0.7)", marginBottom: 3 }}>{email}</p>
+            <h2 style={{ fontSize: "1.15rem", fontWeight: 800, color: "#fff" }}>Mon abonnement</h2>
           </div>
-          <span style={{ padding: "5px 14px", borderRadius: 999, fontSize: "0.8rem", fontWeight: 700, background: "rgba(124,58,237,0.14)", border: "1px solid rgba(124,58,237,0.3)", color: "#a78bfa" }}>
+          <span style={{ padding: "5px 14px", borderRadius: 999, fontSize: "0.8rem", fontWeight: 700, background: "rgba(255,255,255,0.2)", color: "#fff" }}>
             {estGratuit ? "Gratuit" : "Payant"}
           </span>
         </div>
         {estGratuit ? (
           <>
             <div className="flex justify-between mb-1.5">
-              <span style={{ fontSize: "0.8rem", color: "var(--text-2)" }}>Générations aujourd&apos;hui</span>
-              <span style={{ fontSize: "0.8rem", fontWeight: 700, color: "#a78bfa" }}>{generationsUtilisees} / {quotaMax}</span>
+              <span style={{ fontSize: "0.8rem", color: "rgba(255,255,255,0.7)" }}>Générations aujourd&apos;hui</span>
+              <span style={{ fontSize: "0.8rem", fontWeight: 700, color: "#fff" }}>{generationsUtilisees} / {quotaMax}</span>
             </div>
-            <div style={{ height: 6, borderRadius: 6, background: "var(--border)", overflow: "hidden" }}>
-              <div style={{ height: "100%", borderRadius: 6, width: `${barreProgression * 100}%`, background: "linear-gradient(90deg,#7c3aed,#a78bfa)", transition: "width 0.5s ease" }} />
+            <div style={{ height: 6, borderRadius: 6, background: "rgba(255,255,255,0.25)", overflow: "hidden" }}>
+              <div style={{ height: "100%", borderRadius: 6, width: `${barreProgression * 100}%`, background: "#fff", transition: "width 0.5s ease" }} />
             </div>
             {(quotaRestant ?? 0) === 0 && (
-              <p style={{ fontSize: "0.78rem", color: "var(--text-2)", marginTop: 8 }}>Quota épuisé — choisissez un abonnement ci-dessous pour débloquer la génération.</p>
+              <p style={{ fontSize: "0.78rem", color: "rgba(255,255,255,0.75)", marginTop: 8 }}>Quota épuisé — choisissez un abonnement ci-dessous pour débloquer la génération.</p>
             )}
           </>
         ) : (
-          <p style={{ fontSize: "0.85rem", color: "var(--text-2)" }}>Générations illimitées. Merci de votre confiance.</p>
+          <p style={{ fontSize: "0.85rem", color: "rgba(255,255,255,0.85)" }}>Générations illimitées. Merci de votre confiance.</p>
         )}
       </div>
 
@@ -122,7 +149,7 @@ export function CompteClient({ email, plan, quotaMax, generationsUtilisees, quot
                   <div className="flex items-center justify-between mb-3">
                     <span style={{ fontSize: "0.72rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--text-3)" }}>{p.nom}</span>
                     {actuel && <span style={{ fontSize: "0.66rem", fontWeight: 700, padding: "2px 8px", borderRadius: 999, background: "var(--bg)", border: "1px solid var(--border)", color: "var(--text-3)" }}>Actuel</span>}
-                    {p.id === "pro" && <span style={{ fontSize: "0.66rem", fontWeight: 700, padding: "2px 8px", borderRadius: 999, background: "rgba(124,58,237,0.14)", color: "#a78bfa" }}>Populaire</span>}
+                    {p.id === "pro" && <span style={{ fontSize: "0.66rem", fontWeight: 700, padding: "2px 8px", borderRadius: 999, background: "#7c3aed", color: "#fff" }}>Populaire</span>}
                   </div>
                   <div className="mb-3">
                     {p.prix === 0 ? (
@@ -158,13 +185,13 @@ export function CompteClient({ email, plan, quotaMax, generationsUtilisees, quot
             Paiement — {planSel.nom} · {formatPrix(planSel.prix)} XOF/mois
           </h3>
 
-          <div style={{ marginTop: 12, marginBottom: 20, padding: "10px 13px", borderRadius: 10, background: "rgba(124,58,237,0.07)", border: "1px solid rgba(124,58,237,0.18)" }}>
-            <p style={{ fontSize: "0.76rem", color: "var(--text-2)", lineHeight: 1.6 }}>
+          <div style={{ marginTop: 12, marginBottom: 20, padding: "10px 13px", borderRadius: 10, background: "#7c3aed" }}>
+            <p style={{ fontSize: "0.76rem", color: "rgba(255,255,255,0.92)", lineHeight: 1.6 }}>
               Vous serez redirigé vers la page de paiement FedaPay sécurisée. Accepte <strong>MTN MoMo</strong>, <strong>Moov Money</strong> et les <strong>cartes bancaires</strong> Visa / Mastercard.
             </p>
           </div>
 
-          {erreur && <div style={{ marginBottom: 14, borderRadius: 11, padding: "10px 13px", background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.22)", color: "#f87171", fontSize: "0.8rem" }}>{erreur}</div>}
+          {erreur && <div style={{ marginBottom: 14, borderRadius: 11, padding: "10px 13px", background: "#ef4444", color: "#fff", fontSize: "0.8rem" }}>{erreur}</div>}
 
           <button
             onClick={() => void payer()}

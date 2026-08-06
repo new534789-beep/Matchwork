@@ -2,15 +2,15 @@
 
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
-import { ChargementNavigation } from "./ChargementNavigation";
 
 /**
  * Détecte toute navigation interne déclenchée par un clic n'importe où dans
  * l'app (menu, boutons, liens dans le contenu des pages...) — pas seulement
- * depuis la sidebar — et affiche le popup de chargement jusqu'à ce que la
+ * depuis la sidebar. Retourne un booléen que l'appelant utilise pour flouter
+ * son propre contenu et afficher le popup de chargement, jusqu'à ce que la
  * nouvelle page soit prête (changement de pathname).
  */
-export function DetecteurNavigation() {
+export function useDetecteurNavigation(): boolean {
   const pathname = usePathname();
   const [navigationEnCours, setNavigationEnCours] = useState(false);
 
@@ -47,5 +47,5 @@ export function DetecteurNavigation() {
     return () => document.removeEventListener("click", onClick, true);
   }, [pathname]);
 
-  return <ChargementNavigation actif={navigationEnCours} />;
+  return navigationEnCours;
 }

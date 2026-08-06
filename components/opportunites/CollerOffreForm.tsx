@@ -68,11 +68,11 @@ export function CollerOffreForm() {
       </div>
 
       {erreur && (
-        <div style={{ marginTop: 12, borderRadius: 12, padding: "11px 14px", background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.25)", display: "flex", alignItems: "center", gap: 9 }}>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f87171" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+        <div style={{ marginTop: 12, borderRadius: 12, padding: "11px 14px", background: "#ef4444", display: "flex", alignItems: "center", gap: 9 }}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
             <circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" />
           </svg>
-          <p style={{ fontSize: "0.8rem", color: "#fca5a5" }}>{erreur}</p>
+          <p style={{ fontSize: "0.8rem", color: "#fff" }}>{erreur}</p>
         </div>
       )}
 

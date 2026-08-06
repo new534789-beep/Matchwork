@@ -13,7 +13,7 @@ import { prisma } from "@/lib/prisma";
 import { STATUTS_EN_FILE } from "@/lib/opportunites";
 import { detecterBlog } from "@/lib/ia/detection-blog";
 import { notifierOpportunitePubliee } from "@/lib/blog/notifier-make";
-import { canalCandidatureFiable, extraireOffre } from "@/lib/ia/extraction-offre";
+import { canalCandidatureFiable, estUrlValide, extraireOffre } from "@/lib/ia/extraction-offre";
 import { recupererContenuPage } from "@/lib/ingestion/contenu-page";
 
 export type RapportValidation = {
@@ -133,6 +133,24 @@ function champRempli(val: string | null | undefined): boolean {
 
 type Decision = { action: "publiee" | "rejetee"; raison: string };
 
+/**
+ * Sources dont le lien vaut canal de candidature.
+ *
+ * Les portails de bourses suivis (DAAD, Chevening, Fulbright, Campus France,
+ * Türkiye Bursları, Mastercard Foundation…) sont des sites institutionnels
+ * choisis un par un : la page d'une bourse y mène toujours au dossier, même
+ * quand le « comment postuler » vit derrière un portail séparé que l'extraction
+ * n'atteint pas.
+ *
+ * C'est le même raisonnement que l'exemption ATS déjà en place : quand la
+ * source est fiable par construction, exiger en plus que l'IA isole une adresse
+ * e-mail ou une URL de formulaire revient à jeter des bourses parfaitement
+ * valables — précisément celles que l'on cherche à proposer.
+ */
+function lienVautCanalDeCandidature(source: string): boolean {
+  return source.startsWith("ATS:") || source.startsWith("SCHOLARSHIP:");
+}
+
 type OppCanal = {
   id: string;
   organisme: string;
@@ -199,7 +217,7 @@ export async function deciderEmploi(opp: {
     return { action: "rejetee", raison: "Lien de candidature manquant" };
   }
   // Source ATS : le lien EST le canal de candidature (formulaire de l'ATS), fiable par construction.
-  if (!opp.source.startsWith("ATS:") && !canalCandidatureFiable(opp.canalCandidature, opp.cibleCandidature)) {
+  if (!lienVautCanalDeCandidature(opp.source) && !canalCandidatureFiable(opp.canalCandidature, opp.cibleCandidature)) {
     return { action: "rejetee", raison: "Aucun canal de candidature fiable (ni e-mail valide, ni lien de formulaire précis)" };
   }
   if (estSpam(`${opp.intitule} ${opp.description}`)) {
@@ -224,6 +242,7 @@ export async function deciderBourseOuAutre(opp: {
   organisme: string;
   description: string;
   lien: string | null;
+  source: string;
   dateLimite: Date | null;
   confianceDateLimite: number | null;
   canalCandidature?: string | null;
@@ -242,7 +261,10 @@ export async function deciderBourseOuAutre(opp: {
   if (!champRempli(opp.description) || opp.description.trim().length < 30) {
     return { action: "rejetee", raison: "Description trop courte ou absente" };
   }
-  if (!canalCandidatureFiable(opp.canalCandidature, opp.cibleCandidature)) {
+  const canalOk =
+    canalCandidatureFiable(opp.canalCandidature, opp.cibleCandidature) ||
+    (lienVautCanalDeCandidature(opp.source) && estUrlValide(opp.lien));
+  if (!canalOk) {
     return { action: "rejetee", raison: "Aucun canal de candidature fiable (ni e-mail valide, ni lien de formulaire précis)" };
   }
   if (estSpam(`${opp.intitule} ${opp.description}`)) {
@@ -307,7 +329,8 @@ export async function validerAutomatiquement(options?: { limite?: number }): Pro
   // On retente une extraction (texte en base, puis vraie page si besoin) avant
   // de rejeter — pour ne pas confondre "jamais cherché" et "vraiment introuvable".
   for (const opp of offres) {
-    if (opp.source.startsWith("ATS:")) continue; // le lien EST le canal, pas besoin
+    // Source fiable : le lien EST le canal, inutile de payer un aller-retour réseau.
+    if (lienVautCanalDeCandidature(opp.source) && estUrlValide(opp.lien)) continue;
     await backfillCanalCandidature(opp);
   }
 
@@ -382,7 +405,7 @@ export async function nettoyerOffresIncoherentes(): Promise<{
 
   for (const opp of publiees) {
     // Backfill avant de juger : ne pas confondre "canal jamais cherché" et "vraiment introuvable".
-    if (!opp.source.startsWith("ATS:")) {
+    if (!(lienVautCanalDeCandidature(opp.source) && estUrlValide(opp.lien))) {
       await backfillCanalCandidature(opp);
     }
 
@@ -397,8 +420,11 @@ export async function nettoyerOffresIncoherentes(): Promise<{
       raison = descriptionValide(opp.intitule, opp.description);
     }
 
-    // Source ATS : le lien est le canal de candidature par construction, fiable.
-    if (!raison && !opp.source.startsWith("ATS:") && !canalCandidatureFiable(opp.canalCandidature, opp.cibleCandidature)) {
+    // Source fiable par construction : le lien de l'offre EST le canal.
+    const canalOk =
+      canalCandidatureFiable(opp.canalCandidature, opp.cibleCandidature) ||
+      (lienVautCanalDeCandidature(opp.source) && estUrlValide(opp.lien));
+    if (!raison && !canalOk) {
       raison = "Aucun canal de candidature fiable (ni e-mail valide, ni lien de formulaire précis)";
     }
 

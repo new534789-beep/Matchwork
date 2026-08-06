@@ -6,6 +6,7 @@ import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
 import { z } from "zod";
 import { COOKIE_REF, parserRef } from "@/lib/attribution";
+import { normaliserEmail } from "@/lib/email";
 
 const loginSchema = z.object({
   email: z.string().email(),
@@ -61,7 +62,8 @@ const providers: NextAuthConfig["providers"] = [
 
       // Reprise sur coupure passagère : sans elle, une seconde d'indisponibilité
       // de la base se présentait à l'utilisateur comme « identifiants invalides ».
-      const user = await avecReprise(() => prisma.user.findUnique({ where: { email: parsed.data.email } }));
+      const email = normaliserEmail(parsed.data.email);
+      const user = await avecReprise(() => prisma.user.findUnique({ where: { email } }));
       if (!user || !user.motDePasse) return null;
 
       const valid = await bcrypt.compare(parsed.data.password, user.motDePasse);
@@ -94,8 +96,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     // Exécuté uniquement côté Node (handler de connexion), jamais dans le middleware Edge.
     async signIn({ user, account }) {
       if (account?.provider === "google") {
-        const email = user.email;
+        const email = user.email ? normaliserEmail(user.email) : null;
         if (!email) return false;
+        user.email = email;
         try {
           // upsert ne dit pas s'il a créé ou juste relu — on distingue nous-mêmes
           // pour ne poser l'attribution d'acquisition qu'à la toute première

@@ -94,7 +94,7 @@ export function InstallPrompt({ justSignedUp }: { justSignedUp: boolean }) {
         position: "fixed", left: 16, right: 16, bottom: 16, zIndex: 200,
         maxWidth: 420, margin: "0 auto",
         borderRadius: 20, padding: "20px 20px 18px",
-        background: "var(--bg-card)", border: "1px solid var(--border)",
+        background: "var(--bg-card-solide)", border: "1px solid var(--border)",
         boxShadow: "0 20px 50px -12px rgba(31,16,64,0.35)",
       }}
     >

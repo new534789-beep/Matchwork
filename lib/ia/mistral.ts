@@ -40,5 +40,8 @@ export function nombreClesMistral(): number {
 export const MODELS = {
   large: "mistral-large-latest",   // Tâches complexes : onboarding, génération, analyse offre
   small: "mistral-small-latest",   // Tâches rapides : traduction, extraction légère
-  vision: "pixtral-large-latest",  // Images / documents visuels
+  // Images / documents visuels. `pixtral-large-latest` a été retiré de l'API
+  // (400 « Invalid model ») ; mistral-large gère la vision et reste le plus
+  // fiable sur la lecture de chiffres, ce qui compte pour les relevés de notes.
+  vision: "mistral-large-latest",
 } as const;

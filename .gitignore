@@ -42,6 +42,8 @@ next-env.d.ts
 
 # logs & données locales
 .devlog*.txt
+_devlog*.txt
+_backfill_log.txt
 /.storage/
 .vercel
 .env*

@@ -142,6 +142,33 @@ function IconEffacer({ size = 14 }: { size?: number }) {
   );
 }
 
+function IconFiltre({ size = 16 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+      <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
+    </svg>
+  );
+}
+
+// Filtre par domaine — détection par mots-clés sur l'intitulé/description,
+// pas un champ dédié en base (pas la peine tant qu'un seul domaine existe).
+// D'autres domaines s'ajouteront ici au même format.
+const DOMAINES_FILTRE: { valeur: string; label: string; motsCles: string[] }[] = [
+  { valeur: "droit", label: "Droit", motsCles: ["droit", "juridique", "juriste", "avocat", "magistrat", "notari", "contentieux", "legal", " law", "llm", " jd "] },
+  { valeur: "maths-info", label: "Maths & Informatique", motsCles: ["mathematique", "informatique", "data science", "intelligence artificielle", " ia ", "cybersecurite", "statistique", "numerique", "computer science", "software", "logiciel", "algorithm"] },
+];
+
+function normaliserAccents(s: string): string {
+  return s.normalize("NFD").replace(/[̀-ͯ]/g, "");
+}
+
+function correspondAuDomaine(o: Opportunite, valeur: string): boolean {
+  const domaine = DOMAINES_FILTRE.find((d) => d.valeur === valeur);
+  if (!domaine) return true;
+  const texte = ` ${normaliserAccents(`${o.intitule} ${o.description} ${o.conditions ?? ""}`.toLowerCase())} `;
+  return domaine.motsCles.some((m) => texte.includes(m));
+}
+
 type Toast = { id: string; intitule: string; statut: "loading" | "ok" | "erreur"; dossierId?: string };
 
 type GateSupplementaire = { lien: string; titre: string; sousTitre: string };
@@ -167,16 +194,16 @@ export function FilSwipe({
   const [incompatibilite, setIncompatibilite] = useState<{ intitule: string; raison: string } | null>(null);
   const [verificationEnCours, setVerificationEnCours] = useState(false);
   const [recherche, setRecherche] = useState("");
+  const [domaineActif, setDomaineActif] = useState<string | null>(null);
+  const [filtreOuvert, setFiltreOuvert] = useState(false);
   const dragging = useRef(false);
   const startX = useRef(0);
   const cardRef = useRef<HTMLDivElement>(null);
 
   const termeRecherche = recherche.trim().toLowerCase();
-  const pileFiltree = termeRecherche
-    ? pile.filter((o) =>
-        `${o.intitule} ${o.organisme} ${o.description}`.toLowerCase().includes(termeRecherche)
-      )
-    : pile;
+  const pileFiltree = pile
+    .filter((o) => (termeRecherche ? `${o.intitule} ${o.organisme} ${o.description}`.toLowerCase().includes(termeRecherche) : true))
+    .filter((o) => (domaineActif ? correspondAuDomaine(o, domaineActif) : true));
 
   const actuelle = pileFiltree[0] ?? null;
 
@@ -334,40 +361,91 @@ export function FilSwipe({
   };
 
   const barreRecherche = (
-    <div className="w-full max-w-xl mx-auto mb-4" style={{ position: "relative" }}>
-      <span style={{ position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)", color: "var(--text-3)", display: "flex", pointerEvents: "none" }}>
-        <IconRecherche size={16} />
-      </span>
-      <input
-        type="text"
-        value={recherche}
-        onChange={(e) => setRecherche(e.target.value)}
-        placeholder="Rechercher une offre, un organisme..."
-        style={{
-          width: "100%", padding: "11px 40px 11px 40px", borderRadius: 14,
-          background: "var(--bg-card)", border: "1px solid var(--border)",
-          color: "var(--text)", fontSize: "0.88rem", outline: "none",
-        }}
-      />
-      {recherche && (
-        <button
-          onClick={() => setRecherche("")}
-          aria-label="Effacer la recherche"
+    <div className="w-full max-w-xl mx-auto mb-4" style={{ display: "flex", gap: 8, alignItems: "flex-start" }}>
+      <div style={{ position: "relative", flex: 1 }}>
+        <span style={{ position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)", color: "var(--text-3)", display: "flex", pointerEvents: "none" }}>
+          <IconRecherche size={16} />
+        </span>
+        <input
+          type="text"
+          value={recherche}
+          onChange={(e) => setRecherche(e.target.value)}
+          placeholder="Rechercher une offre, un organisme..."
           style={{
-            position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)",
-            width: 26, height: 26, borderRadius: "50%", border: "none", cursor: "pointer",
-            background: "var(--bg)", color: "var(--text-3)",
+            width: "100%", padding: "11px 40px 11px 40px", borderRadius: 14,
+            background: "var(--bg-card)", border: "1px solid var(--border)",
+            color: "var(--text)", fontSize: "0.88rem", outline: "none",
+          }}
+        />
+        {recherche && (
+          <button
+            onClick={() => setRecherche("")}
+            aria-label="Effacer la recherche"
+            style={{
+              position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)",
+              width: 26, height: 26, borderRadius: "50%", border: "none", cursor: "pointer",
+              background: "var(--bg)", color: "var(--text-3)",
+              display: "flex", alignItems: "center", justifyContent: "center",
+            }}
+          >
+            <IconEffacer size={12} />
+          </button>
+        )}
+      </div>
+
+      <div style={{ position: "relative", flexShrink: 0 }}>
+        <button
+          onClick={() => setFiltreOuvert((v) => !v)}
+          aria-label="Filtrer par domaine"
+          style={{
+            width: 44, height: 44, borderRadius: 14, cursor: "pointer",
             display: "flex", alignItems: "center", justifyContent: "center",
+            background: domaineActif ? "#7c3aed" : "var(--bg-card)",
+            border: `1px solid ${domaineActif ? "#7c3aed" : "var(--border)"}`,
+            color: domaineActif ? "#fff" : "var(--text-2)",
           }}
         >
-          <IconEffacer size={12} />
+          <IconFiltre size={16} />
         </button>
-      )}
+
+        {filtreOuvert && (
+          <>
+            <div onClick={() => setFiltreOuvert(false)} style={{ position: "fixed", inset: 0, zIndex: 90 }} />
+            <div style={{
+              position: "absolute", right: 0, top: "calc(100% + 8px)", zIndex: 91,
+              background: "var(--bg-card-solide)", border: "1px solid var(--border)", borderRadius: 14,
+              padding: 10, minWidth: 160, boxShadow: "0 12px 32px -8px rgba(0,0,0,0.3)",
+            }}>
+              <p style={{ fontSize: "0.68rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--text-3)", padding: "2px 6px 8px" }}>
+                Domaine
+              </p>
+              {DOMAINES_FILTRE.map((d) => {
+                const actif = domaineActif === d.valeur;
+                return (
+                  <button
+                    key={d.valeur}
+                    onClick={() => { setDomaineActif(actif ? null : d.valeur); setFiltreOuvert(false); }}
+                    style={{
+                      width: "100%", textAlign: "left", padding: "9px 10px", borderRadius: 9,
+                      background: actif ? "rgba(124,58,237,0.12)" : "transparent", border: "none", cursor: "pointer",
+                      color: actif ? "#7c3aed" : "var(--text)", fontSize: "0.84rem", fontWeight: actif ? 700 : 500,
+                      display: "flex", alignItems: "center", justifyContent: "space-between",
+                    }}
+                  >
+                    {d.label}
+                    {actif && <IconCheck size={13} />}
+                  </button>
+                );
+              })}
+            </div>
+          </>
+        )}
+      </div>
     </div>
   );
 
   if (!actuelle) {
-    const rechercheSansResultat = termeRecherche.length > 0 && pile.length > 0;
+    const rechercheSansResultat = (termeRecherche.length > 0 || domaineActif !== null) && pile.length > 0;
     return (
       <div className="w-full max-w-xl mx-auto">
         {barreRecherche}
@@ -384,7 +462,7 @@ export function FilSwipe({
             <>
               <p className="font-semibold mb-2" style={{ color: "var(--text)" }}>Aucune offre ne correspond</p>
               <p className="text-sm" style={{ color: "var(--text-3)" }}>
-                Essayez un autre mot-clé, ou effacez la recherche.
+                Essayez un autre mot-clé, ou retirez le filtre de domaine.
               </p>
             </>
           ) : (
@@ -751,13 +829,13 @@ export function FilSwipe({
                 <div style={{ width: 20, height: 20, borderRadius: "50%", border: "2px solid rgba(124,58,237,0.3)", borderTopColor: "#a78bfa", animation: "spin 0.8s linear infinite", flexShrink: 0 }} />
               )}
               {t.statut === "ok" && (
-                <div style={{ width: 20, height: 20, borderRadius: "50%", background: "var(--bg)", border: "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
+                <div style={{ width: 20, height: 20, borderRadius: "50%", background: "#16a34a", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
                 </div>
               )}
               {t.statut === "erreur" && (
-                <div style={{ width: 20, height: 20, borderRadius: "50%", background: "rgba(239,68,68,0.12)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#f87171" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
+                <div style={{ width: 20, height: 20, borderRadius: "50%", background: "#ef4444", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
                 </div>
               )}
               <div style={{ flex: 1, minWidth: 0 }}>
@@ -865,10 +943,10 @@ export function FilSwipe({
           >
             <div style={{
               width: 56, height: 56, margin: "0 auto 16px", borderRadius: 16,
-              background: "rgba(239,68,68,0.12)",
+              background: "#ef4444",
               display: "flex", alignItems: "center", justifyContent: "center",
             }}>
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#ef4444" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" />
               </svg>
             </div>

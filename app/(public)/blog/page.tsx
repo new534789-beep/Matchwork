@@ -32,7 +32,7 @@ export default async function ListeBlog() {
     .findMany({
       where: { statut: "publie" },
       orderBy: { publieLe: "desc" },
-      select: { slug: true, titre: true, extrait: true, categorie: true, publieLe: true },
+      select: { slug: true, titre: true, extrait: true, categorie: true, publieLe: true, imageCouverture: true },
       take: 60,
     })
     .catch(() => []);
@@ -55,22 +55,35 @@ export default async function ListeBlog() {
               <Link
                 key={a.slug}
                 href={`/blog/${a.slug}`}
-                style={{ display: "block", padding: "22px 20px", borderRadius: 15, background: "var(--bg-card)", border: "1px solid var(--border)", textDecoration: "none" }}
+                style={{ display: "flex", gap: 18, alignItems: "stretch", padding: 14, borderRadius: 15, background: "var(--bg-card)", border: "1px solid var(--border)", textDecoration: "none" }}
               >
-                <p style={{ fontSize: "0.72rem", fontWeight: 700, letterSpacing: "0.05em", textTransform: "uppercase", color: "#7c3aed", marginBottom: 8 }}>
-                  {LABEL_CATEGORIE[a.categorie ?? "actualite"] ?? a.categorie} · {a.publieLe.toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })}
-                </p>
-                <p style={{ fontSize: "1.1rem", fontWeight: 700, color: "var(--text)", lineHeight: 1.35, marginBottom: 8 }}>
-                  {a.titre}
-                </p>
-                <p style={{ fontSize: "0.88rem", color: "var(--text-3)", lineHeight: 1.55 }}>
-                  {a.extrait}
-                </p>
+                <div className="blog-thumb" style={{ flex: "0 0 160px", borderRadius: 10, overflow: "hidden" }}>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={a.imageCouverture || `/api/og/blog/${a.slug}`} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                </div>
+                <div style={{ padding: "8px 6px", flex: 1, minWidth: 0 }}>
+                  <p style={{ fontSize: "0.72rem", fontWeight: 700, letterSpacing: "0.05em", textTransform: "uppercase", color: "#7c3aed", marginBottom: 8 }}>
+                    {LABEL_CATEGORIE[a.categorie ?? "actualite"] ?? a.categorie} · {a.publieLe.toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })}
+                  </p>
+                  <p style={{ fontSize: "1.1rem", fontWeight: 700, color: "var(--text)", lineHeight: 1.35, marginBottom: 8 }}>
+                    {a.titre}
+                  </p>
+                  <p style={{ fontSize: "0.88rem", color: "var(--text-3)", lineHeight: 1.55 }}>
+                    {a.extrait}
+                  </p>
+                </div>
               </Link>
             ))}
           </div>
         )}
       </div>
+
+      <style>{`
+        .blog-thumb { display: none; }
+        @media (min-width: 640px) {
+          .blog-thumb { display: block; }
+        }
+      `}</style>
     </ShellPublic>
   );
 }

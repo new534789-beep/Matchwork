@@ -4,6 +4,7 @@ import { getSiteUrl } from "@/lib/site-url";
 import { CATEGORIES_SEO } from "@/lib/categories-seo";
 import { PAYS_SEO } from "@/lib/pays";
 import { GUIDES } from "@/lib/guides";
+import { SERIES_SEO } from "@/lib/orientation/seo";
 
 // Régénère le sitemap au plus une fois par heure (les offres bougent souvent).
 export const revalidate = 3600;
@@ -17,6 +18,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${base}/`, lastModified: maintenant, changeFrequency: "weekly", priority: 1 },
     { url: `${base}/offres`, lastModified: maintenant, changeFrequency: "daily", priority: 0.9 },
     { url: `${base}/guides`, lastModified: maintenant, changeFrequency: "weekly", priority: 0.7 },
+    { url: `${base}/apres-le-bac`, lastModified: maintenant, changeFrequency: "monthly", priority: 0.85 },
     { url: `${base}/blog`, lastModified: maintenant, changeFrequency: "daily", priority: 0.7 },
     { url: `${base}/inscription`, lastModified: maintenant, changeFrequency: "monthly", priority: 0.7 },
     { url: `${base}/connexion`, lastModified: maintenant, changeFrequency: "monthly", priority: 0.4 },
@@ -38,6 +40,15 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     lastModified: maintenant,
     changeFrequency: "daily",
     priority: 0.75,
+  }));
+
+  // Pages d'orientation par série du bac. Contenu entièrement statique,
+  // dérivé du guide MESRS : aucune requête base, donc jamais absentes.
+  const series: MetadataRoute.Sitemap = SERIES_SEO.map((s) => ({
+    url: `${base}/apres-le-bac/${s.slug}`,
+    lastModified: maintenant,
+    changeFrequency: "monthly",
+    priority: 0.8,
   }));
 
   // Guides éditoriaux.
@@ -87,5 +98,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // En cas d'indisponibilité DB, on renvoie au moins les pages statiques.
   }
 
-  return [...statiques, ...categories, ...pays, ...guides, ...offres, ...articles];
+  return [...statiques, ...series, ...categories, ...pays, ...guides, ...offres, ...articles];
 }

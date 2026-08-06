@@ -5,6 +5,7 @@ import { Bouton } from "@/components/ui/bouton";
 import { ChampTexte, ChampTextarea, ChampSelect } from "@/components/ui/champ";
 import { Carte, CarteTitre, CarteEntete } from "@/components/ui/carte";
 import { Badge } from "@/components/ui/badge";
+import { useToast } from "@/components/ui/Toast";
 import type { Profil } from "@prisma/client";
 
 interface Formation {
@@ -71,7 +72,7 @@ const btnSupprimer: React.CSSProperties = {
 };
 
 export function FormulaireProfil({ profilInitial }: Props) {
-  const [sauvegarde, setSauvegarde] = useState(false);
+  const toast = useToast();
   const [chargement, setChargement] = useState(false);
   const [erreur, setErreur] = useState("");
 
@@ -106,7 +107,6 @@ export function FormulaireProfil({ profilInitial }: Props) {
     e.preventDefault();
     setChargement(true);
     setErreur("");
-    setSauvegarde(false);
 
     try {
       const res = await fetch("/api/profil", {
@@ -115,8 +115,7 @@ export function FormulaireProfil({ profilInitial }: Props) {
         body: JSON.stringify({ nomComplet, dateNaissance, lieuNaissance, nationalite, telephone, adresse, email, signature, linkedin, bio, objectifs, tonSouhaite, formations, experiences, competences, langues }),
       });
       if (!res.ok) throw new Error();
-      setSauvegarde(true);
-      setTimeout(() => setSauvegarde(false), 3000);
+      toast.succes("Profil sauvegardé avec succès");
     } catch {
       setErreur("Erreur lors de la sauvegarde. Réessayez.");
     } finally {
@@ -369,12 +368,6 @@ export function FormulaireProfil({ profilInitial }: Props) {
           {erreur}
         </div>
       )}
-      {sauvegarde && (
-        <div className="rounded-xl px-4 py-3 text-sm" style={{ background: "rgba(124,58,237,0.1)", border: "1px solid rgba(124,58,237,0.3)", color: "#a78bfa" }}>
-          Profil sauvegardé avec succès
-        </div>
-      )}
-
       <Bouton type="submit" chargement={chargement} className="w-full hover-glow">
         Sauvegarder le profil
       </Bouton>

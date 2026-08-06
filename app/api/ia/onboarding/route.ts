@@ -6,6 +6,29 @@ import { SYSTEM_PROMPT_ONBOARDING } from "@/lib/ia/prompts/onboarding";
 import { rateLimit } from "@/lib/rate-limit";
 import { getProfilActif } from "@/lib/profil/actif";
 
+// Vercel tue la fonction au timeout par défaut (10-15s) sans passer par notre
+// catch, ce qui masque la vraie cause d'un "Erreur du service IA" ressenti
+// par l'utilisateur. Un entretien approfondi peut ponctuellement dépasser ça
+// (conversation longue, pic de charge Mistral) — on laisse de la marge.
+export const maxDuration = 60;
+
+// Un hoquet réseau ponctuel vers Mistral ne doit pas se traduire par un échec
+// sec pour l'utilisateur en plein entretien — un seul retry suffit dans la
+// grande majorité des cas (mêmes codes transitoires que lib/auth.ts).
+async function avecReprise<T>(fn: () => Promise<T>, tentatives = 2): Promise<T> {
+  let derniere: unknown;
+  for (let i = 0; i < tentatives; i++) {
+    try {
+      return await fn();
+    } catch (e) {
+      derniere = e;
+      if (i === tentatives - 1) throw e;
+      await new Promise((r) => setTimeout(r, 400 * (i + 1)));
+    }
+  }
+  throw derniere;
+}
+
 // Champs réellement stockables dans le modèle Profil (protège contre les clés
 // inattendues renvoyées par l'IA — une clé inconnue ferait planter Prisma).
 const CHAMPS_PROFIL = new Set([
@@ -105,11 +128,13 @@ Ne répète pas des questions sur des sections déjà renseignées. Continue là
       { role: "user" as const, content: message },
     ];
 
-    const result = await client.chat.complete({
-      model: MODELS.small,
-      messages,
-      responseFormat: { type: "json_object" },
-    });
+    const result = await avecReprise(() =>
+      client.chat.complete({
+        model: MODELS.small,
+        messages,
+        responseFormat: { type: "json_object" },
+      })
+    );
 
     const texteReponse = (result.choices?.[0]?.message?.content as string) ?? "";
 

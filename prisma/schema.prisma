@@ -20,6 +20,12 @@ model User {
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
 
+  // Réinitialisation de mot de passe : on stocke le hash du token (pas le token
+  // brut) pour pouvoir retrouver l'utilisateur par égalité exacte sans jamais
+  // conserver de secret en clair en base — même principe qu'un mot de passe.
+  resetTokenHash   String?   @unique
+  resetTokenExpire DateTime?
+
   codeParrainage String?  @unique
   // Parrainage : générations bonus offertes au parrain (indépendantes du quota
   // journalier gratuit), créditées une fois par filleul inscrit — consommées
@@ -149,6 +155,12 @@ model Opportunite {
   // (?modalite=) sur les pages catégorie/pays. Souvent null : heuristique
   // volontairement prudente, mieux vaut absent qu'un faux positif.
   modalite       String?
+  // Domaine(s) d'étude/emploi (droit, maths-info, santé...), JSON array de
+  // slugs — classé par IA au moment où l'offre passe en "publiee" (voir
+  // lib/prisma.ts et lib/ia/classification-domaines.ts), jamais à la simple
+  // création : évite de payer un appel IA sur une offre qui ne sera jamais
+  // publiée (rejetée, doublon...). Liste des slugs valides : lib/domaines.ts.
+  domaines       String      @default("[]")
   // Texte source original (page scrapée / offre collée), AVANT résumé IA. `description`
   // reste un résumé condensé pour l'affichage (fil de swipe) ; `contenuBrut` est ce qui
   // doit être utilisé à la génération des documents pour coller aux exigences réelles
@@ -507,4 +519,23 @@ model Organisme {
   messages    Message[]
 
   @@map("organismes")
+}
+
+// ─── Cache des réponses IA ──────────────────────────────────────────────────
+
+// Une même offre est traduite, extraite et classée par tous les points
+// d'entrée (RSS, scrapers, « coller une offre », ré-ingestion), et analysée à
+// l'identique pour chaque candidat qui la consulte. La clé est l'empreinte du
+// prompt complet : deux appels identiques ne sont facturés qu'une fois.
+// Ne concerne QUE les tâches déterministes — jamais une lettre ou un CV, qui
+// doivent rester propres à un candidat.
+model CacheIA {
+  cle         String   @id // sha256(tache + niveau + system + user)
+  tache       String
+  reponse     String // JSON sérialisé de la réponse déjà parsée
+  fournisseur String?
+  createdAt   DateTime @default(now())
+
+  @@index([tache])
+  @@map("cache_ia")
 }

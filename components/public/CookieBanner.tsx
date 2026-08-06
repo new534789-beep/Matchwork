@@ -49,7 +49,7 @@ export function CookieBanner() {
       <div
         style={{
           width: "100%", maxWidth: 640, borderRadius: 18, padding: "20px 22px",
-          background: "var(--bg-card)", border: "1px solid var(--border)",
+          background: "var(--bg-card-solide)", border: "1px solid var(--border)",
           boxShadow: "0 20px 60px -10px rgba(0,0,0,0.35)",
         }}
       >

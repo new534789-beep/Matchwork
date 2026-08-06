@@ -10,10 +10,13 @@ export function hasGeminiKey() {
   return !!process.env.GEMINI_API_KEY;
 }
 
-// Modèles utilisés dans l'app
+// Alias « latest » volontaires : les modèles pinés (gemini-2.0-*) ont perdu leur
+// quota gratuit et renvoient 429 « exceeded your current quota », alors qu'ils
+// figurent toujours dans la liste des modèles. Les alias suivent la génération
+// courante et gardent l'accès au palier gratuit sans intervention.
 export const MODELS = {
-  // Tâches complexes : onboarding, analyse d'offre
-  pro: "gemini-2.0-flash",
-  // Tâches rapides : traduction, extraction de document
-  flash: "gemini-2.0-flash-lite",
+  // Tâches complexes : lecture complète d'une offre
+  complexe: "gemini-flash-latest",
+  // Tâches légères : traduction, extraction ciblée, classification
+  leger: "gemini-flash-lite-latest",
 } as const;

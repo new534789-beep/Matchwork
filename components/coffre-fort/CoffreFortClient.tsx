@@ -3,6 +3,7 @@
 import { useState, useRef } from "react";
 import { Carte } from "@/components/ui/carte";
 import { Badge } from "@/components/ui/badge";
+import { useToast } from "@/components/ui/Toast";
 import { formatDate, formatTaille } from "@/lib/utils";
 
 const TYPES_DOC = [
@@ -36,11 +37,11 @@ const selectStyle: React.CSSProperties = {
 };
 
 export function CoffreFortClient({ documentsInitiaux }: Props) {
+  const toast = useToast();
   const [documents, setDocuments] = useState<Document[]>(documentsInitiaux);
   const [typeSel, setTypeSel] = useState("DIPLOME");
   const [uploading, setUploading] = useState(false);
   const [erreur, setErreur] = useState("");
-  const [succes, setSucces] = useState("");
   const [docDetail, setDocDetail] = useState<Document | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -50,7 +51,6 @@ export function CoffreFortClient({ documentsInitiaux }: Props) {
 
     setUploading(true);
     setErreur("");
-    setSucces("");
 
     const formData = new FormData();
     formData.append("fichier", fichier);
@@ -61,8 +61,7 @@ export function CoffreFortClient({ documentsInitiaux }: Props) {
       const data = await res.json();
       if (!res.ok) { setErreur(data.erreur ?? "Erreur lors de l'upload."); return; }
       setDocuments((prev) => [data, ...prev]);
-      setSucces(`"${fichier.name}" déposé avec succès. L'IA extrait les informations…`);
-      setTimeout(() => setSucces(""), 5000);
+      toast.succes(`"${fichier.name}" déposé avec succès. L'IA extrait les informations…`);
 
       setTimeout(async () => {
         const liste = await fetch("/api/documents");
@@ -161,11 +160,6 @@ export function CoffreFortClient({ documentsInitiaux }: Props) {
             Chiffrement et upload en cours…
           </div>
         )}
-        {succes && (
-          <div className="mt-3 rounded-xl px-4 py-3 text-sm" style={{ background: "rgba(34,197,94,0.1)", border: "1px solid rgba(34,197,94,0.3)", color: "#16a34a" }}>
-            {succes}
-          </div>
-        )}
         {erreur && (
           <div className="mt-3 rounded-xl px-4 py-3 text-sm" style={{ background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.3)", color: "#dc2626" }}>
             {erreur}
@@ -174,11 +168,11 @@ export function CoffreFortClient({ documentsInitiaux }: Props) {
       </Carte>
 
       {/* Confidentialité */}
-      <div className="rounded-xl px-4 py-3 flex gap-3 items-start" style={{ background: "rgba(124,58,237,0.08)", border: "1px solid rgba(124,58,237,0.2)" }}>
-        <svg className="w-4 h-4 flex-shrink-0 mt-0.5" style={{ color: "#a78bfa" }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <div className="rounded-xl px-4 py-3 flex gap-3 items-start" style={{ background: "#7c3aed" }}>
+        <svg className="w-4 h-4 flex-shrink-0 mt-0.5" style={{ color: "#fff" }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
         </svg>
-        <p className="text-xs leading-relaxed" style={{ color: "var(--purple-light)" }}>
+        <p className="text-xs leading-relaxed" style={{ color: "rgba(255,255,255,0.92)" }}>
           Vos documents sont chiffrés (AES-256) et accessibles uniquement par vous.
           Seules les informations utiles aux candidatures sont conservées.
         </p>

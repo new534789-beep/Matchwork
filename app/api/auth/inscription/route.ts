@@ -4,6 +4,7 @@ import bcrypt from "bcryptjs";
 import { z } from "zod";
 import { rateLimit } from "@/lib/rate-limit";
 import { COOKIE_REF, parserRef } from "@/lib/attribution";
+import { normaliserEmail } from "@/lib/email";
 
 const schema = z.object({
   email: z.string().email("Email invalide"),
@@ -31,7 +32,8 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { email, motDePasse } = parsed.data;
+    const email = normaliserEmail(parsed.data.email);
+    const { motDePasse } = parsed.data;
 
     const existant = await prisma.user.findUnique({ where: { email } });
     if (existant) {

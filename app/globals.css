@@ -15,6 +15,11 @@ html, body { overflow-x: hidden; max-width: 100vw; }
   --bg: #f6f6f9;
   --bg-card: rgba(255,255,255,0.86);
   --bg-card-hover: rgba(255,255,255,0.96);
+  /* Variante 100% opaque de --bg-card, réservée aux surfaces flottantes
+     (popups fixed/absolute au-dessus du contenu : bannière cookies, popup
+     d'installation, menu de filtre) où la transparence habituelle de
+     --bg-card laisse trop deviner ce qu'il y a derrière. */
+  --bg-card-solide: #ffffff;
   --border: rgba(124,58,237,0.08);
   --border-strong: rgba(124,58,237,0.2);
   --text: #100a20;
@@ -55,6 +60,7 @@ html, body { overflow-x: hidden; max-width: 100vw; }
   --bg: #f6f6f9;
   --bg-card: rgba(255,255,255,0.86);
   --bg-card-hover: rgba(255,255,255,0.96);
+  --bg-card-solide: #ffffff;
   --border: rgba(124,58,237,0.08);
   --border-strong: rgba(124,58,237,0.2);
   --text: #100a20;
@@ -79,6 +85,7 @@ html, body { overflow-x: hidden; max-width: 100vw; }
   --bg: #0a0a0a;
   --bg-card: rgba(255,255,255,0.05);
   --bg-card-hover: rgba(255,255,255,0.08);
+  --bg-card-solide: #1a1a1f;
   --border: rgba(255,255,255,0.09);
   --border-strong: rgba(255,255,255,0.16);
   --text: #ffffff;

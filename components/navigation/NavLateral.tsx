@@ -36,6 +36,16 @@ const SECTIONS: { titre: string; liens: Lien[] }[] = [
         ),
       },
       {
+        href: "/orientation",
+        label: "IA Orientation",
+        icone: (a) => (
+          <svg className="w-5 h-5" viewBox="0 0 24 24" fill={a ? "currentColor" : "none"} stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="12" cy="12" r="9" />
+            <polygon points="15.5 8.5 10.5 10.5 8.5 15.5 13.5 13.5" fill={a ? "var(--bg-card)" : "none"} />
+          </svg>
+        ),
+      },
+      {
         href: "/candidatures",
         label: "Dossiers",
         icone: (a) => (

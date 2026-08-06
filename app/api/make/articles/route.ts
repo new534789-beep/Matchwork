@@ -16,15 +16,29 @@ export async function POST(req: Request) {
   const b = (await req.json().catch(() => null)) as Record<string, unknown> | null;
   if (!b) return NextResponse.json({ erreur: "JSON invalide" }, { status: 400 });
 
-  const titre = typeof b.titre === "string" ? b.titre.trim() : "";
-  const extrait = typeof b.extrait === "string" ? b.extrait.trim() : "";
-  const contenu = typeof b.contenu === "string" ? b.contenu.trim() : "";
+  // Make encode titre/extrait/contenu en base64 (voir lib/blog scénario) pour
+  // éviter les problèmes d'échappement JSON avec le markdown généré par l'IA
+  // (guillemets, retours à la ligne). Décodage ici, requis quand "encoding":"base64".
+  const decoder = (v: unknown): string => {
+    if (typeof v !== "string") return "";
+    return b.encoding === "base64" ? Buffer.from(v, "base64").toString("utf8").trim() : v.trim();
+  };
+
+  const titre = decoder(b.titre);
+  const extrait = decoder(b.extrait);
+  const contenu = decoder(b.contenu);
   if (!titre || !extrait || !contenu) {
     return NextResponse.json({ erreur: "titre, extrait et contenu sont requis." }, { status: 400 });
   }
 
   const categorie = typeof b.categorie === "string" && CATEGORIES_VALIDES.includes(b.categorie) ? b.categorie : "actualite";
-  const motsCles = Array.isArray(b.motsCles) ? b.motsCles.filter((m) => typeof m === "string") : [];
+  // motsCles arrive soit en tableau JSON, soit en chaîne "mot1,mot2" (Make rend
+  // parfois un tableau comme texte joint par virgules dans un template JSON string).
+  const motsCles = Array.isArray(b.motsCles)
+    ? b.motsCles.filter((m) => typeof m === "string")
+    : typeof b.motsCles === "string" && b.motsCles.trim()
+      ? b.motsCles.split(",").map((m) => m.trim()).filter(Boolean)
+      : [];
   const imageCouverture = typeof b.imageCouverture === "string" ? b.imageCouverture.trim() || null : null;
   const seoTitre = typeof b.seoTitre === "string" ? b.seoTitre.trim() || null : null;
   const seoDescription = typeof b.seoDescription === "string" ? b.seoDescription.trim() || null : null;

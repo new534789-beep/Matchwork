@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
@@ -31,20 +32,22 @@ export default async function Compte() {
     <>
       <EnteteApp titre="Mon compte" />
       <main className="flex-1 px-4 sm:px-6 py-6 max-w-5xl mx-auto w-full">
-        <CompteClient
-          email={user?.email ?? ""}
-          plan={planActuel}
-          quotaMax={quotaMax}
-          generationsUtilisees={generationsUtilisees}
-          quotaRestant={quotaRestant}
-          paiements={paiements.map((p) => ({
-            id: p.id,
-            montant: p.montant,
-            fournisseur: p.fournisseur,
-            statut: p.statut,
-            createdAt: p.createdAt.toISOString(),
-          }))}
-        />
+        <Suspense fallback={null}>
+          <CompteClient
+            email={user?.email ?? ""}
+            plan={planActuel}
+            quotaMax={quotaMax}
+            generationsUtilisees={generationsUtilisees}
+            quotaRestant={quotaRestant}
+            paiements={paiements.map((p) => ({
+              id: p.id,
+              montant: p.montant,
+              fournisseur: p.fournisseur,
+              statut: p.statut,
+              createdAt: p.createdAt.toISOString(),
+            }))}
+          />
+        </Suspense>
       </main>
     </>
   );

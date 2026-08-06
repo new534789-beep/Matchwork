@@ -33,6 +33,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     motsCles = [];
   }
 
+  // Bannière générée automatiquement par catégorie (voir app/api/og/blog/[slug])
+  // tant qu'aucune image personnalisée n'a été renseignée sur l'article.
+  const image = article.imageCouverture || `${getSiteUrl()}/api/og/blog/${slug}`;
+
   return {
     title,
     description,
@@ -46,7 +50,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       publishedTime: article.publieLe.toISOString(),
       siteName: "Matchwork",
       locale: "fr_FR",
-      images: article.imageCouverture ? [article.imageCouverture] : undefined,
+      images: [image],
     },
   };
 }
@@ -75,7 +79,7 @@ export default async function PageArticle({ params }: Props) {
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLdArticle) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLdFil) }} />
-      <BlogLayout article={article} />
+      <BlogLayout article={article} image={article.imageCouverture || `/api/og/blog/${slug}`} />
     </>
   );
 }

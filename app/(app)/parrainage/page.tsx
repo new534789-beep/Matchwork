@@ -3,11 +3,13 @@
 import { useState, useEffect } from "react";
 import { EnteteApp } from "@/components/navigation/EnteteApp";
 import { Carte } from "@/components/ui/carte";
+import { useToast } from "@/components/ui/Toast";
 
 type Stats = { total: number; inscrits: number; actifs: number };
 type ParrainageItem = { statut: string; createdAt: string };
 
 export default function Parrainage() {
+  const toast = useToast();
   const [code, setCode] = useState("");
   const [stats, setStats] = useState<Stats>({ total: 0, inscrits: 0, actifs: 0 });
   const [parrainages, setParrainages] = useState<ParrainageItem[]>([]);
@@ -34,6 +36,7 @@ export default function Parrainage() {
   const copierCode = async () => {
     await navigator.clipboard.writeText(code);
     setCopie(true);
+    toast.succes("Code copié !");
     setTimeout(() => setCopie(false), 2000);
   };
 
@@ -44,6 +47,7 @@ export default function Parrainage() {
     } else {
       await navigator.clipboard.writeText(texte);
       setCopie(true);
+      toast.succes("Lien copié !");
       setTimeout(() => setCopie(false), 2000);
     }
   };
@@ -98,14 +102,14 @@ export default function Parrainage() {
             <div style={{
               display: "flex", alignItems: "center", gap: 12,
               padding: "14px 18px", borderRadius: 12,
-              background: "rgba(124,58,237,0.08)", border: "1px solid rgba(124,58,237,0.2)",
+              background: "#7c3aed",
             }}>
-              <span style={{ fontSize: "1.3rem", fontWeight: 800, letterSpacing: "0.1em", color: "#7c3aed", flex: 1 }}>
+              <span style={{ fontSize: "1.3rem", fontWeight: 800, letterSpacing: "0.1em", color: "#fff", flex: 1 }}>
                 {code}
               </span>
               <button onClick={copierCode} style={{
                 padding: "6px 14px", borderRadius: 8, border: "none", cursor: "pointer",
-                background: "#7c3aed", color: "#fff", fontSize: "0.78rem", fontWeight: 600,
+                background: "#fff", color: "#7c3aed", fontSize: "0.78rem", fontWeight: 600,
               }}>
                 {copie ? "Copié !" : "Copier"}
               </button>
@@ -130,10 +134,10 @@ export default function Parrainage() {
             <div style={{
               display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10,
               padding: "12px 14px", borderRadius: 12, marginBottom: 14,
-              background: "rgba(124,58,237,0.08)", border: "1px solid rgba(124,58,237,0.2)",
+              background: "#7c3aed",
             }}>
-              <span style={{ fontSize: "0.8rem", fontWeight: 600, color: "var(--text)" }}>Générations bonus disponibles</span>
-              <span style={{ fontSize: "1.2rem", fontWeight: 800, color: "#7c3aed" }}>{generationsBonus}</span>
+              <span style={{ fontSize: "0.8rem", fontWeight: 600, color: "#fff" }}>Générations bonus disponibles</span>
+              <span style={{ fontSize: "1.2rem", fontWeight: 800, color: "#fff" }}>{generationsBonus}</span>
             </div>
             <div className="grid grid-cols-3 gap-3">
               {[

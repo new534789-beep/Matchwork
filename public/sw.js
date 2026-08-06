@@ -23,6 +23,12 @@ self.addEventListener("fetch", (e) => {
   const url = new URL(e.request.url);
   if (e.request.method !== "GET") return;
   if (url.pathname.startsWith("/api/")) return;
+  // Requêtes internes de navigation Next.js (RSC / prefetch) : ne jamais les
+  // intercepter. Sur un raté réseau, on renvoyait une réponse vide (503) —
+  // Next.js abandonnait alors la navigation en silence, sans jamais réessayer
+  // nativement. En les laissant passer, une vraie erreur réseau remonte
+  // normalement et Next.js peut gérer/réessayer comme prévu.
+  if (e.request.headers.has("RSC") || e.request.headers.has("Next-Router-Prefetch")) return;
 
   e.respondWith(
     fetch(e.request)

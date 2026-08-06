@@ -6,6 +6,11 @@
  * (logo-silhouette.png — logo-glossy.png détouré, halo retiré — utilisé
  * comme masque CSS, pas une forme redessinée) qui se remplit d'un liquide
  * violet en boucle, et le mot "Chargement" en dessous.
+ *
+ * Le flou du contenu en arrière-plan n'est PAS fait ici via backdrop-filter
+ * (support inégal sur Android/WebView, notamment sur position:fixed) — c'est
+ * l'appelant (AppShell) qui applique un filter:blur() directement sur le
+ * contenu de la page, une propriété beaucoup plus universellement fiable.
  */
 export function ChargementNavigation({ actif }: { actif: boolean }) {
   if (!actif) return null;
@@ -26,13 +31,14 @@ export function ChargementNavigation({ actif }: { actif: boolean }) {
       style={{
         position: "fixed", inset: 0, zIndex: 300,
         display: "flex", alignItems: "center", justifyContent: "center",
-        background: "rgba(10,6,20,0.35)",
+        background: "rgba(10,6,20,0.4)",
         animation: "mw-nav-overlay-in 0.15s ease",
       }}
     >
       <div
         style={{
-          background: "#fff", borderRadius: 20, padding: "32px 40px",
+          background: "var(--bg-card)", border: "1px solid var(--border)",
+          borderRadius: 20, padding: "32px 40px",
           display: "flex", flexDirection: "column", alignItems: "center", gap: 16,
           boxShadow: "0 30px 70px -15px rgba(0,0,0,0.35)",
         }}
@@ -48,7 +54,7 @@ export function ChargementNavigation({ actif }: { actif: boolean }) {
             />
           </div>
         </div>
-        <span style={{ fontSize: "0.85rem", fontWeight: 600, color: "#5b21b6" }}>Chargement</span>
+        <span style={{ fontSize: "0.85rem", fontWeight: 600, color: "var(--text)" }}>Chargement</span>
       </div>
       <style jsx>{`
         @keyframes mw-nav-overlay-in {

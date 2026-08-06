@@ -17,6 +17,15 @@ const nextConfig: NextConfig = {
 
     return [
       {
+        // Un service worker ne doit jamais être servi depuis un cache (CDN ou
+        // navigateur) — sinon un correctif déployé peut rester invisible
+        // pendant des heures malgré un nouveau déploiement réussi.
+        source: "/sw.js",
+        headers: [
+          { key: "Cache-Control", value: "no-cache, no-store, must-revalidate" },
+        ],
+      },
+      {
         source: "/:path*",
         headers: [
           { key: "X-Frame-Options", value: "DENY" },

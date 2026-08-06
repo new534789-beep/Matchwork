@@ -47,6 +47,10 @@ function FormulaireConnexion() {
         <ChampAuth label="Mot de passe" type="password" placeholder="Votre mot de passe"
           value={form.motDePasse} onChange={(v) => setForm({ ...form, motDePasse: v })} />
 
+        <Link href="/mot-de-passe-oublie" style={{ fontSize: "0.82rem", color: "rgba(255,255,255,0.45)", alignSelf: "flex-end", marginTop: -8 }}>
+          Mot de passe oublié ?
+        </Link>
+
         {erreur && (
           <div className="rounded-xl px-4 py-3 text-sm" style={{ background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.3)", color: "#fca5a5" }}>
             {erreur}

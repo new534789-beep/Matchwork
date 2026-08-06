@@ -197,6 +197,8 @@ export default async function TableauDeBord() {
     { key: "deadline", label: "Prochaine deadline", valeur: prochaineDeadline === null ? "—" : prochaineDeadline === 0 ? "Auj." : `J-${prochaineDeadline}`, sous: prochaineEcheance?.opp.organisme ?? "Aucune échéance", href: "/candidatures" },
     { key: "quota", label: estGratuit ? "Quota restant" : "Abonnement", valeur: estGratuit ? `${quotaRestant}/${quotaMax}` : "∞", sous: estGratuit ? "générations aujourd'hui" : "Plan payant actif", href: "/compte" },
     { key: "profil", label: "Profil complété", valeur: `${profilPct} %`, sous: profilPct === 100 ? "Profil complet" : "À finaliser", href: "/profil" },
+    // Carte en violet plein : c'est une action à découvrir, pas un compteur.
+    { key: "orientation", label: "IA Orientation", valeur: "210", sous: "filières classées selon tes notes", href: "/orientation", accent: true },
   ];
   if (planPro) {
     stats.push({

@@ -3,7 +3,8 @@
 import { useState } from "react";
 import Link from "next/link";
 
-type Stat = { key: string; label: string; valeur: string; sous: string; href: string };
+/** `accent` inverse la carte : fond violet plein, texte blanc. */
+type Stat = { key: string; label: string; valeur: string; sous: string; href: string; accent?: boolean };
 type Alerte = { cle: string; couleur: "rouge" | "ambre" | "violet"; titre: string; sous: string; href: string; tag?: string };
 type Retenue = { id: string; intitule: string; organisme: string; statut: "a_preparer" | "genere" | "soumis" | "utilise"; jours: number | null; confTotal: number; confCouvertes: number; confPct: number; href: string };
 type Echeance = { intitule: string; organisme: string; jours: number; href: string; statut: string } | null;
@@ -40,6 +41,7 @@ const STAT_ICONS: Record<string, React.ReactNode> = {
   quota: (<><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" /></>),
   profil: (<><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" /><circle cx="12" cy="7" r="4" /></>),
   reussite: (<><path d="M20 6L9 17l-5-5" /></>),
+  orientation: (<><circle cx="12" cy="12" r="9" /><polygon points="15.5 8.5 10.5 10.5 8.5 15.5 13.5 13.5" /></>),
 };
 
 function statutMeta(statut: Retenue["statut"]) {
@@ -50,26 +52,34 @@ function statutMeta(statut: Retenue["statut"]) {
 }
 
 function CarteStat({ stat }: { stat: Stat }) {
+  // Carte accentuée : on inverse le contraste — le violet passe du détail au
+  // fond, et tous les textes deviennent blancs.
+  const a = stat.accent === true;
   return (
     <Link href={stat.href} style={{ textDecoration: "none" }}>
-      <div style={{ borderRadius: 18, padding: "16px 18px", height: "100%", background: "var(--bg-card)", border: "1px solid var(--border)" }}>
+      <div style={{
+        borderRadius: 18, padding: "16px 18px", height: "100%",
+        background: a ? "linear-gradient(150deg,#7c3aed,#4819bf)" : "var(--bg-card)",
+        border: a ? "1px solid #4819bf" : "1px solid var(--border)",
+        boxShadow: a ? "0 8px 24px -10px rgba(72,25,191,0.55)" : undefined,
+      }}>
         <div className="flex items-start justify-between" style={{ marginBottom: 14 }}>
           <span style={{
             width: 36, height: 36, flexShrink: 0, borderRadius: 11, border: "none", display: "flex", alignItems: "center", justifyContent: "center",
-            background: `linear-gradient(135deg, #f7c7ff, #4819bf)`,
-            boxShadow: "inset 0 1px 0 rgba(255,255,255,0.45), 0 4px 12px -4px rgba(72,25,191,0.5)",
+            background: a ? "rgba(255,255,255,0.18)" : `linear-gradient(135deg, #f7c7ff, #4819bf)`,
+            boxShadow: a ? "inset 0 1px 0 rgba(255,255,255,0.25)" : "inset 0 1px 0 rgba(255,255,255,0.45), 0 4px 12px -4px rgba(72,25,191,0.5)",
           }}>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
               {STAT_ICONS[stat.key]}
             </svg>
           </span>
-          <span style={{ width: 26, height: 26, borderRadius: "50%", flexShrink: 0, border: "1px solid var(--border-strong)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--text-2)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="7" y1="17" x2="17" y2="7" /><polyline points="7 7 17 7 17 17" /></svg>
+          <span style={{ width: 26, height: 26, borderRadius: "50%", flexShrink: 0, border: `1px solid ${a ? "rgba(255,255,255,0.4)" : "var(--border-strong)"}`, display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke={a ? "#fff" : "var(--text-2)"} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="7" y1="17" x2="17" y2="7" /><polyline points="7 7 17 7 17 17" /></svg>
           </span>
         </div>
-        <span style={{ fontSize: "0.8rem", fontWeight: 600, color: "var(--text-2)" }}>{stat.label}</span>
-        <p style={{ fontSize: "2rem", fontWeight: 800, lineHeight: 1.05, letterSpacing: "-0.03em", color: "var(--text)" }}>{stat.valeur}</p>
-        <p style={{ fontSize: "0.74rem", marginTop: 6, color: "var(--text-3)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{stat.sous}</p>
+        <span style={{ fontSize: "0.8rem", fontWeight: 600, color: a ? "rgba(255,255,255,0.9)" : "var(--text-2)" }}>{stat.label}</span>
+        <p style={{ fontSize: "2rem", fontWeight: 800, lineHeight: 1.05, letterSpacing: "-0.03em", color: a ? "#fff" : "var(--text)" }}>{stat.valeur}</p>
+        <p style={{ fontSize: "0.74rem", marginTop: 6, color: a ? "rgba(255,255,255,0.75)" : "var(--text-3)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{stat.sous}</p>
       </div>
     </Link>
   );

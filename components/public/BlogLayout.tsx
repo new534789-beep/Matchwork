@@ -19,7 +19,7 @@ type ArticleAffichage = {
   opportunite?: { slug: string | null; intitule: string } | null;
 };
 
-export function BlogLayout({ article }: { article: ArticleAffichage }) {
+export function BlogLayout({ article, image }: { article: ArticleAffichage; image: string }) {
   const categorie = article.categorie ?? "actualite";
 
   return (
@@ -28,6 +28,11 @@ export function BlogLayout({ article }: { article: ArticleAffichage }) {
         <nav aria-label="Fil d'Ariane" style={{ display: "flex", flexWrap: "wrap", gap: 6, fontSize: "0.78rem", color: "var(--text-3)", marginBottom: 18 }}>
           <Link href="/blog" style={{ color: "var(--text-3)", textDecoration: "none" }}>Blog</Link>
         </nav>
+
+        <div style={{ borderRadius: 16, overflow: "hidden", marginBottom: 22, border: "1px solid var(--border)" }}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={image} alt="" style={{ width: "100%", height: "auto", display: "block" }} />
+        </div>
 
         <span style={{ display: "inline-block", fontSize: "0.72rem", fontWeight: 700, letterSpacing: "0.05em", textTransform: "uppercase", color: "#7c3aed", background: "rgba(124,58,237,0.1)", padding: "4px 11px", borderRadius: 7, marginBottom: 14 }}>
           {LABEL_CATEGORIE[categorie] ?? categorie}

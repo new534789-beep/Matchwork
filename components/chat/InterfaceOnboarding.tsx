@@ -142,7 +142,14 @@ export function InterfaceOnboarding({ sessionOnboarding }: Props) {
   });
   const [saisie, setSaisie] = useState("");
   const [chargement, setChargement] = useState(false);
-  const [historique, setHistorique] = useState<unknown[]>([]);
+  // Doit rester synchronisé avec `messages` : si on restaure une conversation
+  // déjà commencée (sessionOnboarding), l'IA a besoin du même historique que
+  // ce qui est affiché, sinon elle perd le fil et repose les mêmes questions
+  // à chaque rechargement de page.
+  const [historique, setHistorique] = useState<unknown[]>(() => {
+    if (sessionOnboarding && sessionOnboarding.length > 0) return sessionOnboarding;
+    return [];
+  });
   const [sectionActuelle, setSectionActuelle] = useState<string>("identite");
   const [sectionsVues, setSectionsVues] = useState<Set<string>>(new Set(["identite"]));
   const [termine, setTermine] = useState(false);
@@ -348,8 +355,8 @@ export function InterfaceOnboarding({ sessionOnboarding }: Props) {
 
         {/* Bas sidebar */}
         <div style={{ marginTop: "auto", padding: "14px 20px", borderTop: "1px solid var(--border)" }}>
-          <div style={{ padding: "10px 12px", borderRadius: 10, background: "rgba(124,58,237,0.08)", border: "1px solid rgba(124,58,237,0.18)" }}>
-            <p style={{ fontSize: "0.72rem", color: "var(--text-2)", lineHeight: 1.5 }}>
+          <div style={{ padding: "10px 12px", borderRadius: 10, background: "#7c3aed" }}>
+            <p style={{ fontSize: "0.72rem", color: "rgba(255,255,255,0.92)", lineHeight: 1.5 }}>
               Amara construit votre profil en toute confidentialité. Vos données ne sont jamais partagées sans votre accord.
             </p>
           </div>

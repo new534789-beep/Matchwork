@@ -8,10 +8,10 @@ import { ProgressionMini } from "@/components/dossiers/ProgressionMini";
 function deadlineBadge(dateLimite: Date | null) {
   if (!dateLimite) return null;
   const jours = Math.ceil((dateLimite.getTime() - Date.now()) / 86400000);
-  if (jours < 0) return { label: "Expirée", color: "#ef4444", bg: "rgba(239,68,68,0.1)", border: "rgba(239,68,68,0.3)" };
-  if (jours === 0) return { label: "Aujourd'hui !", color: "#ef4444", bg: "rgba(239,68,68,0.1)", border: "rgba(239,68,68,0.3)" };
-  if (jours <= 7) return { label: `J-${jours}`, color: "#f59e0b", bg: "rgba(245,158,11,0.1)", border: "rgba(245,158,11,0.3)" };
-  if (jours <= 30) return { label: `J-${jours}`, color: "#d97706", bg: "rgba(251,191,36,0.12)", border: "rgba(251,191,36,0.3)" };
+  if (jours < 0) return { label: "Expirée", color: "#fff", bg: "#ef4444", border: "#ef4444" };
+  if (jours === 0) return { label: "Aujourd'hui !", color: "#fff", bg: "#ef4444", border: "#ef4444" };
+  if (jours <= 7) return { label: `J-${jours}`, color: "#fff", bg: "#f59e0b", border: "#f59e0b" };
+  if (jours <= 30) return { label: `J-${jours}`, color: "#fff", bg: "#d97706", border: "#d97706" };
   return { label: `J-${jours}`, color: "var(--text-3)", bg: "var(--bg-card)", border: "var(--border)" };
 }
 
