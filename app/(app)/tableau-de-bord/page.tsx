@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
@@ -5,6 +6,9 @@ import Link from "next/link";
 import { EnteteApp } from "@/components/navigation/EnteteApp";
 import { TableauBordClient } from "@/components/tableau/TableauBordClient";
 import { getProfilActif } from "@/lib/profil/actif";
+import { SqueletteActivite, SqueletteDecouvrir } from "@/components/chargement/Squelette";
+import PanneauActivite from "./PanneauActivite";
+import PanneauDecouvrir from "./PanneauDecouvrir";
 
 // ─────────────────────────── Helpers ───────────────────────────
 
@@ -84,18 +88,13 @@ export default async function TableauDeBord() {
   const userId = session.user.id;
   const mois = new Date().toISOString().slice(0, 10);
 
-  const [profil, user, interactions, allInteractions, dossiers, documents, quota, suggestions] = await Promise.all([
+  const [profil, user, interactions, dossiers, documents, quota] = await Promise.all([
     getProfilActif(userId),
-    prisma.user.findUnique({ where: { id: userId }, select: { email: true, plan: true, createdAt: true } }),
+    prisma.user.findUnique({ where: { id: userId }, select: { email: true, plan: true } }),
     prisma.interaction.findMany({
       where: { userId, decision: "interesse" },
       include: { opportunite: { select: { id: true, intitule: true, organisme: true, dateLimite: true, piecesExigees: true } } },
       orderBy: { createdAt: "desc" },
-    }),
-    prisma.interaction.findMany({
-      where: { userId },
-      select: { decision: true, createdAt: true },
-      orderBy: { createdAt: "asc" },
     }),
     prisma.dossier.findMany({
       where: { userId },
@@ -107,12 +106,6 @@ export default async function TableauDeBord() {
     }),
     prisma.document.findMany({ where: { userId }, select: { type: true } }),
     prisma.quotaUsage.findUnique({ where: { userId_mois: { userId, mois } } }),
-    prisma.opportunite.findMany({
-      where: { type: "BOURSE", actif: true, statut: "publiee", interactions: { none: { userId } } },
-      orderBy: [{ dateLimite: "asc" }, { createdAt: "desc" }],
-      take: 4,
-      select: { id: true, intitule: true, organisme: true, dateLimite: true },
-    }),
   ]);
 
   const role = (session.user as { role?: string }).role;
@@ -232,22 +225,6 @@ export default async function TableauDeBord() {
       }
     : null;
 
-  const suggestionsData = suggestions.map((s) => ({ id: s.id, intitule: s.intitule, organisme: s.organisme, jours: joursRestants(s.dateLimite) }));
-
-  const totalVues = allInteractions.length;
-  const totalInteresse = allInteractions.filter((i) => i.decision === "interesse").length;
-  const totalIgnore = allInteractions.filter((i) => i.decision === "ignore").length;
-  const totalDossiers = dossiers.length;
-
-  const activite = {
-    totalVues,
-    totalInteresse,
-    totalIgnore,
-    totalDossiers,
-    totalDocuments: nbDocuments,
-    membreDepuis: user?.createdAt?.toISOString() ?? new Date().toISOString(),
-  };
-
   return (
     <>
       <EnteteApp titre="Tableau de bord" />
@@ -276,10 +253,18 @@ export default async function TableauDeBord() {
           alertes={alertes}
           retenues={retenuesData}
           prochaineEcheance={echeanceData}
-          suggestions={suggestionsData}
           profilPct={profilPct}
           quota={{ estGratuit, restant: quotaRestant, max: quotaMax, utilisees: generationsUtilisees }}
-          activite={activite}
+          activiteContenu={
+            <Suspense fallback={<SqueletteActivite />}>
+              <PanneauActivite userId={userId} />
+            </Suspense>
+          }
+          decouvrirContenu={
+            <Suspense fallback={<SqueletteDecouvrir />}>
+              <PanneauDecouvrir userId={userId} />
+            </Suspense>
+          }
         />
       </main>
     </>

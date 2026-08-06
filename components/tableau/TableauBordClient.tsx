@@ -8,19 +8,19 @@ type Stat = { key: string; label: string; valeur: string; sous: string; href: st
 type Alerte = { cle: string; couleur: "rouge" | "ambre" | "violet"; titre: string; sous: string; href: string; tag?: string };
 type Retenue = { id: string; intitule: string; organisme: string; statut: "a_preparer" | "genere" | "soumis" | "utilise"; jours: number | null; confTotal: number; confCouvertes: number; confPct: number; href: string };
 type Echeance = { intitule: string; organisme: string; jours: number; href: string; statut: string } | null;
-type Sugg = { id: string; intitule: string; organisme: string; jours: number | null };
 type Quota = { estGratuit: boolean; restant: number | null; max: number; utilisees: number };
-type Activite = { totalVues: number; totalInteresse: number; totalIgnore: number; totalDossiers: number; totalDocuments: number; membreDepuis: string };
 
 type Props = {
   stats: Stat[];
   alertes: Alerte[];
   retenues: Retenue[];
   prochaineEcheance: Echeance;
-  suggestions: Sugg[];
   profilPct: number;
   quota: Quota;
-  activite?: Activite;
+  /** Contenu de l'onglet « Activité » : frontière Suspense rendue côté serveur. */
+  activiteContenu?: React.ReactNode;
+  /** Suggestions de l'onglet « Découvrir » : frontière Suspense rendue côté serveur. */
+  decouvrirContenu?: React.ReactNode;
 };
 
 const carte: React.CSSProperties = { borderRadius: 18, background: "var(--bg-card)", border: "1px solid var(--border)", padding: 20 };
@@ -111,7 +111,7 @@ const TABS = [
   { id: "profil", label: "Profil", icon: <><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" /><circle cx="12" cy="7" r="4" /></> },
 ];
 
-export function TableauBordClient({ stats, alertes, retenues, prochaineEcheance, suggestions, profilPct, quota, activite }: Props) {
+export function TableauBordClient({ stats, alertes, retenues, prochaineEcheance, profilPct, quota, activiteContenu, decouvrirContenu }: Props) {
   const [tab, setTab] = useState("afaire");
   const { estGratuit, restant, max, utilisees } = quota;
 
@@ -267,93 +267,19 @@ export function TableauBordClient({ stats, alertes, retenues, prochaineEcheance,
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-3)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6" /></svg>
             </div>
           </Link>
-          {suggestions.length > 0 ? (
-            <>
-              <p style={{ fontSize: "0.72rem", fontWeight: 700, color: "var(--text-3)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 8 }}>Suggestions pour vous</p>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                {suggestions.map((s) => (
-                  <Link key={s.id} href={`/opportunites/${s.id}`} style={{ textDecoration: "none" }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 11, padding: "9px 11px", borderRadius: 11, background: "var(--bg)", border: "1px solid var(--border)" }}>
-                      <div style={{ width: 32, height: 32, flexShrink: 0, borderRadius: 9, background: "linear-gradient(135deg,#7c3aed,#5b21b6)", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontWeight: 700, fontSize: "0.8rem" }}>{s.organisme.charAt(0).toUpperCase()}</div>
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <p style={{ fontSize: "0.8rem", fontWeight: 600, color: "var(--text)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{s.intitule}</p>
-                        <p style={{ fontSize: "0.68rem", color: "var(--text-3)" }}>{s.organisme}</p>
-                      </div>
-                      {s.jours !== null && s.jours >= 0 && <span style={{ fontSize: "0.68rem", color: s.jours <= 7 ? "#a78bfa" : "var(--text-3)", whiteSpace: "nowrap" }}>J-{s.jours}</span>}
-                    </div>
-                  </Link>
-                ))}
-              </div>
-            </>
-          ) : (
+          {decouvrirContenu ?? (
             <p style={{ fontSize: "0.82rem", color: "var(--text-3)" }}>Aucune nouvelle suggestion pour le moment.</p>
           )}
         </div>
       )}
 
-      {/* PROFIL */}
-      {tab === "activite" && activite && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div style={carte}>
-            <p style={{ ...titreSection, marginBottom: 16 }}>Vue d&apos;ensemble</p>
-            <div className="grid grid-cols-2 gap-3">
-              {[
-                { label: "Offres consultées", valeur: activite.totalVues, icone: <><circle cx="12" cy="12" r="10" /><path d="M12 16v-4" /><path d="M12 8h.01" /></> },
-                { label: "Intéressé", valeur: activite.totalInteresse, icone: <><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z" /></> },
-                { label: "Dossiers générés", valeur: activite.totalDossiers, icone: <><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" /><polyline points="14 2 14 8 20 8" /></> },
-                { label: "Documents déposés", valeur: activite.totalDocuments, icone: <><rect x="3" y="11" width="18" height="11" rx="2" /><path d="M7 11V7a5 5 0 0110 0v4" /></> },
-              ].map((s) => (
-                <div key={s.label} style={{ padding: "14px 12px", borderRadius: 14, background: "var(--bg)", border: "1px solid var(--border)" }}>
-                  <div className="flex items-center gap-2 mb-2">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">{s.icone}</svg>
-                    <span style={{ fontSize: "0.72rem", color: "var(--text-3)" }}>{s.label}</span>
-                  </div>
-                  <p style={{ fontSize: "1.4rem", fontWeight: 800, color: "var(--text)" }}>{s.valeur}</p>
-                </div>
-              ))}
-            </div>
+      {/* ACTIVITÉ */}
+      {tab === "activite" && (
+        activiteContenu ?? (
+          <div className="text-center" style={{ padding: "28px 12px" }}>
+            <p style={{ fontSize: "0.85rem", color: "var(--text-3)" }}>Chargement de vos statistiques…</p>
           </div>
-
-          <div style={carte}>
-            <p style={{ ...titreSection, marginBottom: 16 }}>Taux d&apos;intérêt</p>
-            {activite.totalVues > 0 ? (
-              <>
-                <div className="flex items-center justify-center" style={{ padding: "10px 0 18px" }}>
-                  <div style={{ position: "relative", width: 120, height: 120 }}>
-                    <svg width="120" height="120" viewBox="0 0 120 120" style={{ transform: "rotate(-90deg)" }}>
-                      <circle cx="60" cy="60" r="50" fill="none" stroke="var(--border)" strokeWidth="10" />
-                      <circle cx="60" cy="60" r="50" fill="none" stroke="#7c3aed" strokeWidth="10" strokeLinecap="round" strokeDasharray={`${Math.round((activite.totalInteresse / activite.totalVues) * 314)} 314`} />
-                    </svg>
-                    <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column" }}>
-                      <span style={{ fontSize: "1.6rem", fontWeight: 800, color: "var(--text)" }}>{Math.round((activite.totalInteresse / activite.totalVues) * 100)}%</span>
-                    </div>
-                  </div>
-                </div>
-                <div className="flex justify-center gap-6" style={{ fontSize: "0.75rem", color: "var(--text-3)" }}>
-                  <span className="flex items-center gap-1.5">
-                    <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#7c3aed", display: "inline-block" }} />
-                    Intéressé ({activite.totalInteresse})
-                  </span>
-                  <span className="flex items-center gap-1.5">
-                    <span style={{ width: 8, height: 8, borderRadius: "50%", background: "var(--border)", display: "inline-block" }} />
-                    Passé ({activite.totalIgnore})
-                  </span>
-                </div>
-              </>
-            ) : (
-              <div className="flex flex-col items-center justify-center text-center" style={{ padding: "24px 12px" }}>
-                <p style={{ fontSize: "0.85rem", color: "var(--text-3)" }}>Commencez à swiper pour voir vos statistiques</p>
-              </div>
-            )}
-
-            <div style={{ marginTop: 20, padding: "12px 14px", borderRadius: 12, background: "var(--bg)", border: "1px solid var(--border)" }}>
-              <p style={{ fontSize: "0.72rem", color: "var(--text-3)", marginBottom: 2 }}>Membre depuis</p>
-              <p style={{ fontSize: "0.85rem", fontWeight: 600, color: "var(--text)" }}>
-                {new Date(activite.membreDepuis).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })}
-              </p>
-            </div>
-          </div>
-        </div>
+        )
       )}
 
       {tab === "profil" && (
