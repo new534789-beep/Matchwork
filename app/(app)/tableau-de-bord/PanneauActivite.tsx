@@ -8,16 +8,17 @@ import { getUtilisateur } from "@/lib/session";
  * la page ; elle ne s'exécute que lorsque l'utilisateur ouvre cet onglet.
  */
 export default async function PanneauActivite({ userId }: { userId: string }) {
-  const [allInteractions, user, dossiers, documents] = await Promise.all([
-    prisma.interaction.findMany({ where: { userId }, select: { decision: true } }),
+  const [statsInteractions, user, dossiers, documents] = await Promise.all([
+    prisma.interaction.groupBy({ by: ["decision"], where: { userId }, _count: { _all: true } }),
     getUtilisateur(userId),
     prisma.dossier.count({ where: { userId } }),
     prisma.document.count({ where: { userId } }),
   ]);
 
-  const totalVues = allInteractions.length;
-  const totalInteresse = allInteractions.filter((i) => i.decision === "interesse").length;
-  const totalIgnore = allInteractions.filter((i) => i.decision === "ignore").length;
+  const parDecision = new Map(statsInteractions.map((r) => [r.decision, r._count._all]));
+  const totalVues = statsInteractions.reduce((s, r) => s + r._count._all, 0);
+  const totalInteresse = parDecision.get("interesse") ?? 0;
+  const totalIgnore = parDecision.get("ignore") ?? 0;
 
   const carte: React.CSSProperties = { borderRadius: 18, background: "var(--bg-card)", border: "1px solid var(--border)", padding: 20 };
 

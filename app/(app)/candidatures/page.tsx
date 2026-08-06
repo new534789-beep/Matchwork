@@ -22,7 +22,8 @@ export default async function Candidatures() {
   const [dossiers, user] = await Promise.all([
     prisma.dossier.findMany({
       where: { userId: session.user.id },
-      include: {
+      select: {
+        id: true, statut: true, createdAt: true, updatedAt: true, relanceEnvoyeeLe: true,
         opportunite: {
           select: { intitule: true, organisme: true, dateLimite: true },
         },

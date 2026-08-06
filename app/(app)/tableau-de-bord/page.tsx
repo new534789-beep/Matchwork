@@ -9,76 +9,8 @@ import { getProfilActif } from "@/lib/profil/actif";
 import { SqueletteActivite, SqueletteDecouvrir } from "@/components/chargement/Squelette";
 import PanneauActivite from "./PanneauActivite";
 import PanneauDecouvrir from "./PanneauDecouvrir";
+import { calculerConformite, calculerProfilPct, joursRestants, parseJSON, type Piece } from "@/lib/tableau-de-bord/calculs";
 
-// ─────────────────────────── Helpers ───────────────────────────
-
-function joursRestants(date: Date | null): number | null {
-  if (!date) return null;
-  return Math.ceil((date.getTime() - Date.now()) / 86_400_000);
-}
-
-function norm(s: unknown): string {
-  // Retire les accents (plage des diacritiques combinants U+0300–U+036F)
-  return typeof s === "string" ? s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "") : "";
-}
-
-function parseJSON<T>(s: string | null | undefined, fallback: T): T {
-  try { return s ? (JSON.parse(s) as T) : fallback; }
-  catch { return fallback; }
-}
-
-function jsonLen(s: string | null | undefined): number {
-  const arr = parseJSON<unknown[]>(s, []);
-  return Array.isArray(arr) ? arr.length : 0;
-}
-
-type Piece = { nom: string; obligatoire?: boolean };
-
-const TYPE_KEYWORDS: Record<string, string[]> = {
-  DIPLOME: ["diplome", "attestation", "licence", "master", "baccalaureat", "bac", "doctorat", "certificat de scolarite"],
-  RELEVE_NOTES: ["releve", "note", "bulletin", "transcript", "resultat"],
-  ACTE_NAISSANCE: ["naissance", "acte de naissance", "extrait de naissance"],
-  PIECE_IDENTITE: ["identite", "passeport", "cni", "carte nationale", "carte d'identite"],
-  JUSTIFICATIF_LANGUE: ["langue", "delf", "dalf", "ielts", "toefl", "tcf", "anglais", "francais", "certification de langue"],
-  LETTRE_RECO: ["recommandation", "reference", "reco"],
-};
-const GENERE_KEYWORDS = ["cv", "curriculum", "lettre de motivation", "lettre motivation", "motivation"];
-
-function calculerConformite(pieces: Piece[], typesPresents: Set<string>, dossierGenere: boolean) {
-  if (!pieces.length) return { total: 0, couvertes: 0, pct: 100, manquantes: [] as string[] };
-  let couvertes = 0;
-  const manquantes: string[] = [];
-  for (const p of pieces) {
-    const n = norm(p.nom ?? "");
-    if (GENERE_KEYWORDS.some((k) => n.includes(k))) {
-      if (dossierGenere) couvertes++; else manquantes.push(p.nom);
-      continue;
-    }
-    let matched = false;
-    for (const [type, kws] of Object.entries(TYPE_KEYWORDS)) {
-      if (kws.some((k) => n.includes(k)) && typesPresents.has(type)) { matched = true; break; }
-    }
-    if (matched) couvertes++; else manquantes.push(p.nom);
-  }
-  return { total: pieces.length, couvertes, pct: Math.round((couvertes / pieces.length) * 100), manquantes };
-}
-
-function calculerProfilPct(profil: {
-  bio: string | null; objectifs: string | null; tonSouhaite: string | null;
-  formations: string; experiences: string; competences: string; langues: string;
-} | null): number {
-  if (!profil) return 0;
-  const champs = [
-    !!profil.bio?.trim(),
-    !!profil.objectifs?.trim(),
-    !!profil.tonSouhaite?.trim(),
-    jsonLen(profil.formations) > 0,
-    jsonLen(profil.experiences) > 0,
-    jsonLen(profil.competences) > 0,
-    jsonLen(profil.langues) > 0,
-  ];
-  return Math.round((champs.filter(Boolean).length / champs.length) * 100);
-}
 
 // ─────────────────────────── Page ───────────────────────────
 
@@ -88,35 +20,31 @@ export default async function TableauDeBord() {
   const userId = session.user.id;
   const mois = new Date().toISOString().slice(0, 10);
 
-  const [profil, user, interactions, dossiers, documents, quota] = await Promise.all([
+  const [profil, user, interactions, dossiers, documentsTypes, quota, nbDocuments] = await Promise.all([
     getProfilActif(userId),
     getUtilisateur(userId),
     prisma.interaction.findMany({
       where: { userId, decision: "interesse" },
       include: { opportunite: { select: { id: true, intitule: true, organisme: true, dateLimite: true, piecesExigees: true } } },
       orderBy: { createdAt: "desc" },
+      take: 8,
     }),
     prisma.dossier.findMany({
       where: { userId },
-      include: {
-        opportunite: { select: { id: true, intitule: true, organisme: true, dateLimite: true, piecesExigees: true } },
-        docsGeneres: { select: { id: true } },
-      },
+      include: { opportunite: { select: { id: true, intitule: true, organisme: true, dateLimite: true, piecesExigees: true } } },
       orderBy: { updatedAt: "desc" },
     }),
-    prisma.document.findMany({ where: { userId }, select: { type: true } }),
+    prisma.document.findMany({ where: { userId }, select: { type: true }, distinct: ["type"] }),
     prisma.quotaUsage.findUnique({ where: { userId_mois: { userId, mois } } }),
+    prisma.document.count({ where: { userId } }),
   ]);
-
-  const role = (session.user as { role?: string }).role;
 
   const quotaMax = parseInt(process.env.QUOTA_GRATUIT_JOURNALIER ?? "3") || 3;
   const estGratuit = user?.plan === "gratuit" || user?.plan === "GRATUIT";
   const generationsUtilisees = quota?.generationsUtilisees ?? 0;
   const quotaRestant = estGratuit ? Math.max(0, quotaMax - generationsUtilisees) : null;
   const profilPct = calculerProfilPct(profil);
-  const nbDocuments = documents.length;
-  const typesPresents = new Set(documents.map((d) => d.type));
+  const typesPresents = new Set(documentsTypes.map((d) => d.type));
   const prenom = user?.email?.split("@")[0] ?? "vous";
 
   const dossierParOpp = new Map(dossiers.map((d) => [d.opportuniteId, d]));

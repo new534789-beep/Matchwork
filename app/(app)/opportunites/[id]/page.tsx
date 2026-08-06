@@ -47,7 +47,14 @@ export default async function DetailOpportunite({ params }: Props) {
   const { id } = await params;
 
   const [opportunite, interaction, dossier, quota] = await Promise.all([
-    prisma.opportunite.findUnique({ where: { id } }),
+    prisma.opportunite.findUnique({
+      where: { id },
+      select: {
+        id: true, organisme: true, intitule: true, description: true,
+        langueDetectee: true, conditions: true, piecesExigees: true,
+        exigenceLangue: true, dateLimite: true, lien: true, source: true,
+      },
+    }),
     prisma.interaction.findUnique({
       where: { userId_opportuniteId: { userId: session.user.id, opportuniteId: id } },
       select: { decision: true },

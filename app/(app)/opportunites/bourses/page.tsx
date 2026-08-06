@@ -22,6 +22,7 @@ export default async function FilBourses() {
         { dateLimite: "asc" },
         { createdAt: "desc" },
       ],
+      take: 50,
       select: {
         id: true, type: true, organisme: true, intitule: true, description: true,
         langueDetectee: true, conditions: true, piecesExigees: true,
