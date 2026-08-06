@@ -2,9 +2,9 @@
   "name": "Matchwork",
   "short_name": "Matchwork",
   "description": "Trouvez des bourses et opportunités adaptées à votre profil",
-  "start_url": "/opportunites",
+  "start_url": "/lancement",
   "display": "standalone",
-  "background_color": "#f6f6f9",
+  "background_color": "#000000",
   "theme_color": "#ffffff",
   "orientation": "portrait-primary",
   "icons": [

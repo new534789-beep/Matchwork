@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { prisma } from "@/lib/prisma";
 import { getSiteUrl } from "@/lib/site-url";
+import { offresDePays, formatDateCatalogue } from "@/lib/opportunites/catalogue-public";
 import { PAYS_SEO, getPaysSeoBySlug } from "@/lib/pays";
 import { CATEGORIES_SEO, getCategorieBySlug } from "@/lib/categories-seo";
 import { MODALITES, LABEL_MODALITE, type Modalite } from "@/lib/modalite";
@@ -25,10 +25,6 @@ export function generateStaticParams() {
   return PAYS_SEO.map((p) => ({ slug: p.slug }));
 }
 
-function formatDate(d: Date | null): string | null {
-  if (!d) return null;
-  return d.toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" });
-}
 
 export async function generateMetadata({ params, searchParams }: Props): Promise<Metadata> {
   const { slug } = await params;
@@ -71,19 +67,7 @@ export default async function OffresParPays({ params, searchParams }: Props) {
   const mod = modaliteValide(modalite);
   const base = getSiteUrl();
 
-  const offres = await prisma.opportunite.findMany({
-    where: {
-      actif: true,
-      statut: "publiee",
-      pays: pays.code,
-      slug: { not: null },
-      ...(cat ? { type: { in: cat.types } } : {}),
-      ...(mod ? { modalite: mod } : {}),
-    },
-    select: { id: true, slug: true, type: true, organisme: true, intitule: true, dateLimite: true },
-    orderBy: [{ dateLimite: "asc" }, { createdAt: "desc" }],
-    take: 100,
-  });
+  const offres = await offresDePays(pays.code, pays.slug, cat?.types, mod);
 
   const paysSlug = pays.slug;
   function avecFiltres(extra: Record<string, string>): string {
@@ -184,7 +168,7 @@ export default async function OffresParPays({ params, searchParams }: Props) {
         ) : (
           <ul style={{ display: "flex", flexDirection: "column", gap: 10, listStyle: "none", padding: 0 }}>
             {offres.map((o) => {
-              const dl = formatDate(o.dateLimite);
+              const dl = formatDateCatalogue(o.dateLimite);
               return (
                 <li key={o.id}>
                   <Link
