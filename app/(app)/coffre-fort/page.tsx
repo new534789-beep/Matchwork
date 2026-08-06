@@ -1,11 +1,11 @@
-import { auth } from "@/lib/auth";
+import { sessionCourante } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import { EnteteApp } from "@/components/navigation/EnteteApp";
 import { CoffreFortClient } from "@/components/coffre-fort/CoffreFortClient";
 
 export default async function CoffreFort() {
-  const session = await auth();
+  const session = await sessionCourante();
   if (!session?.user?.id) redirect("/connexion");
 
   const documents = await prisma.document.findMany({

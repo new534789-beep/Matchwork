@@ -1,4 +1,4 @@
-import { auth } from "@/lib/auth";
+import { sessionCourante } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import { EnteteApp } from "@/components/navigation/EnteteApp";
@@ -9,7 +9,7 @@ export default async function BriefProjetPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  const session = await auth();
+  const session = await sessionCourante();
   if (!session?.user?.id) redirect("/connexion");
 
   const { id } = await params;

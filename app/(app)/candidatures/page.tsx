@@ -1,4 +1,4 @@
-import { auth } from "@/lib/auth";
+import { sessionCourante } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import Link from "next/link";
@@ -16,7 +16,7 @@ function deadlineBadge(dateLimite: Date | null) {
 }
 
 export default async function Candidatures() {
-  const session = await auth();
+  const session = await sessionCourante();
   if (!session?.user?.id) redirect("/connexion");
 
   const [dossiers, user] = await Promise.all([

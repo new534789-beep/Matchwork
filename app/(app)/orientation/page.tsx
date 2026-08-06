@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 
 import { ParcoursOrientation } from "@/components/orientation/ParcoursOrientation";
-import { auth } from "@/lib/auth";
+import { sessionCourante } from "@/lib/session";
 import { ANNEE_UNIVERSITAIRE } from "@/lib/orientation/donnees";
 import { getProfilActif } from "@/lib/profil/actif";
 
@@ -13,7 +13,7 @@ export const metadata: Metadata = {
 };
 
 export default async function Orientation() {
-  const session = await auth();
+  const session = await sessionCourante();
   if (!session?.user?.id) redirect("/connexion");
 
   const profil = await getProfilActif(session.user.id);

@@ -1,4 +1,4 @@
-import { auth } from "@/lib/auth";
+import { sessionCourante } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import { EnteteApp } from "@/components/navigation/EnteteApp";
@@ -7,7 +7,7 @@ import { calculerScore } from "@/lib/matching/score";
 import { getProfilActifSelect } from "@/lib/profil/actif";
 
 export default async function FilStages() {
-  const session = await auth();
+  const session = await sessionCourante();
   if (!session?.user?.id) redirect("/connexion");
 
   const [opportunites, profil] = await Promise.all([

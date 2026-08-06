@@ -1,11 +1,11 @@
-import { auth } from "@/lib/auth";
+import { sessionCourante } from "@/lib/session";
 import { redirect } from "next/navigation";
 import { EnteteApp } from "@/components/navigation/EnteteApp";
 import { ChatProjetGeneral } from "./ChatProjetGeneral";
 import { getProfilActifSelect } from "@/lib/profil/actif";
 
 export default async function OnboardingProjetPage() {
-  const session = await auth();
+  const session = await sessionCourante();
   if (!session?.user?.id) redirect("/connexion");
 
   const profil = await getProfilActifSelect(session.user.id, { profilProjet: true });

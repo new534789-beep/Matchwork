@@ -1,10 +1,10 @@
-import { auth } from "@/lib/auth";
+import { sessionCourante } from "@/lib/session";
 import { redirect } from "next/navigation";
 import { EnteteApp } from "@/components/navigation/EnteteApp";
 import { CollerOffreForm } from "@/components/opportunites/CollerOffreForm";
 
 export default async function CollerOffrePage() {
-  const session = await auth();
+  const session = await sessionCourante();
   if (!session?.user?.id) redirect("/connexion");
 
   return (

@@ -1,4 +1,4 @@
-import { auth } from "@/lib/auth";
+import { sessionCourante } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import { obtenirStatut } from "@/lib/paiement/fedapay";
 import { redirect } from "next/navigation";
@@ -8,7 +8,7 @@ interface Props {
 }
 
 export default async function RetourPaiement({ searchParams }: Props) {
-  const session = await auth();
+  const session = await sessionCourante();
   if (!session?.user?.id) redirect("/connexion");
 
   const params = await searchParams;

@@ -1,4 +1,4 @@
-import { auth } from "@/lib/auth";
+import { sessionCourante } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import { redirect, notFound } from "next/navigation";
 import { EnteteApp } from "@/components/navigation/EnteteApp";
@@ -52,7 +52,7 @@ export type ChecklistItem = {
 type PieceReq = { nom: string; obligatoire?: boolean; categorie?: string; type?: string };
 
 export default async function DossierPage({ params }: Props) {
-  const session = await auth();
+  const session = await sessionCourante();
   if (!session?.user?.id) redirect("/connexion");
 
   const { id } = await params;

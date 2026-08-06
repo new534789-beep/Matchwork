@@ -1,10 +1,10 @@
-import { auth } from "@/lib/auth";
+import { sessionCourante } from "@/lib/session";
 import { redirect } from "next/navigation";
 import { InterfaceOnboarding } from "@/components/chat/InterfaceOnboarding";
 import { getProfilActif } from "@/lib/profil/actif";
 
 export default async function Onboarding() {
-  const session = await auth();
+  const session = await sessionCourante();
   if (!session?.user?.id) redirect("/connexion");
 
   const profil = await getProfilActif(session.user.id);

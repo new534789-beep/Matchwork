@@ -1,12 +1,12 @@
 import { Suspense } from "react";
-import { auth } from "@/lib/auth";
+import { sessionCourante } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import { EnteteApp } from "@/components/navigation/EnteteApp";
 import { CompteClient } from "./CompteClient";
 
 export default async function Compte() {
-  const session = await auth();
+  const session = await sessionCourante();
   if (!session?.user?.id) redirect("/connexion");
 
   const userId = session.user.id;
