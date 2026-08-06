@@ -1,4 +1,5 @@
 import { PrismaClient } from "@prisma/client";
+import { revalidateTag } from "next/cache";
 import { genererSlugOpportunite, genererSlugArticle } from "./slug";
 import { detecterPays } from "./pays";
 import { detecterModalite } from "./modalite";
@@ -77,6 +78,17 @@ async function classerDomainesSurPublicationUpdate(
 
 type DonneesArticle = { slug?: string | null; titre?: unknown };
 
+// Invalide le cache des listes d'opportunités (phase 5.2) à chaque écriture :
+// les robots d'ingestion et l'admin passent tous par ces hooks. Hors contexte
+// requête (scripts locaux), revalidateTag n'a rien à invalider — fail-open.
+function invaliderCacheOpportunites() {
+  try {
+    revalidateTag("opportunites", "max");
+  } catch {
+    // aucun cache actif dans ce contexte (script, seed, bot hors Vercel)
+  }
+}
+
 // Le slug d'un article n'est jamais fourni par l'appelant (Make ou l'admin) :
 // toujours régénéré côté serveur à partir du titre, pour rester la seule
 // source de vérité sur les URLs publiques.
@@ -94,7 +106,9 @@ const withSlug = base.$extends({
       async create({ args, query }) {
         completerChampsAutoDetectes(args.data);
         await classerDomainesSiPubliee(args.data);
-        return query(args);
+        const resultat = await query(args);
+        invaliderCacheOpportunites();
+        return resultat;
       },
       async createMany({ args, query }) {
         const data = Array.isArray(args.data) ? args.data : [args.data];
@@ -102,11 +116,15 @@ const withSlug = base.$extends({
           completerChampsAutoDetectes(d);
           await classerDomainesSiPubliee(d);
         }
-        return query(args);
+        const resultat = await query(args);
+        invaliderCacheOpportunites();
+        return resultat;
       },
       async update({ args, query }) {
         await classerDomainesSurPublicationUpdate(base, args.where, args.data as DonneesOpportunite);
-        return query(args);
+        const resultat = await query(args);
+        invaliderCacheOpportunites();
+        return resultat;
       },
     },
     article: {

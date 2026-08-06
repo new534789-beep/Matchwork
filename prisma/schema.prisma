@@ -127,6 +127,7 @@ model Document {
 
   createdAt      DateTime  @default(now())
 
+  @@index([userId])
   @@map("documents")
 }
 
@@ -209,6 +210,7 @@ model Opportunite {
   @@index([statut])
   @@index([pays])
   @@index([modalite])
+  @@index([type, actif, statut, dateLimite])
   @@map("opportunites")
 }
 
@@ -307,6 +309,7 @@ model Interaction {
   createdAt     DateTime    @default(now())
 
   @@unique([userId, opportuniteId])
+  @@index([userId, decision])
   @@map("interactions")
 }
 
@@ -337,6 +340,7 @@ model Dossier {
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
 
+  @@index([userId, updatedAt])
   @@map("dossiers")
 }
 

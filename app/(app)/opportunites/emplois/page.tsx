@@ -1,6 +1,6 @@
 import { sessionCourante } from "@/lib/session";
-import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
+import { obtenirFilOpportunites } from "@/lib/opportunites/fil";
 import { EnteteApp } from "@/components/navigation/EnteteApp";
 import { FilSwipe } from "../FilSwipe";
 import { calculerScore } from "@/lib/matching/score";
@@ -10,37 +10,19 @@ export default async function FilEmplois() {
   const session = await sessionCourante();
   if (!session?.user?.id) redirect("/connexion");
 
-  const [opportunites, profil] = await Promise.all([
-    prisma.opportunite.findMany({
-      where: {
-        type: "EMPLOI",
-        actif: true,
-        statut: "publiee",
-        interactions: { none: { userId: session.user.id } },
-      },
-      orderBy: [
-        { dateLimite: "asc" },
-        { createdAt: "desc" },
-      ],
-      take: 50,
-      select: {
-        id: true, type: true, organisme: true, intitule: true, description: true,
-        langueDetectee: true, conditions: true, piecesExigees: true,
-        exigenceLangue: true, dateLimite: true, lien: true, source: true,
-      },
-    }),
+  const [fil, profil] = await Promise.all([
+    obtenirFilOpportunites(session.user.id, "EMPLOI"),
     getProfilActifSelect(session.user.id, {
       complete: true, formations: true, experiences: true, competences: true, langues: true, objectifs: true, nationalite: true,
     }),
   ]);
 
-  const initial = opportunites.map((o) => ({
+  const initial = fil.map((o) => ({
     ...o,
     piecesExigees: (() => {
       try { return JSON.parse(o.piecesExigees) as { nom: string; obligatoire: boolean }[]; }
       catch { return []; }
     })(),
-    dateLimite: o.dateLimite?.toISOString() ?? null,
     score: profil?.complete ? calculerScore(profil, o) : null,
   }));
 
