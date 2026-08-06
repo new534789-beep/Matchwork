@@ -17,6 +17,11 @@ model User {
   plan         String    @default("gratuit")
   role         String    @default("user")
   suspendu     Boolean   @default(false)
+  // Consentement à l'alerte WhatsApp (Cloud API, template approuvé) : permet au
+  // cron alertes-intelligentes d'envoyer un message sur le téléphone du profil
+  // quand une offre publiée atteint le seuil de correspondance. Le push Web
+  // reste le canal par défaut tant que ce drapeau est faux (opt-in explicite).
+  notifWhatsapp Boolean @default(false)
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
 

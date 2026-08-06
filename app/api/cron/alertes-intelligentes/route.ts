@@ -2,14 +2,17 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { calculerScore } from "@/lib/matching/score";
 import { envoyerNotification } from "@/lib/push/envoyer";
+import { envoyerAlerteOffre, lienOffreWhatsapp, normaliserTelephone } from "@/lib/whatsapp/envoyer";
 
 export const maxDuration = 60;
 
-// Alertes intelligentes (Pro) : prévient un utilisateur Pro par push dès
-// qu'une offre récemment publiée correspond fortement à son profil, sans
-// qu'il ait besoin de repasser dans le fil. Fenêtre large (26h) car le cron
-// Hobby Vercel ne tourne qu'1×/jour — mieux vaut un léger recouvrement que
-// manquer une offre publiée juste après le dernier passage.
+// Alertes intelligentes (Pro) : prévient un utilisateur Pro dès qu'une offre
+// récemment publiée correspond fortement à son profil, sans qu'il ait besoin
+// de repasser dans le fil. Canal WhatsApp (Cloud API) si l'utilisateur a donné
+// son consentement (notifWhatsapp) et que son profil porte un téléphone E.164,
+// sinon push Web — le comportement historique reste inchangé. Fenêtre large
+// (26h) car le cron Hobby Vercel ne tourne qu'1×/jour — mieux vaut un léger
+// recouvrement que manquer une offre publiée juste après le dernier passage.
 const SEUIL_SCORE = 75;
 const FENETRE_HEURES = 26;
 const MAX_ALERTES_PAR_UTILISATEUR = 2;
@@ -23,12 +26,17 @@ export async function GET(req: NextRequest) {
   const depuis = new Date(Date.now() - FENETRE_HEURES * 3600_000);
 
   const utilisateurs = await prisma.user.findMany({
-    where: { plan: { in: ["pro", "pro_plus"] }, suspendu: false, pushSubs: { some: {} } },
+    where: {
+      plan: { in: ["pro", "pro_plus"] },
+      suspendu: false,
+      OR: [{ pushSubs: { some: {} } }, { notifWhatsapp: true }],
+    },
     select: {
       id: true,
+      notifWhatsapp: true,
       profils: {
         where: { actif: true },
-        select: { formations: true, experiences: true, competences: true, langues: true, objectifs: true, nationalite: true, complete: true },
+        select: { telephone: true, formations: true, experiences: true, competences: true, langues: true, objectifs: true, nationalite: true, complete: true },
         take: 1,
       },
     },
@@ -64,11 +72,27 @@ export async function GET(req: NextRequest) {
       .slice(0, MAX_ALERTES_PAR_UTILISATEUR);
 
     for (const { o, score } of notees) {
-      await envoyerNotification(u.id, {
-        title: `Offre à ${score}% de correspondance`,
-        body: `${o.intitule} — ${o.organisme}`,
-        url: `/opportunites/${o.id}`,
-      });
+      let envoyee = false;
+      if (u.notifWhatsapp) {
+        const tel = normaliserTelephone(profil.telephone);
+        if (tel) {
+          const res = await envoyerAlerteOffre(tel, {
+            score,
+            intitule: o.intitule,
+            organisme: o.organisme,
+            url: lienOffreWhatsapp(o.id),
+          });
+          envoyee = res.ok;
+          if (!res.ok) console.warn(`[alertes] WhatsApp refusé pour ${u.id} (${o.intitule}) : ${res.erreur}`);
+        }
+      }
+      if (!envoyee) {
+        await envoyerNotification(u.id, {
+          title: `Offre à ${score}% de correspondance`,
+          body: `${o.intitule} — ${o.organisme}`,
+          url: `/opportunites/${o.id}`,
+        });
+      }
       await prisma.alerteEnvoyee.create({ data: { userId: u.id, opportuniteId: o.id } });
       envoyees++;
     }

@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { envoyerTexte } from "@/lib/whatsapp/envoyer";
 
 /**
  * Webhook WhatsApp Cloud API (Meta).
@@ -32,25 +33,6 @@ type WebhookPayload = {
   }>;
 };
 
-async function envoyerMessage(to: string, texte: string) {
-  const accessToken = process.env.WHATSAPP_ACCESS_TOKEN;
-  const phoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID;
-  if (!accessToken || !phoneNumberId) {
-    console.warn("[whatsapp] WHATSAPP_ACCESS_TOKEN ou WHATSAPP_PHONE_NUMBER_ID manquant — réponse non envoyée.");
-    return;
-  }
-  await fetch(`https://graph.facebook.com/v22.0/${phoneNumberId}/messages`, {
-    method: "POST",
-    headers: { Authorization: `Bearer ${accessToken}`, "Content-Type": "application/json" },
-    body: JSON.stringify({
-      messaging_product: "whatsapp",
-      to,
-      type: "text",
-      text: { body: texte },
-    }),
-  }).catch((e) => console.error("[whatsapp] échec envoi message :", e));
-}
-
 export async function POST(req: Request) {
   const payload = (await req.json().catch(() => null)) as WebhookPayload | null;
 
@@ -62,7 +44,7 @@ export async function POST(req: Request) {
       // V1 : simple accusé de réception, pour valider la connexion de bout en
       // bout. La vraie logique (lier le numéro à un compte, générer un
       // dossier, etc.) viendra remplacer ceci à l'étape suivante.
-      void envoyerMessage(m.from, "Bonjour, ici Matchwork. La connexion WhatsApp fonctionne — la suite arrive bientôt.");
+      void envoyerTexte(m.from, "Bonjour, ici Matchwork. La connexion WhatsApp fonctionne — la suite arrive bientôt.");
     }
   }
 
