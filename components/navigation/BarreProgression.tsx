@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 
 /**
@@ -15,6 +15,10 @@ export function BarreProgression() {
   const pathname = usePathname();
   const [actif, setActif] = useState(false);
   const [largeur, setLargeur] = useState(0);
+  // Chemin depuis lequel la navigation a été lancée. Tant que `pathname` ne
+  // s'en écarte pas, la page suivante n'est pas arrivée : la barre continue
+  // d'avancer au lieu de se compléter.
+  const cheminDepart = useRef<string | null>(null);
 
   // Toute navigation interne (clic sur un <a> interne) lance la barre.
   useEffect(() => {
@@ -29,6 +33,7 @@ export function BarreProgression() {
       if (url.origin !== window.location.origin) return;
       if (url.pathname === pathname) return;
 
+      cheminDepart.current = pathname;
       setActif(true);
       setLargeur(8);
     }
@@ -48,18 +53,41 @@ export function BarreProgression() {
         return l + Math.max(0.5, reste * 0.08);
       });
     }, 120);
-    return () => clearInterval(t);
+    // Garde-fou : une navigation annulée (lien vers un téléchargement traité
+    // hors routeur, erreur réseau, retour arrière immédiat) ne change jamais le
+    // pathname. Sans cette sortie, la barre resterait figée à 90 % pour le
+    // reste de la session.
+    const abandon = setTimeout(() => {
+      cheminDepart.current = null;
+      setActif(false);
+      setLargeur(0);
+    }, 15_000);
+    return () => {
+      clearInterval(t);
+      clearTimeout(abandon);
+    };
   }, [actif]);
 
-  // La page est arrivée : complète la barre puis la retire.
+  // La page est arrivée — c'est-à-dire que `pathname` a quitté le chemin de
+  // départ : on complète la barre puis on la retire. Sans cette comparaison,
+  // l'effet se déclencherait dès le clic (quand `actif` passe à true) et la
+  // barre se viderait en 260 ms sans rapport avec la durée réelle de la
+  // navigation. Le remplissage passe par un rAF plutôt que par le corps de
+  // l'effet, pour ne pas provoquer de rendu en cascade.
   useEffect(() => {
     if (!actif) return;
-    setLargeur(100);
+    if (cheminDepart.current === null || cheminDepart.current === pathname) return;
+
+    const frame = requestAnimationFrame(() => setLargeur(100));
     const t = setTimeout(() => {
+      cheminDepart.current = null;
       setActif(false);
       setLargeur(0);
     }, 260);
-    return () => clearTimeout(t);
+    return () => {
+      cancelAnimationFrame(frame);
+      clearTimeout(t);
+    };
   }, [pathname, actif]);
 
   if (!actif) return null;

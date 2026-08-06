@@ -19,8 +19,16 @@ export function Ligne({ w = "100%", h = 14, style }: { w?: number | string; h?: 
   return <Bloc style={{ height: h, width: w, borderRadius: 6, ...style }} />;
 }
 
-/** Barre d'en-tête collante qui reproduit la géométrie d'EnteteApp. */
-export function BarreEntete({ largeur = 150 }: { largeur?: number | string }) {
+/**
+ * Barre d'en-tête collante qui reproduit la géométrie d'EnteteApp.
+ *
+ * Quand le titre de la page est connu d'avance (les catégories d'opportunités,
+ * par exemple), on l'affiche pour de vrai plutôt qu'en bloc gris : l'utilisateur
+ * sait immédiatement où il vient d'arriver, au lieu de regarder un squelette
+ * anonyme. Les classes reprennent exactement celles d'EnteteApp pour qu'aucun
+ * décalage ne se produise au remplacement.
+ */
+export function BarreEntete({ largeur = 150, titre }: { largeur?: number | string; titre?: string }) {
   return (
     <header
       className="sticky top-0 z-30 px-4 py-3 flex items-center gap-3"
@@ -31,7 +39,13 @@ export function BarreEntete({ largeur = 150 }: { largeur?: number | string }) {
         borderBottom: "1px solid var(--border)",
       }}
     >
-      <Ligne w={largeur} h={20} />
+      {titre ? (
+        <h1 className="text-base font-semibold truncate" style={{ color: "var(--text)" }}>
+          {titre}
+        </h1>
+      ) : (
+        <Ligne w={largeur} h={20} />
+      )}
     </header>
   );
 }
@@ -119,7 +133,7 @@ export function GrilleStatsSquelette({ nb = 5 }: { nb?: number }) {
 export function ChargementFil({ titre }: { titre: string }) {
   return (
     <>
-      <BarreEntete />
+      <BarreEntete titre={titre} />
       <main className="flex-1 px-4 py-6 max-w-xl mx-auto w-full" aria-busy="true">
         <div className="mb-6">
           <Ligne w={150} h={24} />
