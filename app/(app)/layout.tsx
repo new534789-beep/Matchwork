@@ -1,6 +1,5 @@
-import { sessionCourante } from "@/lib/session";
+import { sessionCourante, getUtilisateur } from "@/lib/session";
 import { redirect } from "next/navigation";
-import { prisma } from "@/lib/prisma";
 import { AppShell } from "@/components/navigation/AppShell";
 import { SessionTrackerWrapper } from "@/components/admin/SessionTrackerWrapper";
 
@@ -16,7 +15,7 @@ export default async function LayoutApp({ children }: { children: React.ReactNod
   const userId = (session.user as { id?: string }).id;
   let justSignedUp = false;
   if (userId) {
-    const u = await prisma.user.findUnique({ where: { id: userId }, select: { suspendu: true, createdAt: true } });
+    const u = await getUtilisateur(userId);
     if (u?.suspendu) redirect("/connexion?suspendu=1");
     justSignedUp = !!u && estNouveauCompte(u.createdAt);
   }

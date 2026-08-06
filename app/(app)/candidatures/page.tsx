@@ -1,4 +1,4 @@
-import { sessionCourante } from "@/lib/session";
+import { sessionCourante, getUtilisateur } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import Link from "next/link";
@@ -29,7 +29,7 @@ export default async function Candidatures() {
         _count: { select: { docsGeneres: true } },
       },
     }),
-    prisma.user.findUnique({ where: { id: session.user.id }, select: { plan: true } }),
+    getUtilisateur(session.user.id),
   ]);
   const planPro = user?.plan === "pro" || user?.plan === "pro_plus";
 

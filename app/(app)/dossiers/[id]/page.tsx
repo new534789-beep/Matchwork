@@ -1,4 +1,4 @@
-import { sessionCourante } from "@/lib/session";
+import { sessionCourante, getUtilisateur } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import { redirect, notFound } from "next/navigation";
 import { EnteteApp } from "@/components/navigation/EnteteApp";
@@ -73,7 +73,7 @@ export default async function DossierPage({ params }: Props) {
       },
     }),
     prisma.document.findMany({ where: { userId: session.user.id }, select: { type: true } }),
-    prisma.user.findUnique({ where: { id: session.user.id }, select: { plan: true } }),
+    getUtilisateur(session.user.id),
   ]);
 
   if (!dossier || dossier.userId !== session.user.id) notFound();

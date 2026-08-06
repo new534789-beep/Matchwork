@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import { sessionCourante } from "@/lib/session";
+import { sessionCourante, getUtilisateur } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import Link from "next/link";
@@ -90,7 +90,7 @@ export default async function TableauDeBord() {
 
   const [profil, user, interactions, dossiers, documents, quota] = await Promise.all([
     getProfilActif(userId),
-    prisma.user.findUnique({ where: { id: userId }, select: { email: true, plan: true } }),
+    getUtilisateur(userId),
     prisma.interaction.findMany({
       where: { userId, decision: "interesse" },
       include: { opportunite: { select: { id: true, intitule: true, organisme: true, dateLimite: true, piecesExigees: true } } },

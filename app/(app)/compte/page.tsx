@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import { sessionCourante } from "@/lib/session";
+import { sessionCourante, getUtilisateur } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import { EnteteApp } from "@/components/navigation/EnteteApp";
@@ -14,7 +14,7 @@ export default async function Compte() {
   const quotaMax = parseInt(process.env.QUOTA_GRATUIT_JOURNALIER ?? "3") || 3;
 
   const [user, quota, paiements] = await Promise.all([
-    prisma.user.findUnique({ where: { id: userId }, select: { plan: true, email: true } }),
+    getUtilisateur(userId),
     prisma.quotaUsage.findUnique({ where: { userId_mois: { userId, mois } } }),
     prisma.paiement.findMany({
       where: { userId },

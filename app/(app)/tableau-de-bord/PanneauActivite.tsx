@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { getUtilisateur } from "@/lib/session";
 
 /**
  * Panneau « Activité » du tableau de bord, isolé dans sa propre frontière
@@ -9,7 +10,7 @@ import { prisma } from "@/lib/prisma";
 export default async function PanneauActivite({ userId }: { userId: string }) {
   const [allInteractions, user, dossiers, documents] = await Promise.all([
     prisma.interaction.findMany({ where: { userId }, select: { decision: true } }),
-    prisma.user.findUnique({ where: { id: userId }, select: { createdAt: true } }),
+    getUtilisateur(userId),
     prisma.dossier.count({ where: { userId } }),
     prisma.document.count({ where: { userId } }),
   ]);

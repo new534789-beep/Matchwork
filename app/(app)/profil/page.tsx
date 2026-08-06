@@ -1,5 +1,4 @@
-import { sessionCourante } from "@/lib/session";
-import { prisma } from "@/lib/prisma";
+import { sessionCourante, getUtilisateur } from "@/lib/session";
 import { redirect } from "next/navigation";
 import { SelecteurProfils } from "@/components/profil/SelecteurProfils";
 import { EnteteApp } from "@/components/navigation/EnteteApp";
@@ -24,7 +23,7 @@ export default async function Profil() {
 
   const [profilBrut, user] = await Promise.all([
     getProfilActif(session.user.id),
-    prisma.user.findUnique({ where: { id: session.user.id }, select: { plan: true } }),
+    getUtilisateur(session.user.id),
   ]);
 
   const profil = parseProfil(profilBrut as unknown as Record<string, unknown> | null);
