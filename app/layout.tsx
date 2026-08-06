@@ -1,9 +1,7 @@
 import type { Metadata } from "next";
 import { Geist } from "next/font/google";
 import { ThemeProvider } from "@/lib/theme/ThemeContext";
-import { GenerationProvider } from "@/lib/generation/GenerationContext";
 import { CookieBanner } from "@/components/public/CookieBanner";
-import { ToastProvider } from "@/components/ui/Toast";
 import { getSiteUrl } from "@/lib/site-url";
 import "./globals.css";
 
@@ -98,12 +96,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body className="font-sans antialiased min-h-full flex flex-col">
         <ThemeProvider>
-          <GenerationProvider>
-            <ToastProvider>
-              {children}
-              <CookieBanner />
-            </ToastProvider>
-          </GenerationProvider>
+          {children}
+          <CookieBanner />
         </ThemeProvider>
       </body>
     </html>

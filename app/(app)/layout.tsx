@@ -2,6 +2,8 @@ import { sessionCourante, getUtilisateur } from "@/lib/session";
 import { redirect } from "next/navigation";
 import { AppShell } from "@/components/navigation/AppShell";
 import { SessionTrackerWrapper } from "@/components/admin/SessionTrackerWrapper";
+import { GenerationProvider } from "@/lib/generation/GenerationContext";
+import { ToastProvider } from "@/components/ui/Toast";
 
 /** Compte créé il y a moins de 5 min → on propose l'installation PWA. */
 function estNouveauCompte(createdAt: Date): boolean {
@@ -22,8 +24,12 @@ export default async function LayoutApp({ children }: { children: React.ReactNod
 
   return (
     <div className="min-h-screen flex" style={{ background: "var(--bg)" }}>
-      <SessionTrackerWrapper />
-      <AppShell userEmail={session.user.email ?? ""} role={(session.user as { role?: string }).role} justSignedUp={justSignedUp}>{children}</AppShell>
+      <GenerationProvider>
+        <ToastProvider>
+          <SessionTrackerWrapper />
+          <AppShell userEmail={session.user.email ?? ""} role={(session.user as { role?: string }).role} justSignedUp={justSignedUp}>{children}</AppShell>
+        </ToastProvider>
+      </GenerationProvider>
     </div>
   );
 }
